@@ -1,6 +1,7 @@
 # flutter-stylizer README
 
-This is the README for your extension "flutter-stylizer". After writing up a brief description, we recommend including the following sections.
+Flutter Stylizer organizes your Flutter classes in an opinionated and
+consistent manner.
 
 ## Features
 
