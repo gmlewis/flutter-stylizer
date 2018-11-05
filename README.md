@@ -8,7 +8,7 @@ consistent manner.
 Flutter Stylizer organizes the class(es) within a `*.dart` file
 in the following manner (with a blank line separating these parts):
 
-* The main constructor is listed first, if it exists.
+* The main (possibly factory) constructor is listed first, if it exists.
 * Any named constructors are listed next, in sorted order.
 * Any static (class) variables are listed next, in sorted order.
 * Any instance variables are listed next, in sorted order.
@@ -33,6 +33,12 @@ enforced.
 
 This plugin does not have a full-featured Dart syntax tree parser.
 As a result, it may come across Dart code that it doesn't handle properly.
+
+For example, code that follows the end of a multiline comment on the same
+line is not supported. Unusual code like this will most likely not ever be
+supported even though the Dart compiler can handle it. The `dartfmt` tool
+typically makes sane-looking code, and this is the type of code that is
+being targeted by this extension.
 
 It is my goal to be able to use this plugin on large group projects, so
 every attempt has been made to make this robust. If, however, problems

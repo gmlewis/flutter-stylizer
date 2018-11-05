@@ -36,33 +36,115 @@ class DartLine {
 }
 
 class DartClass {
+    editor: vscode.TextEditor;
     className: string;
     classOffset: number;
     openCurlyOffset: number;
     closeCurlyOffset: number;
-    lines: Array<DartLine>;
+    fullBuf: string;
+    lines: Array<DartLine>;  // Line 0 is always the open curly brace.
 
-    constructor(className: string, classOffset: number, openCurlyOffset: number, closeCurlyOffset: number) {
+    constructor(editor: vscode.TextEditor, className: string, classOffset: number, openCurlyOffset: number, closeCurlyOffset: number) {
+        this.editor = editor;
         this.className = className;
         this.classOffset = classOffset;
         this.openCurlyOffset = openCurlyOffset;
         this.closeCurlyOffset = closeCurlyOffset;
+        this.fullBuf = "";
         this.lines = [];
     }
 
-    findFeatures(buf: string) {
+    async findFeatures(buf: string) {
+        this.fullBuf = buf;
         let lines = buf.split('\n');
         console.log("lines.length=" + lines.length);
         lines.forEach((line) => this.lines.push(new DartLine(line)));
 
-        // let mainConstructorOffset = buf.indexOf(this.className + '(');
-        // console.log('mainConstructorOffset=', mainConstructorOffset);
+        this.identifyMultiLineComments();
+        await this.identifyMainConstructor();
 
         this.lines.forEach((line, index) => console.log('line #' + index.toString() + ' type=' + LineType[line.lineType] + ': ' + line.line));
+    }
+
+    private identifyMultiLineComments() {
+        let inComment = false;
+        for (let i = 1; i < this.lines.length; i++) {
+            let line = this.lines[i];
+            if (line.lineType !== LineType.Unknown) {
+                continue;
+            }
+            if (inComment) {
+                this.lines[i].lineType = LineType.MultiLineComment;
+                // Note: a multiline comment followed by code on the same
+                // line is not supported.
+                let endComment = line.stripped.indexOf('*/');
+                if (endComment >= 0) {
+                    inComment = false;
+                    if (line.stripped.lastIndexOf('/*') > endComment + 1) {
+                        inComment = true;
+                    }
+                }
+                continue;
+            }
+            let startComment = line.stripped.indexOf('/*');
+            if (startComment >= 0) {
+                inComment = true;
+                this.lines[i].lineType = LineType.MultiLineComment;
+                if (line.stripped.lastIndexOf('*/') > startComment + 1) {
+                    inComment = false;
+                }
+            }
+        }
+    }
+
+    private async identifyMainConstructor() {
+        let className = this.className + '(';
+        let found = -1;
+        for (let i = 1; i < this.lines.length; i++) {
+            let line = this.lines[i];
+            if (line.lineType !== LineType.Unknown) {
+                continue;
+            }
+            let offset = line.stripped.indexOf(className);
+            if (offset >= 0) {
+                this.lines[i].lineType = LineType.MainConstructor;
+                found = i;
+                break;
+            }
+        }
+
+        // Identify all lines within the main (or factory) constructor.
+        let lineOffset = this.fullBuf.indexOf(this.lines[found].line);
+        // console.log('lineOffset=', lineOffset, '+', this.openCurlyOffset, '=', lineOffset + this.openCurlyOffset);
+        let inLineOffset = this.lines[found].line.indexOf(className);
+        let absOpenParenOffset = this.openCurlyOffset + lineOffset + inLineOffset + className.length - 1;
+        console.log('inLineOffset=', inLineOffset, ', len=', className.length, ', paren=', absOpenParenOffset);
+        let absCloseParenOffset = await findMatchingParen(this.editor, absOpenParenOffset);
+        console.log('absCloseParenOffset=', absCloseParenOffset);
+
+        // Preserve the comment lines leading up to the main constructor.
+        for (found--; found > 0; found--) {
+            if (this.lines[found].lineType === LineType.SingleLineComment) {
+                this.lines[found].lineType = LineType.MainConstructor;
+                continue;
+            }
+            break;
+        }
     }
 }
 
 const matchClassRE = /^class\s+(\S+)\s*.*$/mg;
+
+const findMatchingParen = async (editor: vscode.TextEditor, openParenOffset: number) => {
+    // console.log('findMatchingParen: openParenOffset=' + openParenOffset.toString());
+    const position = editor.document.positionAt(openParenOffset);
+    editor.selection = new vscode.Selection(position, position);
+    // console.log('before moving cursor: offset=' + editor.document.offsetAt(editor.selection.active).toString());
+    await vscode.commands.executeCommand('editor.action.jumpToBracket');
+    const result = editor.document.offsetAt(editor.selection.active);
+    // console.log('after moving cursor: offset=' + result.toString());
+    return result;
+};
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "flutter-stylizer" is now active!');
@@ -101,14 +183,14 @@ export function activate(context: vscode.ExtensionContext) {
                 console.log('expected "{" after "class" at offset ' + classOffset.toString());
                 return classes;
             }
-            let closeCurlyOffset = await findMatchingCurly(editor, openCurlyOffset);
+            let closeCurlyOffset = await findMatchingParen(editor, openCurlyOffset);
             console.log('closeCurlyOffset=', closeCurlyOffset);
             if (closeCurlyOffset <= openCurlyOffset) {
                 console.log('expected "}" after "{" at offset ' + openCurlyOffset.toString());
                 return classes;
             }
-            let dartClass = new DartClass(className, classOffset, openCurlyOffset, closeCurlyOffset);
-            dartClass.findFeatures(buf.substring(openCurlyOffset, closeCurlyOffset));
+            let dartClass = new DartClass(editor, className, classOffset, openCurlyOffset, closeCurlyOffset);
+            await dartClass.findFeatures(buf.substring(openCurlyOffset, closeCurlyOffset));
             classes.push(dartClass);
         }
         return classes;
@@ -117,17 +199,6 @@ export function activate(context: vscode.ExtensionContext) {
     const findOpenCurlyOffset = (buf: string, startOffset: number) => {
         const offset = buf.substring(startOffset).indexOf('{');
         return startOffset + offset;
-    };
-
-    const findMatchingCurly = async (editor: vscode.TextEditor, openCurlyOffset: number) => {
-        // console.log('findMatchingCurly: openCurlyOffset=' + openCurlyOffset.toString());
-        const position = editor.document.positionAt(openCurlyOffset);
-        editor.selection = new vscode.Selection(position, position);
-        // console.log('before moving cursor: offset=' + editor.document.offsetAt(editor.selection.active).toString());
-        await vscode.commands.executeCommand('editor.action.jumpToBracket');
-        const result = editor.document.offsetAt(editor.selection.active);
-        // console.log('after moving cursor: offset=' + result.toString());
-        return result;
     };
 
     context.subscriptions.push(disposable);
