@@ -33,12 +33,7 @@ enforced.
 
 This plugin does not have a full-featured Dart syntax tree parser.
 As a result, it may come across Dart code that it doesn't handle properly.
-
-For example, code that follows the end of a multiline comment on the same
-line is not supported. Unusual code like this will most likely not ever be
-supported even though the Dart compiler can handle it. The `dartfmt` tool
-typically makes sane-looking code, and this is the type of code that is
-being targeted by this extension.
+See the [Known Issues]() section below for more details.
 
 It is my goal to be able to use this plugin on large group projects, so
 every attempt has been made to make this robust. If, however, problems
@@ -52,52 +47,44 @@ incorporate the fix into the plugin.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+TBD
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+TBD
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+* Flutter Stylizer is line-oriented. It is meant to be run on code that
+  is nicely separated by lines and not obfuscated.
+* Code that follows the end of a multiline comment on the same
+  line is not supported. Unusual code like this will most likely not ever be
+  supported even though the Dart compiler can handle it. The `dartfmt` tool
+  typically makes sane-looking code, and this is the type of code that is
+  being targeted by this extension.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Flutter Stylizer is currently a work-in-progress and has no releases.
 
 -----------------------------------------------------------------------------------------------------------
 
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
 **Enjoy!**
+
+----------------------------------------------------------------------
+
+# License
+
+Copyright 2018 Glenn M. Lewis. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
