@@ -1,7 +1,7 @@
 # flutter-stylizer README
 
-Flutter Stylizer organizes your Flutter classes in an opinionated and
-consistent manner.
+Flutter Stylizer is a VSCode extension that organizes your Flutter classes
+in an opinionated and consistent manner.
 
 ## Features
 
