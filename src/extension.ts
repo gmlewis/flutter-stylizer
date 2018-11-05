@@ -62,6 +62,7 @@ class DartClass {
 
         this.identifyMultiLineComments();
         await this.identifyMainConstructor();
+        await this.identifyNamedConstructors();
 
         this.lines.forEach((line, index) => console.log('line #' + index.toString() + ' type=' + LineType[line.lineType] + ': ' + line.line));
     }
@@ -98,25 +99,56 @@ class DartClass {
     }
 
     private async identifyMainConstructor() {
-        let className = this.className + '(';
-        let found = -1;
+        const className = this.className + '(';
         for (let i = 1; i < this.lines.length; i++) {
-            let line = this.lines[i];
+            const line = this.lines[i];
             if (line.lineType !== LineType.Unknown) {
                 continue;
             }
-            let offset = line.stripped.indexOf(className);
+            const offset = line.stripped.indexOf(className);
             if (offset >= 0) {
+                if (offset > 0) {
+                    const char = line.stripped.substring(offset - 1, offset);
+                    if (char !== ' ' && char !== '\t') {
+                        continue;
+                    }
+                }
                 this.lines[i].lineType = LineType.MainConstructor;
-                found = i;
+                await this.markMethod(i, className, LineType.MainConstructor);
                 break;
             }
         }
+    }
 
+    private async identifyNamedConstructors() {
+        const className = this.className + '.';
+        for (let i = 1; i < this.lines.length; i++) {
+            const line = this.lines[i];
+            if (line.lineType !== LineType.Unknown) {
+                continue;
+            }
+            const offset = line.stripped.indexOf(className);
+            if (offset >= 0) {
+                if (offset > 0) {
+                    const char = line.stripped.substring(offset - 1, offset);
+                    if (char !== ' ' && char !== '\t') {
+                        continue;
+                    }
+                }
+                const openParenOffset = offset + line.stripped.substring(offset).indexOf('(');
+                const namedConstructor = line.stripped.substring(offset, openParenOffset);
+                console.log('namedContructor=', namedConstructor);
+                this.lines[i].lineType = LineType.NamedConstructor;
+                await this.markMethod(i, namedConstructor, LineType.NamedConstructor);
+            }
+        }
+    }
+
+    private async markMethod(lineNum: number, className: string, lineType: LineType) {
         // Identify all lines within the main (or factory) constructor.
-        const lineOffset = this.fullBuf.indexOf(this.lines[found].line);
+        const lineOffset = this.fullBuf.indexOf(this.lines[lineNum].line);
         // console.log('lineOffset=', lineOffset, '+', this.openCurlyOffset, '=', lineOffset + this.openCurlyOffset);
-        const inLineOffset = this.lines[found].line.indexOf(className);
+        const inLineOffset = this.lines[lineNum].line.indexOf(className);
         const relOpenParenOffset = lineOffset + inLineOffset + className.length - 1;
         const absOpenParenOffset = this.openCurlyOffset + relOpenParenOffset;
         // console.log('inLineOffset=', inLineOffset, ', len=', className.length, ', paren=', absOpenParenOffset);
@@ -136,13 +168,13 @@ class DartClass {
         const numLines = constructorBuf.split('\n').length;
         // console.log('numLines=', numLines);
         for (let i = 0; i < numLines; i++) {
-            this.lines[found + i].lineType = LineType.MainConstructor;
+            this.lines[lineNum + i].lineType = lineType;
         }
 
-        // Preserve the comment lines leading up to the main constructor.
-        for (found--; found > 0; found--) {
-            if (this.lines[found].lineType === LineType.SingleLineComment) {
-                this.lines[found].lineType = LineType.MainConstructor;
+        // Preserve the comment lines leading up to the method.
+        for (lineNum--; lineNum > 0; lineNum--) {
+            if (this.lines[lineNum].lineType === LineType.SingleLineComment) {
+                this.lines[lineNum].lineType = lineType;
                 continue;
             }
             break;
