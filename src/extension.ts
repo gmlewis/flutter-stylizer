@@ -1,14 +1,64 @@
 'use strict';
 import * as vscode from 'vscode';
 
+const commentRE = /^(.*?)\s*\/\/.*$/;
+
+enum LineType {
+    Unknown,
+    BlankLine,
+    SingleLineComment,
+    MultiLineComment,
+    MainConstructor,
+    NamedConstructor,
+    StaticVariable,
+    InstanceVariable,
+    OverrideMethod,
+    OtherMethod,
+    BuildMethod,
+}
+
+class DartLine {
+    line: string;
+    stripped: string;
+    lineType: LineType;
+
+    constructor(line: string) {
+        this.line = line;
+        let m = commentRE.exec(line);
+        this.stripped = (m ? m[1] : this.line).trim();
+        this.lineType = LineType.Unknown;
+        if (this.stripped.length === 0) {
+            this.lineType = (line.indexOf('//') >= 0) ?
+                LineType.SingleLineComment : LineType.BlankLine;
+            return;
+        }
+    }
+}
+
 class DartClass {
+    className: string;
     classOffset: number;
     openCurlyOffset: number;
     closeCurlyOffset: number;
-    constructor(classOffset: number, openCurlyOffset: number, closeCurlyOffset: number) {
+    lines: Array<DartLine>;
+
+    constructor(className: string, classOffset: number, openCurlyOffset: number, closeCurlyOffset: number) {
+        this.className = className;
         this.classOffset = classOffset;
         this.openCurlyOffset = openCurlyOffset;
         this.closeCurlyOffset = closeCurlyOffset;
+        this.lines = [];
+    }
+
+    findFeatures(buf: string) {
+        let lines = buf.split('\n');
+        console.log("lines.length=" + lines.length);
+        lines.forEach((line) => this.lines.push(new DartLine(line)));
+
+        // let mainConstructorOffset = buf.indexOf(this.className + '(');
+        // console.log('mainConstructorOffset=', mainConstructorOffset);
+
+        this.lines.forEach((line, index) => console.log('line #' + index.toString() + ' type=' + LineType[line.lineType] + ': ' + line.line));
     }
 }
 
@@ -55,8 +105,11 @@ export function activate(context: vscode.ExtensionContext) {
             console.log('closeCurlyOffset=', closeCurlyOffset);
             if (closeCurlyOffset <= openCurlyOffset) {
                 console.log('expected "}" after "{" at offset ' + openCurlyOffset.toString());
+                return classes;
             }
-            classes.push(new DartClass(classOffset, openCurlyOffset, closeCurlyOffset));
+            let dartClass = new DartClass(className, classOffset, openCurlyOffset, closeCurlyOffset);
+            dartClass.findFeatures(buf.substring(openCurlyOffset, closeCurlyOffset));
+            classes.push(dartClass);
         }
         return classes;
     };

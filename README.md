@@ -6,13 +6,14 @@ consistent manner.
 ## Features
 
 Flutter Stylizer organizes the class(es) within a `*.dart` file
-in the following manner:
+in the following manner (with a blank line separating these parts):
 
-* All constructors are listed first, in sorted order.
-* All factory constructs are listed next, in sorted order.
-* All instance variables are listed next, in sorted order.
-* All `@override` methods are listed next, in sorted order.
-* All other methods are listed next in their original (unsorted) order.
+* The main constructor is listed first, if it exists.
+* Any named constructors are listed next, in sorted order.
+* Any static (class) variables are listed next, in sorted order.
+* Any instance variables are listed next, in sorted order.
+* Any `@override` methods are listed next, in sorted order.
+* Any other methods are listed next in their original (unchanged) order.
 * The `build` method is listed last.
 
 I have found that developer productivity increases when all code in
