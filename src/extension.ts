@@ -131,8 +131,13 @@ class DartClass {
         const absCloseCurlyOffset = await findMatchingParen(this.editor, absOpenCurlyOffset);
         // console.log('absCloseCurlyOffset=', absCloseCurlyOffset);
         const relCloseCurlyOffset = absCloseCurlyOffset - this.openCurlyOffset;
-        const constructorBuf = this.fullBuf.substring(relCloseParenOffset, relCloseCurlyOffset + 1);
-        console.log('contructorBuf=', constructorBuf);
+        const constructorBuf = this.fullBuf.substring(lineOffset, relCloseCurlyOffset + 1);
+        // console.log('contructorBuf=', constructorBuf);
+        const numLines = constructorBuf.split('\n').length;
+        // console.log('numLines=', numLines);
+        for (let i = 0; i < numLines; i++) {
+            this.lines[found + i].lineType = LineType.MainConstructor;
+        }
 
         // Preserve the comment lines leading up to the main constructor.
         for (found--; found > 0; found--) {
