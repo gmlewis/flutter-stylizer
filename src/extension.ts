@@ -114,25 +114,24 @@ class DartClass {
         }
 
         // Identify all lines within the main (or factory) constructor.
-        let lineOffset = this.fullBuf.indexOf(this.lines[found].line);
+        const lineOffset = this.fullBuf.indexOf(this.lines[found].line);
         // console.log('lineOffset=', lineOffset, '+', this.openCurlyOffset, '=', lineOffset + this.openCurlyOffset);
-        let inLineOffset = this.lines[found].line.indexOf(className);
-        let relOpenParenOffset = lineOffset + inLineOffset + className.length - 1;
-        let absOpenParenOffset = this.openCurlyOffset + relOpenParenOffset;
+        const inLineOffset = this.lines[found].line.indexOf(className);
+        const relOpenParenOffset = lineOffset + inLineOffset + className.length - 1;
+        const absOpenParenOffset = this.openCurlyOffset + relOpenParenOffset;
         // console.log('inLineOffset=', inLineOffset, ', len=', className.length, ', paren=', absOpenParenOffset);
-        let absCloseParenOffset = await findMatchingParen(this.editor, absOpenParenOffset);
+        const absCloseParenOffset = await findMatchingParen(this.editor, absOpenParenOffset);
         // console.log('absCloseParenOffset=', absCloseParenOffset);
-        let relCloseParenOffset = absCloseParenOffset - this.openCurlyOffset;
+        const relCloseParenOffset = absCloseParenOffset - this.openCurlyOffset;
         // console.log('relCloseParenOffset=', relCloseParenOffset, ', subtring=', this.fullBuf.substring(relCloseParenOffset));
-        let bufSubset = this.fullBuf.substring(relCloseParenOffset);
-        let curlyDeltaOffset = bufSubset.indexOf('{');
+        const curlyDeltaOffset = this.fullBuf.substring(relCloseParenOffset).indexOf('{');
         // console.log('curlyDeltaOffset=', curlyDeltaOffset);
-        let absOpenCurlyOffset = absCloseParenOffset + curlyDeltaOffset;
+        const absOpenCurlyOffset = absCloseParenOffset + curlyDeltaOffset;
         // console.log('absOpenCurlyOffset=', absOpenCurlyOffset);
-        let absCloseCurlyOffset = await findMatchingParen(this.editor, absOpenCurlyOffset);
+        const absCloseCurlyOffset = await findMatchingParen(this.editor, absOpenCurlyOffset);
         // console.log('absCloseCurlyOffset=', absCloseCurlyOffset);
-        let relCloseCurlyOffset = absCloseCurlyOffset - this.openCurlyOffset;
-        let constructorBuf = bufSubset.substring(0, relCloseCurlyOffset - relCloseParenOffset + 1);
+        const relCloseCurlyOffset = absCloseCurlyOffset - this.openCurlyOffset;
+        const constructorBuf = this.fullBuf.substring(relCloseParenOffset, relCloseCurlyOffset + 1);
         console.log('contructorBuf=', constructorBuf);
 
         // Preserve the comment lines leading up to the main constructor.
