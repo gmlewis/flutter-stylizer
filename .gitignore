@@ -1,6 +1,5 @@
 out
 node_modules
-.vscode/
 .vscode-test/
 *.vsix
 .nyc_output/
