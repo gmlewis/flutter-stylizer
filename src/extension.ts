@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 
 const commentRE = /^(.*?)\s*\/\/.*$/;
 
-enum LineType {
+enum EntityType {
     Unknown,
     BlankLine,
     SingleLineComment,
@@ -20,19 +20,24 @@ enum LineType {
 class DartLine {
     line: string;
     stripped: string;
-    lineType: LineType;
+    entityType: EntityType = EntityType.Unknown;
 
     constructor(line: string) {
         this.line = line;
         let m = commentRE.exec(line);
         this.stripped = (m ? m[1] : this.line).trim();
-        this.lineType = LineType.Unknown;
         if (this.stripped.length === 0) {
-            this.lineType = (line.indexOf('//') >= 0) ?
-                LineType.SingleLineComment : LineType.BlankLine;
-            return;
+            this.entityType = (line.indexOf('//') >= 0) ?
+                EntityType.SingleLineComment : EntityType.BlankLine;
         }
     }
+}
+
+// DartEntity represents a single, independent feature of a DartClass.
+class DartEntity {
+    entityType: EntityType = EntityType.Unknown;
+    lines: Array<DartLine> = [];
+    name: string = "";  // Used for sorting, but could be "".
 }
 
 class DartClass {
@@ -41,8 +46,15 @@ class DartClass {
     classOffset: number;
     openCurlyOffset: number;
     closeCurlyOffset: number;
-    fullBuf: string;
-    lines: Array<DartLine>;  // Line 0 is always the open curly brace.
+    fullBuf: string = "";
+    lines: Array<DartLine> = [];  // Line 0 is always the open curly brace.
+    theConstructor: DartEntity | undefined = undefined;
+    namedConstructors: Array<DartEntity> = [];
+    staticVariables: Array<DartEntity> = [];
+    instanceVariables: Array<DartEntity> = [];
+    overrideMethods: Array<DartEntity> = [];
+    otherMethods: Array<DartEntity> = [];
+    buildMethod: DartEntity | undefined = undefined;
 
     constructor(editor: vscode.TextEditor, className: string, classOffset: number, openCurlyOffset: number, closeCurlyOffset: number) {
         this.editor = editor;
@@ -50,8 +62,6 @@ class DartClass {
         this.classOffset = classOffset;
         this.openCurlyOffset = openCurlyOffset;
         this.closeCurlyOffset = closeCurlyOffset;
-        this.fullBuf = "";
-        this.lines = [];
     }
 
     async findFeatures(buf: string) {
@@ -63,19 +73,23 @@ class DartClass {
         this.identifyMultiLineComments();
         await this.identifyMainConstructor();
         await this.identifyNamedConstructors();
+        await this.identifyOverrideMethods();
+        await this.identifyOtherMethods();
+        await this.identifyStaticVariables();
+        await this.identifyInstanceVariables();
 
-        this.lines.forEach((line, index) => console.log('line #' + index.toString() + ' type=' + LineType[line.lineType] + ': ' + line.line));
+        this.lines.forEach((line, index) => console.log('line #' + index.toString() + ' type=' + EntityType[line.entityType] + ': ' + line.line));
     }
 
     private identifyMultiLineComments() {
         let inComment = false;
         for (let i = 1; i < this.lines.length; i++) {
             let line = this.lines[i];
-            if (line.lineType !== LineType.Unknown) {
+            if (line.entityType !== EntityType.Unknown) {
                 continue;
             }
             if (inComment) {
-                this.lines[i].lineType = LineType.MultiLineComment;
+                this.lines[i].entityType = EntityType.MultiLineComment;
                 // Note: a multiline comment followed by code on the same
                 // line is not supported.
                 let endComment = line.stripped.indexOf('*/');
@@ -90,7 +104,7 @@ class DartClass {
             let startComment = line.stripped.indexOf('/*');
             if (startComment >= 0) {
                 inComment = true;
-                this.lines[i].lineType = LineType.MultiLineComment;
+                this.lines[i].entityType = EntityType.MultiLineComment;
                 if (line.stripped.lastIndexOf('*/') > startComment + 1) {
                     inComment = false;
                 }
@@ -102,7 +116,7 @@ class DartClass {
         const className = this.className + '(';
         for (let i = 1; i < this.lines.length; i++) {
             const line = this.lines[i];
-            if (line.lineType !== LineType.Unknown) {
+            if (line.entityType !== EntityType.Unknown) {
                 continue;
             }
             const offset = line.stripped.indexOf(className);
@@ -113,8 +127,8 @@ class DartClass {
                         continue;
                     }
                 }
-                this.lines[i].lineType = LineType.MainConstructor;
-                await this.markMethod(i, className, LineType.MainConstructor);
+                this.lines[i].entityType = EntityType.MainConstructor;
+                this.theConstructor = await this.markMethod(i, className, EntityType.MainConstructor);
                 break;
             }
         }
@@ -124,7 +138,7 @@ class DartClass {
         const className = this.className + '.';
         for (let i = 1; i < this.lines.length; i++) {
             const line = this.lines[i];
-            if (line.lineType !== LineType.Unknown) {
+            if (line.entityType !== EntityType.Unknown) {
                 continue;
             }
             const offset = line.stripped.indexOf(className);
@@ -137,21 +151,111 @@ class DartClass {
                 }
                 const openParenOffset = offset + line.stripped.substring(offset).indexOf('(');
                 const namedConstructor = line.stripped.substring(offset, openParenOffset);
-                console.log('namedContructor=', namedConstructor);
-                this.lines[i].lineType = LineType.NamedConstructor;
-                await this.markMethod(i, namedConstructor, LineType.NamedConstructor);
+                // console.log('namedContructor=', namedConstructor);
+                this.lines[i].entityType = EntityType.NamedConstructor;
+                let entity = await this.markMethod(i, namedConstructor, EntityType.NamedConstructor);
+                this.namedConstructors.push(entity);
             }
         }
     }
 
-    private async markMethod(lineNum: number, className: string, lineType: LineType) {
+    private async identifyOverrideMethods() {
+        for (let i = 1; i < this.lines.length; i++) {
+            const line = this.lines[i];
+            if (line.entityType !== EntityType.Unknown) {
+                continue;
+            }
+
+            if (line.stripped.startsWith('@override') && i < this.lines.length - 1) {
+                const offset = this.lines[i + 1].stripped.indexOf('(');
+                if (offset >= 0) {
+                    const ss = this.lines[i + 1].stripped.substring(0, offset);
+                    const nameOffset = ss.lastIndexOf(' ') + 1;
+                    const name = ss.substring(nameOffset);
+                    const entityType = (name === 'build') ? EntityType.BuildMethod : EntityType.OverrideMethod;
+                    this.lines[i].entityType = entityType;
+                    let entity = await this.markMethod(i + 1, name, entityType);
+                    entity.lines.unshift(this.lines[i]);
+                    if (name === 'build') {
+                        this.buildMethod = entity;
+                    } else {
+                        this.overrideMethods.push(entity);
+                    }
+                }
+            }
+        }
+    }
+
+    private async identifyOtherMethods() {
+        for (let i = 1; i < this.lines.length; i++) {
+            const line = this.lines[i];
+            if (line.entityType !== EntityType.Unknown) {
+                continue;
+            }
+
+            // TODO: Parameters can span multiple lines.
+            const offset1 = line.stripped.indexOf(' = (');
+            const offset2 = line.stripped.indexOf(') => {');  // TODO: curly brace unnecessary for valid method.
+            const offset3 = line.stripped.indexOf(') {');
+            if (offset1 >= 0 && (offset2 > offset1 || offset3 > offset1)) {
+                this.lines[i].entityType = EntityType.OtherMethod;
+                const ss = line.stripped.substring(0, offset1);
+                const nameOffset = ss.lastIndexOf(' ') + 1;
+                const name = ss.substring(nameOffset);
+                let entity = await this.markMethod(i, name, EntityType.OtherMethod);
+                this.otherMethods.push(entity);
+                continue;
+            }
+
+            const offset = line.stripped.indexOf('(');
+            if (offset >= 0 && (offset2 > offset1 || offset3 > offset1)) {
+                const ss = line.stripped.substring(0, offset);
+                const nameOffset = ss.lastIndexOf(' ') + 1;
+                const name = ss.substring(nameOffset);
+                let entity = await this.markMethod(i, name, EntityType.OtherMethod);
+                this.otherMethods.push(entity);
+            }
+        }
+    }
+
+    private async identifyStaticVariables() {
+        for (let i = 1; i < this.lines.length; i++) {
+            const line = this.lines[i];
+            if (line.entityType !== EntityType.Unknown) {
+                continue;
+            }
+
+            if (line.stripped.startsWith('static ')) {
+                let entity = this.findSemicolon(i, EntityType.StaticVariable);
+                this.staticVariables.push(entity);
+            }
+        }
+    }
+
+    private async identifyInstanceVariables() {
+        for (let i = 1; i < this.lines.length; i++) {
+            const line = this.lines[i];
+            if (line.entityType !== EntityType.Unknown) {
+                continue;
+            }
+            let entity = this.findSemicolon(i, EntityType.InstanceVariable);
+            this.instanceVariables.push(entity);
+        }
+    }
+
+    private async markMethod(lineNum: number, methodName: string, entityType: EntityType): Promise<DartEntity> {
+        let entity = new DartEntity;
+        entity.entityType = entityType;
+        entity.lines = [];
+        entity.name = methodName;
+
         // Identify all lines within the main (or factory) constructor.
         const lineOffset = this.fullBuf.indexOf(this.lines[lineNum].line);
         // console.log('lineOffset=', lineOffset, '+', this.openCurlyOffset, '=', lineOffset + this.openCurlyOffset);
-        const inLineOffset = this.lines[lineNum].line.indexOf(className);
-        const relOpenParenOffset = lineOffset + inLineOffset + className.length - 1;
+        const inLineOffset = this.lines[lineNum].line.indexOf(methodName);
+        const relOpenParenOffset = lineOffset + inLineOffset + methodName.length - 1;
         const absOpenParenOffset = this.openCurlyOffset + relOpenParenOffset;
-        // console.log('inLineOffset=', inLineOffset, ', len=', className.length, ', paren=', absOpenParenOffset);
+        // console.log('inLineOffset=', inLineOffset, ', len=', methodName.length, ', paren=', absOpenParenOffset);
         const absCloseParenOffset = await findMatchingParen(this.editor, absOpenParenOffset);
         // console.log('absCloseParenOffset=', absCloseParenOffset);
         const relCloseParenOffset = absCloseParenOffset - this.openCurlyOffset;
@@ -168,17 +272,45 @@ class DartClass {
         const numLines = constructorBuf.split('\n').length;
         // console.log('numLines=', numLines);
         for (let i = 0; i < numLines; i++) {
-            this.lines[lineNum + i].lineType = lineType;
+            this.lines[lineNum + i].entityType = entityType;
+            entity.lines.push(this.lines[lineNum + i]);
         }
 
         // Preserve the comment lines leading up to the method.
         for (lineNum--; lineNum > 0; lineNum--) {
-            if (this.lines[lineNum].lineType === LineType.SingleLineComment) {
-                this.lines[lineNum].lineType = lineType;
+            if (this.lines[lineNum].entityType === EntityType.SingleLineComment) {
+                this.lines[lineNum].entityType = entityType;
+                entity.lines.unshift(this.lines[lineNum]);
                 continue;
             }
             break;
         }
+        return entity;
+    }
+
+    private findSemicolon(lineNum: number, entityType: EntityType): DartEntity {
+        let entity = new DartEntity;
+        entity.entityType = entityType;
+        entity.lines = [];
+
+        for (let i = 0; i + lineNum < this.lines.length; i++) {
+            this.lines[i + lineNum].entityType = entityType;
+            entity.lines.push(this.lines[i + lineNum]);
+            if (this.lines[i + lineNum].stripped.indexOf(';') >= 0) {
+                break;
+            }
+        }
+
+        // Preserve the comment lines leading up to the entity.
+        for (lineNum--; lineNum > 0; lineNum--) {
+            if (this.lines[lineNum].entityType === EntityType.SingleLineComment) {
+                this.lines[lineNum].entityType = entityType;
+                entity.lines.unshift(this.lines[lineNum]);
+                continue;
+            }
+            break;
+        }
+        return entity;
     }
 }
 
