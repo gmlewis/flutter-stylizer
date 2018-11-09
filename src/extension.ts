@@ -20,10 +20,14 @@ enum EntityType {
 class DartLine {
     line: string;
     stripped: string;
+    startOffset: number;
+    endOffset: number;
     entityType: EntityType = EntityType.Unknown;
 
-    constructor(line: string) {
+    constructor(line: string, startOffset: number) {
         this.line = line;
+        this.startOffset = startOffset;
+        this.endOffset = startOffset + line.length - 1;
         let m = commentRE.exec(line);
         this.stripped = (m ? m[1] : this.line).trim();
         if (this.stripped.length === 0) {
@@ -68,7 +72,11 @@ class DartClass {
         this.fullBuf = buf;
         let lines = buf.split('\n');
         console.log("lines.length=" + lines.length);
-        lines.forEach((line) => this.lines.push(new DartLine(line)));
+        let lineOffset = 0;
+        lines.forEach((line) => {
+            this.lines.push(new DartLine(line, lineOffset));
+            lineOffset += line.length;
+        });
 
         this.identifyMultiLineComments();
         await this.identifyMainConstructor();
@@ -193,6 +201,12 @@ class DartClass {
                 continue;
             }
 
+            let entity = await this.scanMethod(i);
+            console.log('identifyOtherMethods: entity=', entity);
+            if (entity.entityType === EntityType.Unknown) {
+                continue;
+            }
+
             // TODO: Parameters can span multiple lines.
             const offset1 = line.stripped.indexOf(' = (');
             const offset2 = line.stripped.indexOf(') => {');  // TODO: curly brace unnecessary for valid method.
@@ -225,7 +239,7 @@ class DartClass {
                 continue;
             }
 
-            if (line.stripped.startsWith('static ')) {
+            if (line.stripped.startsWith('static ')) {  // could have static (class) methods.
                 let entity = this.findSemicolon(i, EntityType.StaticVariable);
                 this.staticVariables.push(entity);
             }
@@ -238,9 +252,66 @@ class DartClass {
             if (line.entityType !== EntityType.Unknown) {
                 continue;
             }
-            let entity = this.findSemicolon(i, EntityType.InstanceVariable);
+            let entity = this.findSemicolon(i, EntityType.InstanceVariable); // Need to skip parens.
             this.instanceVariables.push(entity);
         }
+    }
+
+    private async scanMethod(lineNum: number): Promise<DartEntity> {
+        let entity = new DartEntity;
+        // entity.lines = [this.lines[lineNum]];
+        // let numLines = 0;
+        // while (numLines + lineNum < this.lines.length && this.lines[numLines + lineNum].stripped.indexOf(';') < 0) {
+        //     numLines++;
+        //     entity.lines.push(this.lines[numLines + lineNum]);
+        // }
+
+        let sequence = new Array<string>();
+
+        while (true) {
+            console.log('entity.lines=', entity.lines);
+            const result = DartClass.findFirstOf(['(', '[', '{', '=>', '= '], entity);
+            const firstOpenerOffset = result[0];
+            const firstOpener = result[1];
+            if (firstOpenerOffset < 0) {
+                break;
+            }
+            sequence.push(firstOpener);
+
+            if (firstOpener === '(' || firstOpener === '[' || firstOpener === '{') {
+                console.log('line=', this.lines[lineNum].line);
+                const lineOffset = this.fullBuf.indexOf(this.lines[lineNum].line);
+                // const firstOpener = this.fullBuf[firstOpenerOffset + lineOffset];
+                // console.log('firstOpener=', firstOpener);
+                const firstCloserOffset = await findMatchingParen(this.editor, this.openCurlyOffset + firstOpenerOffset + lineOffset);
+                console.log('lineOffset=', lineOffset, ', firstOpenerOffset=', firstOpenerOffset, ', openBracket=', firstOpenerOffset + lineOffset, 'firstCloserOffset=', firstCloserOffset);
+            }
+        }
+
+        // let firstEquals = DartClass.findFirstOf(['='], entity);
+        // let firstOpenCurly = DartClass.findFirstOf(['{'], entity);
+        // console.log('firstEquals=', firstEquals, ', firstOpenerOffset=', firstOpenerOffset, ', firstOpenCurly=', firstOpenCurly);
+        return entity;
+    }
+
+    private static findFirstOf(syms: Array<string>, entity: DartEntity): [number, string] {
+        let soFar = 0;
+        for (let i = 0; i < entity.lines.length; i++) {
+            let pos: number | undefined = undefined;
+            let result = "";
+            for (let j = 0; j < syms.length; j++) {
+                let p = entity.lines[i].line.indexOf(syms[j]);
+                if (pos === undefined || (p >= 0 && p < pos)) {
+                    pos = p;
+                    result = syms[j];
+                }
+            }
+            if (pos !== undefined && pos >= 0) {
+                return [soFar + pos, result];
+            }
+            soFar += entity.lines[i].line.length;
+        }
+        return [-1, ""];
     }
 
     private async markMethod(lineNum: number, methodName: string, entityType: EntityType): Promise<DartEntity> {
