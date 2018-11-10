@@ -82,9 +82,7 @@ class DartClass {
         await this.identifyMainConstructor();
         await this.identifyNamedConstructors();
         await this.identifyOverrideMethods();
-        await this.identifyOtherMethods();
-        await this.identifyStaticVariables();
-        await this.identifyInstanceVariables();
+        await this.identifyOthers();
 
         this.lines.forEach((line, index) => console.log('line #' + index.toString() + ' type=' + EntityType[line.entityType] + ': ' + line.line));
     }
@@ -202,7 +200,7 @@ class DartClass {
         }
     }
 
-    private async identifyOtherMethods() {
+    private async identifyOthers() {
         for (let i = 1; i < this.lines.length; i++) {
             const line = this.lines[i];
             if (line.entityType !== EntityType.Unknown) {
@@ -210,58 +208,32 @@ class DartClass {
             }
 
             let entity = await this.scanMethod(i);
-            console.log('identifyOtherMethods: entity=', entity);
+            console.log('identifyOthers: entity=', entity);
             if (entity.entityType === EntityType.Unknown) {
                 continue;
             }
 
-            // TODO: Parameters can span multiple lines.
-            const offset1 = line.stripped.indexOf(' = (');
-            const offset2 = line.stripped.indexOf(') => {');  // TODO: curly brace unnecessary for valid method.
-            const offset3 = line.stripped.indexOf(') {');
-            if (offset1 >= 0 && (offset2 > offset1 || offset3 > offset1)) {
-                this.lines[i].entityType = EntityType.OtherMethod;
-                const ss = line.stripped.substring(0, offset1);
-                const nameOffset = ss.lastIndexOf(' ') + 1;
-                const name = ss.substring(nameOffset);
-                let entity = await this.markMethod(i, name, EntityType.OtherMethod);
-                this.otherMethods.push(entity);
-                continue;
+            // Preserve the comment lines leading up to the entity.
+            for (let lineNum = i - 1; lineNum > 0; lineNum--) {
+                if (this.lines[lineNum].entityType === EntityType.SingleLineComment) {
+                    this.lines[lineNum].entityType = entity.entityType;
+                    entity.lines.unshift(this.lines[lineNum]);
+                    continue;
+                }
+                break;
             }
 
-            const offset = line.stripped.indexOf('(');
-            if (offset >= 0 && (offset2 > offset1 || offset3 > offset1)) {
-                const ss = line.stripped.substring(0, offset);
-                const nameOffset = ss.lastIndexOf(' ') + 1;
-                const name = ss.substring(nameOffset);
-                let entity = await this.markMethod(i, name, EntityType.OtherMethod);
-                this.otherMethods.push(entity);
+            switch (entity.entityType) {
+                case EntityType.OtherMethod:
+                    this.otherMethods.push(entity);
+                    break;
+                case EntityType.InstanceVariable:
+                    this.instanceVariables.push(entity);
+                    break;
+                default:
+                    console.log('UNEXPECTED EntityType=', entity.entityType);
+                    break;
             }
-        }
-    }
-
-    private async identifyStaticVariables() {
-        for (let i = 1; i < this.lines.length; i++) {
-            const line = this.lines[i];
-            if (line.entityType !== EntityType.Unknown) {
-                continue;
-            }
-
-            if (line.stripped.startsWith('static ')) {  // could have static (class) methods.
-                let entity = this.findSemicolon(i, EntityType.StaticVariable);
-                this.staticVariables.push(entity);
-            }
-        }
-    }
-
-    private async identifyInstanceVariables() {
-        for (let i = 1; i < this.lines.length; i++) {
-            const line = this.lines[i];
-            if (line.entityType !== EntityType.Unknown) {
-                continue;
-            }
-            let entity = this.findSemicolon(i, EntityType.InstanceVariable); // Need to skip parens.
-            this.instanceVariables.push(entity);
         }
     }
 
@@ -272,7 +244,10 @@ class DartClass {
         let result = this.findSequence(buf);
         let sequence = result[0];
         let lineCount = result[1];
+        let leadingText = result[2];
         console.log('sequence=', sequence, 'lineCount=', lineCount);
+
+        entity.name = leadingText; // TODO: fix this.
 
         switch (sequence) {
             case '(){}':
@@ -323,9 +298,10 @@ class DartClass {
         return entity;
     }
 
-    private findSequence(buf: string): [string, number] {
+    private findSequence(buf: string): [string, number, string] {
         let result = new Array<string>();
 
+        let leadingText = "";
         let lineCount = 0;
         let openParenCount = 0;
         let openBraceCount = 0;
@@ -382,7 +358,7 @@ class DartClass {
                     }
                     if (openCurlyCount === 0) {
                         result.push(buf[i]);
-                        return [result.join(''), lineCount];
+                        return [result.join(''), lineCount, leadingText];
                     }
                 }
             } else {
@@ -390,23 +366,38 @@ class DartClass {
                     case '(':
                         openParenCount++;
                         result.push(buf[i]);
+                        if (leadingText === '') {
+                            leadingText = buf.substring(0, i);
+                        }
                         break;
                     case '[':
                         openBraceCount++;
                         result.push(buf[i]);
+                        if (leadingText === '') {
+                            leadingText = buf.substring(0, i);
+                        }
                         break;
                     case '{':
                         openCurlyCount++;
                         result.push(buf[i]);
+                        if (leadingText === '') {
+                            leadingText = buf.substring(0, i);
+                        }
                         break;
                     case ';':
                         result.push(buf[i]);
-                        return [result.join(''), lineCount];
+                        if (leadingText === '') {
+                            leadingText = buf.substring(0, i);
+                        }
+                        return [result.join(''), lineCount, leadingText];
                     case '=':
                         if (i < buf.length - 1 && buf[i + 1] === '>') {
                             result.push('=>');
                         } else {
                             result.push(buf[i]);
+                        }
+                        if (leadingText === '') {
+                            leadingText = buf.substring(0, i);
                         }
                         break;
                     case '\n':
@@ -415,7 +406,7 @@ class DartClass {
                 }
             }
         }
-        return [result.join(''), lineCount];
+        return [result.join(''), lineCount, leadingText];
     }
 
     private async markMethod(lineNum: number, methodName: string, entityType: EntityType): Promise<DartEntity> {
@@ -462,31 +453,6 @@ class DartClass {
         }
         return entity;
     }
-
-    private findSemicolon(lineNum: number, entityType: EntityType): DartEntity {
-        let entity = new DartEntity;
-        entity.entityType = entityType;
-        entity.lines = [];
-
-        for (let i = 0; i + lineNum < this.lines.length; i++) {
-            this.lines[i + lineNum].entityType = entityType;
-            entity.lines.push(this.lines[i + lineNum]);
-            if (this.lines[i + lineNum].stripped.indexOf(';') >= 0) {
-                break;
-            }
-        }
-
-        // Preserve the comment lines leading up to the entity.
-        for (lineNum--; lineNum > 0; lineNum--) {
-            if (this.lines[lineNum].entityType === EntityType.SingleLineComment) {
-                this.lines[lineNum].entityType = entityType;
-                entity.lines.unshift(this.lines[lineNum]);
-                continue;
-            }
-            break;
-        }
-        return entity;
-    }
 }
 
 const matchClassRE = /^class\s+(\S+)\s*.*$/mg;
@@ -510,14 +476,52 @@ export function activate(context: vscode.ExtensionContext) {
         if (!editor) {
             return; // No open text editor
         }
+        let saveSelection = editor.selection;
 
         const classes = await getClasses(editor);
         console.log("Found " + classes.length.toString() + " classes.");
-        if (classes.length === 0) {
-            return;
+
+        // Rewrite the classes.
+        for (let i = classes.length - 1; i >= 0; i--) {
+            const dc = classes[i];
+            const startPos = editor.document.positionAt(dc.openCurlyOffset);
+            const endPos = editor.document.positionAt(dc.closeCurlyOffset);
+            editor.selection = new vscode.Selection(startPos, endPos);
+
+            let lines = new Array<string>();
+            lines.push(dc.lines[0].line);  // Curly brace.
+            let addEntity = (entity: DartEntity | undefined, separateEntities: boolean) => {
+                if (entity === undefined) { return; }
+                console.log('entity.lines.length=', entity.lines.length);
+                entity.lines.forEach((line) => lines.push(line.line));
+                if (separateEntities) {
+                    if (lines.length > 0 && lines[lines.length - 1] !== '\n') { lines.push(''); }
+                }
+            };
+            let addEntities = (entities: Array<DartEntity>, separateEntities: boolean) => {
+                entities.forEach((e) => addEntity(e, separateEntities));
+                if (!separateEntities && entities.length > 0 && lines.length > 0 && lines[lines.length - 1] !== '\n') {
+                    lines.push('');
+                }
+            };
+            addEntity(dc.theConstructor, true);
+            // TODO - sort named constructors.
+            addEntities(dc.namedConstructors, true);
+            // TODO - sort static variables.
+            addEntities(dc.staticVariables, false);
+            // TODO - sort instance variables.
+            addEntities(dc.instanceVariables, false);
+            // TODO - sort override methods.
+            addEntities(dc.overrideMethods, true);
+            addEntities(dc.otherMethods, true);
+            addEntity(dc.buildMethod, true);
+
+            editor.edit((editBuilder: vscode.TextEditorEdit) => {
+                editBuilder.replace(editor.selection, lines.join('\n'));
+            });
         }
 
-        vscode.window.showInformationMessage('Hello World!');
+        editor.selection = saveSelection;
     });
 
     const getClasses = async (editor: vscode.TextEditor) => {
