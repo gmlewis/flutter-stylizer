@@ -259,6 +259,9 @@ class DartClass {
             case '()=>;':
                 entity.entityType = EntityType.OtherMethod;
                 break;
+            case '()=>[]':
+                entity.entityType = EntityType.OtherMethod;
+                break;
             case '=(){}':
                 entity.entityType = EntityType.OtherMethod;
                 break;
@@ -271,13 +274,16 @@ class DartClass {
             case '=()=>{}':
                 entity.entityType = EntityType.OtherMethod;
                 break;
+            case '=()=>[]':
+                entity.entityType = EntityType.OtherMethod;
+                break;
             case ';':
                 entity.entityType = EntityType.InstanceVariable;
                 break;
             case '=();':
                 entity.entityType = EntityType.InstanceVariable;
                 break;
-            case '=[];':
+            case '=[]':
                 entity.entityType = EntityType.InstanceVariable;
                 break;
             case '={}':
@@ -340,7 +346,7 @@ class DartClass {
                     }
                     if (openBraceCount === 0) {
                         result.push(buf[i]);
-                        break;
+                        return [result.join(''), lineCount, leadingText];
                     }
                 }
             } else if (openCurlyCount > 0) {
@@ -367,27 +373,27 @@ class DartClass {
                         openParenCount++;
                         result.push(buf[i]);
                         if (leadingText === '') {
-                            leadingText = buf.substring(0, i);
+                            leadingText = buf.substring(0, i).trim();
                         }
                         break;
                     case '[':
                         openBraceCount++;
                         result.push(buf[i]);
                         if (leadingText === '') {
-                            leadingText = buf.substring(0, i);
+                            leadingText = buf.substring(0, i).trim();
                         }
                         break;
                     case '{':
                         openCurlyCount++;
                         result.push(buf[i]);
                         if (leadingText === '') {
-                            leadingText = buf.substring(0, i);
+                            leadingText = buf.substring(0, i).trim();
                         }
                         break;
                     case ';':
                         result.push(buf[i]);
                         if (leadingText === '') {
-                            leadingText = buf.substring(0, i);
+                            leadingText = buf.substring(0, i).trim();
                         }
                         return [result.join(''), lineCount, leadingText];
                     case '=':
@@ -397,7 +403,7 @@ class DartClass {
                             result.push(buf[i]);
                         }
                         if (leadingText === '') {
-                            leadingText = buf.substring(0, i);
+                            leadingText = buf.substring(0, i).trim();
                         }
                         break;
                     case '\n':
