@@ -41,13 +41,15 @@ See the [Known Issues](#known-issues) section below for more details.
 
 It is my goal to be able to use this plugin on large group projects, so
 every attempt has been made to make this robust. If, however, problems
-are found, please raise issues on the [GitHub issue tracker](issues) for this
-repo along with a (short) example demonstrating the "before" and "after" results
+are found, please raise issues on the [GitHub issue tracker] for this repo
+along with a (short) example demonstrating the "before" and "after" results
 of running this plugin on the example code.
 
 Even better, please submit a PR with your new "before"/"after" example coded-up
 as a unit test along with the code to fix the problem, and I'll try to
 incorporate the fix into the plugin.
+
+[GitHub issue tracker]: https://github.com/gmlewis/flutter-stylizer/issues
 
 ## Known Issues
 
