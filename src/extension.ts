@@ -12,6 +12,8 @@ enum EntityType {
     NamedConstructor,
     StaticVariable,
     InstanceVariable,
+    StaticPrivateVariable,
+    PrivateInstanceVariable,
     OverrideMethod,
     OtherMethod,
     BuildMethod,
@@ -52,13 +54,15 @@ class DartClass {
     closeCurlyOffset: number;
     fullBuf: string = "";
     lines: Array<DartLine> = [];  // Line 0 is always the open curly brace.
-    theConstructor: DartEntity | undefined = undefined;
+    theConstructor?: DartEntity = undefined;
     namedConstructors: Array<DartEntity> = [];
     staticVariables: Array<DartEntity> = [];
     instanceVariables: Array<DartEntity> = [];
+    staticPrivateVariables: Array<DartEntity> = [];
+    privateVariables: Array<DartEntity> = [];
     overrideMethods: Array<DartEntity> = [];
     otherMethods: Array<DartEntity> = [];
-    buildMethod: DartEntity | undefined = undefined;
+    buildMethod?: DartEntity = undefined;
 
     constructor(editor: vscode.TextEditor, className: string, classOffset: number, openCurlyOffset: number, closeCurlyOffset: number) {
         this.editor = editor;
@@ -71,7 +75,6 @@ class DartClass {
     async findFeatures(buf: string) {
         this.fullBuf = buf;
         let lines = this.fullBuf.split('\n');
-        console.log("lines.length=" + lines.length);
         let lineOffset = 0;
         lines.forEach((line) => {
             this.lines.push(new DartLine(line, lineOffset));
@@ -84,7 +87,7 @@ class DartClass {
         await this.identifyOverrideMethods();
         await this.identifyOthers();
 
-        this.lines.forEach((line, index) => console.log('line #' + index.toString() + ' type=' + EntityType[line.entityType] + ': ' + line.line));
+        // this.lines.forEach((line, index) => console.log('line #' + index.toString() + ' type=' + EntityType[line.entityType] + ': ' + line.line));
     }
 
     private genStripped(startLine: number): string {
@@ -165,7 +168,6 @@ class DartClass {
                 }
                 const openParenOffset = offset + line.stripped.substring(offset).indexOf('(');
                 const namedConstructor = line.stripped.substring(offset, openParenOffset);
-                // console.log('namedContructor=', namedConstructor);
                 this.lines[i].entityType = EntityType.NamedConstructor;
                 let entity = await this.markMethod(i, namedConstructor, EntityType.NamedConstructor);
                 this.namedConstructors.push(entity);
@@ -208,7 +210,6 @@ class DartClass {
             }
 
             let entity = await this.scanMethod(i);
-            console.log('identifyOthers: entity=', entity);
             if (entity.entityType === EntityType.Unknown) {
                 continue;
             }
@@ -227,8 +228,17 @@ class DartClass {
                 case EntityType.OtherMethod:
                     this.otherMethods.push(entity);
                     break;
+                case EntityType.StaticVariable:
+                    this.staticVariables.push(entity);
+                    break;
+                case EntityType.StaticPrivateVariable:
+                    this.staticPrivateVariables.push(entity);
+                    break;
                 case EntityType.InstanceVariable:
                     this.instanceVariables.push(entity);
+                    break;
+                case EntityType.PrivateInstanceVariable:
+                    this.privateVariables.push(entity);
                     break;
                 default:
                     console.log('UNEXPECTED EntityType=', entity.entityType);
@@ -245,16 +255,30 @@ class DartClass {
         let sequence = result[0];
         let lineCount = result[1];
         let leadingText = result[2];
-        console.log('sequence=', sequence, 'lineCount=', lineCount);
 
         const nameParts = leadingText.split(' ');
         let staticKeyword = false;
+        let privateVar = false;
         if (nameParts.length > 0) {
             entity.name = nameParts[nameParts.length - 1];
-            console.log('name=', entity.name);
+            if (entity.name.startsWith('_')) {
+                privateVar = true;
+            }
             if (nameParts[0] === 'static') {
                 staticKeyword = true;
             }
+        }
+        entity.entityType = EntityType.InstanceVariable;
+        switch (true) {
+            case privateVar && staticKeyword:
+                entity.entityType = EntityType.StaticPrivateVariable;
+                break;
+            case staticKeyword:
+                entity.entityType = EntityType.StaticVariable;
+                break;
+            case privateVar:
+                entity.entityType = EntityType.PrivateInstanceVariable;
+                break;
         }
 
         switch (sequence) {
@@ -285,28 +309,11 @@ class DartClass {
             case '=()=>[]':
                 entity.entityType = EntityType.OtherMethod;
                 break;
-            case ';':
-                entity.entityType = (staticKeyword ? EntityType.StaticVariable : EntityType.InstanceVariable);
-                break;
-            case '=();':
-                entity.entityType = (staticKeyword ? EntityType.StaticVariable : EntityType.InstanceVariable);
-                break;
-            case '=[]':
-                entity.entityType = (staticKeyword ? EntityType.StaticVariable : EntityType.InstanceVariable);
-                break;
-            case '={}':
-                entity.entityType = (staticKeyword ? EntityType.StaticVariable : EntityType.InstanceVariable);
-                break;
-            default:
-                console.log('UNKNOWN TYPE!');
-                break;
         }
-        console.log('entityType=', EntityType[entity.entityType]);
 
         for (let i = 0; i <= lineCount; i++) {
             this.lines[lineNum + i].entityType = entity.entityType;
             entity.lines.push(this.lines[lineNum + i]);
-            console.log('line #' + (lineNum + i).toString() + ': ' + this.lines[lineNum + i].line);
         }
 
         return entity;
@@ -431,26 +438,17 @@ class DartClass {
 
         // Identify all lines within the main (or factory) constructor.
         const lineOffset = this.fullBuf.indexOf(this.lines[lineNum].line);
-        // console.log('lineOffset=', lineOffset, '+', this.openCurlyOffset, '=', lineOffset + this.openCurlyOffset);
         const inLineOffset = this.lines[lineNum].line.indexOf(methodName);
         const relOpenParenOffset = lineOffset + inLineOffset + methodName.length - 1;
         const absOpenParenOffset = this.openCurlyOffset + relOpenParenOffset;
-        // console.log('inLineOffset=', inLineOffset, ', len=', methodName.length, ', paren=', absOpenParenOffset);
         const absCloseParenOffset = await findMatchingParen(this.editor, absOpenParenOffset);
-        // console.log('absCloseParenOffset=', absCloseParenOffset);
         const relCloseParenOffset = absCloseParenOffset - this.openCurlyOffset;
-        // console.log('relCloseParenOffset=', relCloseParenOffset, ', subtring=', this.fullBuf.substring(relCloseParenOffset));
         const curlyDeltaOffset = this.fullBuf.substring(relCloseParenOffset).indexOf('{');
-        // console.log('curlyDeltaOffset=', curlyDeltaOffset);
         const absOpenCurlyOffset = absCloseParenOffset + curlyDeltaOffset;
-        // console.log('absOpenCurlyOffset=', absOpenCurlyOffset);
         const absCloseCurlyOffset = await findMatchingParen(this.editor, absOpenCurlyOffset);
-        // console.log('absCloseCurlyOffset=', absCloseCurlyOffset);
         const relCloseCurlyOffset = absCloseCurlyOffset - this.openCurlyOffset;
         const constructorBuf = this.fullBuf.substring(lineOffset, relCloseCurlyOffset + 1);
-        // console.log('contructorBuf=', constructorBuf);
         const numLines = constructorBuf.split('\n').length;
-        // console.log('numLines=', numLines);
         for (let i = 0; i < numLines; i++) {
             this.lines[lineNum + i].entityType = entityType;
             entity.lines.push(this.lines[lineNum + i]);
@@ -472,13 +470,10 @@ class DartClass {
 const matchClassRE = /^class\s+(\S+)\s*.*$/mg;
 
 const findMatchingParen = async (editor: vscode.TextEditor, openParenOffset: number) => {
-    // console.log('findMatchingParen: openParenOffset=' + openParenOffset.toString());
     const position = editor.document.positionAt(openParenOffset);
     editor.selection = new vscode.Selection(position, position);
-    // console.log('before moving cursor: offset=' + editor.document.offsetAt(editor.selection.active).toString());
     await vscode.commands.executeCommand('editor.action.jumpToBracket');
     const result = editor.document.offsetAt(editor.selection.active);
-    // console.log('after moving cursor: offset=' + result.toString());
     return result;
 };
 
@@ -504,31 +499,35 @@ export function activate(context: vscode.ExtensionContext) {
 
             let lines = new Array<string>();
             lines.push(dc.lines[0].line);  // Curly brace.
-            let addEntity = (entity: DartEntity | undefined, separateEntities: boolean) => {
+            let addEntity = (entity?: DartEntity, separateEntities?: boolean) => {  // separateEntities default is true.
                 if (entity === undefined) { return; }
-                // console.log('entity.lines.length=', entity.lines.length);
                 entity.lines.forEach((line) => lines.push(line.line));
-                if (separateEntities) {
+                if (separateEntities === undefined || separateEntities === true) {
                     if (lines.length > 0 && lines[lines.length - 1] !== '\n') { lines.push(''); }
                 }
             };
-            let addEntities = (entities: Array<DartEntity>, separateEntities: boolean) => {
+            let addEntities = (entities: Array<DartEntity>, separateEntities?: boolean) => {  // separateEntities default is true.
                 entities.forEach((e) => addEntity(e, separateEntities));
-                if (!separateEntities && entities.length > 0 && lines.length > 0 && lines[lines.length - 1] !== '\n') {
+                if (separateEntities === false && entities.length > 0 && lines.length > 0 && lines[lines.length - 1] !== '\n') {
                     lines.push('');
                 }
             };
-            addEntity(dc.theConstructor, true);
-            // TODO - sort named constructors.
-            addEntities(dc.namedConstructors, true);
-            // TODO - sort static variables.
+            let sortFunc = (a: DartEntity, b: DartEntity) => a.name.localeCompare(b.name);
+            addEntity(dc.theConstructor);
+            dc.namedConstructors.sort(sortFunc);
+            addEntities(dc.namedConstructors);
+            dc.staticVariables.sort(sortFunc);
             addEntities(dc.staticVariables, false);
-            // TODO - sort instance variables.
+            dc.instanceVariables.sort(sortFunc);
             addEntities(dc.instanceVariables, false);
-            // TODO - sort override methods.
-            addEntities(dc.overrideMethods, true);
-            addEntities(dc.otherMethods, true);
-            addEntity(dc.buildMethod, true);
+            dc.staticPrivateVariables.sort(sortFunc);
+            addEntities(dc.staticPrivateVariables, false);
+            dc.privateVariables.sort(sortFunc);
+            addEntities(dc.privateVariables, false);
+            dc.overrideMethods.sort(sortFunc);
+            addEntities(dc.overrideMethods);
+            addEntities(dc.otherMethods);
+            addEntity(dc.buildMethod);
 
             editor.edit((editBuilder: vscode.TextEditorEdit) => {
                 editBuilder.replace(editor.selection, lines.join('\n'));
@@ -542,23 +541,17 @@ export function activate(context: vscode.ExtensionContext) {
         let document = editor.document;
         let classes = new Array<DartClass>();
         const buf = document.getText();
-        console.log('buf.length=', buf.length);
         while (true) {
             let mm = matchClassRE.exec(buf);
-            // console.log('mm=', mm);
             if (!mm) { break; }
             let className = mm[1];
-            console.log('className=' + className);
             let classOffset = buf.indexOf(mm[0]);
-            console.log('classOffset=', classOffset);
             let openCurlyOffset = findOpenCurlyOffset(buf, classOffset);
-            console.log('openCurlyOffset=', openCurlyOffset);
             if (openCurlyOffset <= classOffset) {
                 console.log('expected "{" after "class" at offset ' + classOffset.toString());
                 return classes;
             }
             let closeCurlyOffset = await findMatchingParen(editor, openCurlyOffset);
-            console.log('closeCurlyOffset=', closeCurlyOffset);
             if (closeCurlyOffset <= openCurlyOffset) {
                 console.log('expected "}" after "{" at offset ' + openCurlyOffset.toString());
                 return classes;

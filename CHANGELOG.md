@@ -1,5 +1,10 @@
 # Change Log
 
-All notable changes to the "flutter-stylizer" extension will be documented in this file.
+All notable changes to the "flutter-stylizer" extension will be documented in
+this file.
 
-Flutter Stylizer is currently a work-in-progress and has no releases.
+Please make sure you have a backup (preferably in git) of your code before running
+"Flutter Stylizer" in case it doesn't handle your code properly.
+
+## [0.0.1] - 2018-11-10
+- Initial release, "Flutter Stylizer" is the provided command.

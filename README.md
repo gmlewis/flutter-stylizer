@@ -12,6 +12,8 @@ in the following manner (with a blank line separating these parts):
 * Any named constructors are listed next, in sorted order.
 * Any static (class) variables are listed next, in sorted order.
 * Any instance variables are listed next, in sorted order.
+* Any private static (class) variables are listed next, in sorted order.
+* Any private instance variables are listed next, in sorted order.
 * Any `@override` methods are listed next, in sorted order.
 * Any other methods are listed next in their original (unchanged) order.
 * The `build` method is listed last.
@@ -45,27 +47,21 @@ Even better, please submit a PR with your new "before"/"after" example coded-up
 as a unit test along with the code to fix the problem, and I'll try to
 incorporate the fix into the plugin.
 
-## Requirements
-
-TBD
-
-## Extension Settings
-
-TBD
-
 ## Known Issues
 
 * Flutter Stylizer is line-oriented. It is meant to be run on code that
-  is nicely separated by lines and not obfuscated.
+  is nicely separated by lines.  The `dartfmt` tool typically makes
+  sane-looking code, and this is the type of code that is being targeted
+  by this extension.
 * Code that follows the end of a multiline comment on the same
   line is not supported. Unusual code like this will most likely not ever be
-  supported even though the Dart compiler can handle it. The `dartfmt` tool
-  typically makes sane-looking code, and this is the type of code that is
-  being targeted by this extension.
+  supported even though the Dart compiler can handle it.
 
 ## Release Notes
 
-Flutter Stylizer is currently a work-in-progress and has no releases.
+### 0.0.1
+
+- Initial release, "Flutter Stylizer" is the provided command.
 
 -----------------------------------------------------------------------------------------------------------
 
