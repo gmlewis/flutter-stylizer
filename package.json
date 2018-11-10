@@ -4,6 +4,7 @@
     "description": "Flutter Stylizer organizes your Flutter classes in an opinionated and consistent manner.",
     "version": "0.0.1",
     "publisher": "gmlewis-vscode",
+    "repository": "https://github.com/gmlewis/flutter-stylizer",
     "engines": {
         "vscode": "^1.28.0"
     },
