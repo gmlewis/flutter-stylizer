@@ -70,7 +70,7 @@ class DartClass {
 
     async findFeatures(buf: string) {
         this.fullBuf = buf;
-        let lines = buf.split('\n');
+        let lines = this.fullBuf.split('\n');
         console.log("lines.length=" + lines.length);
         let lineOffset = 0;
         lines.forEach((line) => {
@@ -87,6 +87,14 @@ class DartClass {
         await this.identifyInstanceVariables();
 
         this.lines.forEach((line, index) => console.log('line #' + index.toString() + ' type=' + EntityType[line.entityType] + ': ' + line.line));
+    }
+
+    private genStripped(startLine: number): string {
+        let strippedLines = new Array<string>();
+        for (let i = startLine; i < this.lines.length; i++) {
+            strippedLines.push(this.lines[i].stripped);
+        }
+        return strippedLines.join('\n');
     }
 
     private identifyMultiLineComments() {
@@ -257,61 +265,157 @@ class DartClass {
         }
     }
 
-    private async scanMethod(lineNum: number): Promise<DartEntity> {
+    private scanMethod(lineNum: number): DartEntity {
         let entity = new DartEntity;
-        // entity.lines = [this.lines[lineNum]];
-        // let numLines = 0;
-        // while (numLines + lineNum < this.lines.length && this.lines[numLines + lineNum].stripped.indexOf(';') < 0) {
-        //     numLines++;
-        //     entity.lines.push(this.lines[numLines + lineNum]);
-        // }
 
-        let sequence = new Array<string>();
+        let buf = this.genStripped(lineNum);
+        let result = this.findSequence(buf);
+        let sequence = result[0];
+        let lineCount = result[1];
+        console.log('sequence=', sequence, 'lineCount=', lineCount);
 
-        while (true) {
-            console.log('entity.lines=', entity.lines);
-            const result = DartClass.findFirstOf(['(', '[', '{', '=>', '= '], entity);
-            const firstOpenerOffset = result[0];
-            const firstOpener = result[1];
-            if (firstOpenerOffset < 0) {
+        switch (sequence) {
+            case '(){}':
+                entity.entityType = EntityType.OtherMethod;
                 break;
-            }
-            sequence.push(firstOpener);
+            case '()=>();':
+                entity.entityType = EntityType.OtherMethod;
+                break;
+            case '()=>;':
+                entity.entityType = EntityType.OtherMethod;
+                break;
+            case '=(){}':
+                entity.entityType = EntityType.OtherMethod;
+                break;
+            case '=()=>();':
+                entity.entityType = EntityType.OtherMethod;
+                break;
+            case '=()=>;':
+                entity.entityType = EntityType.OtherMethod;
+                break;
+            case '=()=>{}':
+                entity.entityType = EntityType.OtherMethod;
+                break;
+            case ';':
+                entity.entityType = EntityType.InstanceVariable;
+                break;
+            case '=();':
+                entity.entityType = EntityType.InstanceVariable;
+                break;
+            case '=[];':
+                entity.entityType = EntityType.InstanceVariable;
+                break;
+            case '={}':
+                entity.entityType = EntityType.InstanceVariable;
+                break;
+            default:
+                console.log('UNKNOWN TYPE!');
+                break;
+        }
+        console.log('entityType=', EntityType[entity.entityType]);
 
-            if (firstOpener === '(' || firstOpener === '[' || firstOpener === '{') {
-                console.log('line=', this.lines[lineNum].line);
-                const lineOffset = this.fullBuf.indexOf(this.lines[lineNum].line);
-                // const firstOpener = this.fullBuf[firstOpenerOffset + lineOffset];
-                // console.log('firstOpener=', firstOpener);
-                const firstCloserOffset = await findMatchingParen(this.editor, this.openCurlyOffset + firstOpenerOffset + lineOffset);
-                console.log('lineOffset=', lineOffset, ', firstOpenerOffset=', firstOpenerOffset, ', openBracket=', firstOpenerOffset + lineOffset, 'firstCloserOffset=', firstCloserOffset);
-            }
+        for (let i = 0; i <= lineCount; i++) {
+            this.lines[lineNum + i].entityType = entity.entityType;
+            entity.lines.push(this.lines[lineNum + i]);
+            console.log('line #' + (lineNum + i).toString() + ': ' + this.lines[lineNum + i].line);
         }
 
-        // let firstEquals = DartClass.findFirstOf(['='], entity);
-        // let firstOpenCurly = DartClass.findFirstOf(['{'], entity);
-        // console.log('firstEquals=', firstEquals, ', firstOpenerOffset=', firstOpenerOffset, ', firstOpenCurly=', firstOpenCurly);
         return entity;
     }
 
-    private static findFirstOf(syms: Array<string>, entity: DartEntity): [number, string] {
-        let soFar = 0;
-        for (let i = 0; i < entity.lines.length; i++) {
-            let pos: number | undefined = undefined;
-            let result = "";
-            for (let j = 0; j < syms.length; j++) {
-                let p = entity.lines[i].line.indexOf(syms[j]);
-                if (pos === undefined || (p >= 0 && p < pos)) {
-                    pos = p;
-                    result = syms[j];
+    private findSequence(buf: string): [string, number] {
+        let result = new Array<string>();
+
+        let lineCount = 0;
+        let openParenCount = 0;
+        let openBraceCount = 0;
+        let openCurlyCount = 0;
+        for (let i = 0; i < buf.length; i++) {
+            if (openParenCount > 0) {
+                for (; i < buf.length; i++) {
+                    switch (buf[i]) {
+                        case '(':
+                            openParenCount++;
+                            break;
+                        case ')':
+                            openParenCount--;
+                            break;
+                        case '\n':
+                            lineCount++;
+                            break;
+                    }
+                    if (openParenCount === 0) {
+                        result.push(buf[i]);
+                        break;
+                    }
+                }
+            } else if (openBraceCount > 0) {
+                for (; i < buf.length; i++) {
+                    switch (buf[i]) {
+                        case '[':
+                            openBraceCount++;
+                            break;
+                        case ']':
+                            openBraceCount--;
+                            break;
+                        case '\n':
+                            lineCount++;
+                            break;
+                    }
+                    if (openBraceCount === 0) {
+                        result.push(buf[i]);
+                        break;
+                    }
+                }
+            } else if (openCurlyCount > 0) {
+                for (; i < buf.length; i++) {
+                    switch (buf[i]) {
+                        case '{':
+                            openCurlyCount++;
+                            break;
+                        case '}':
+                            openCurlyCount--;
+                            break;
+                        case '\n':
+                            lineCount++;
+                            break;
+                    }
+                    if (openCurlyCount === 0) {
+                        result.push(buf[i]);
+                        return [result.join(''), lineCount];
+                    }
+                }
+            } else {
+                switch (buf[i]) {
+                    case '(':
+                        openParenCount++;
+                        result.push(buf[i]);
+                        break;
+                    case '[':
+                        openBraceCount++;
+                        result.push(buf[i]);
+                        break;
+                    case '{':
+                        openCurlyCount++;
+                        result.push(buf[i]);
+                        break;
+                    case ';':
+                        result.push(buf[i]);
+                        return [result.join(''), lineCount];
+                    case '=':
+                        if (i < buf.length - 1 && buf[i + 1] === '>') {
+                            result.push('=>');
+                        } else {
+                            result.push(buf[i]);
+                        }
+                        break;
+                    case '\n':
+                        lineCount++;
+                        break;
                 }
             }
-            if (pos !== undefined && pos >= 0) {
-                return [soFar + pos, result];
-            }
-            soFar += entity.lines[i].line.length;
         }
-        return [-1, ""];
+        return [result.join(''), lineCount];
     }
 
     private async markMethod(lineNum: number, methodName: string, entityType: EntityType): Promise<DartEntity> {
