@@ -35,12 +35,14 @@ enforced.
 
 This plugin does not have a full-featured Dart syntax tree parser.
 As a result, it may come across Dart code that it doesn't handle properly.
-See the [Known Issues]() section below for more details.
+See the [Known Issues](#known-issues) section below for more details.
+
+## Reporting Problems
 
 It is my goal to be able to use this plugin on large group projects, so
 every attempt has been made to make this robust. If, however, problems
-are found, please raise issues on the GitHub issue tracker for this repo
-along with a (short) example demonstrating the "before" and "after" results
+are found, please raise issues on the [GitHub issue tracker](issues) for this
+repo along with a (short) example demonstrating the "before" and "after" results
 of running this plugin on the example code.
 
 Even better, please submit a PR with your new "before"/"after" example coded-up
