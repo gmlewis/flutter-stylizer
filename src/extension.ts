@@ -247,7 +247,15 @@ class DartClass {
         let leadingText = result[2];
         console.log('sequence=', sequence, 'lineCount=', lineCount);
 
-        entity.name = leadingText; // TODO: fix this.
+        const nameParts = leadingText.split(' ');
+        let staticKeyword = false;
+        if (nameParts.length > 0) {
+            entity.name = nameParts[nameParts.length - 1];
+            console.log('name=', entity.name);
+            if (nameParts[0] === 'static') {
+                staticKeyword = true;
+            }
+        }
 
         switch (sequence) {
             case '(){}':
@@ -278,16 +286,16 @@ class DartClass {
                 entity.entityType = EntityType.OtherMethod;
                 break;
             case ';':
-                entity.entityType = EntityType.InstanceVariable;
+                entity.entityType = (staticKeyword ? EntityType.StaticVariable : EntityType.InstanceVariable);
                 break;
             case '=();':
-                entity.entityType = EntityType.InstanceVariable;
+                entity.entityType = (staticKeyword ? EntityType.StaticVariable : EntityType.InstanceVariable);
                 break;
             case '=[]':
-                entity.entityType = EntityType.InstanceVariable;
+                entity.entityType = (staticKeyword ? EntityType.StaticVariable : EntityType.InstanceVariable);
                 break;
             case '={}':
-                entity.entityType = EntityType.InstanceVariable;
+                entity.entityType = (staticKeyword ? EntityType.StaticVariable : EntityType.InstanceVariable);
                 break;
             default:
                 console.log('UNKNOWN TYPE!');
@@ -475,7 +483,7 @@ const findMatchingParen = async (editor: vscode.TextEditor, openParenOffset: num
 };
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Congratulations, your extension "flutter-stylizer" is now active!');
+    console.log('Congratulations, "Flutter Stylizer" is now active!');
 
     let disposable = vscode.commands.registerCommand('extension.flutterStylizer', async () => {
         const editor = vscode.window.activeTextEditor;
@@ -498,7 +506,7 @@ export function activate(context: vscode.ExtensionContext) {
             lines.push(dc.lines[0].line);  // Curly brace.
             let addEntity = (entity: DartEntity | undefined, separateEntities: boolean) => {
                 if (entity === undefined) { return; }
-                console.log('entity.lines.length=', entity.lines.length);
+                // console.log('entity.lines.length=', entity.lines.length);
                 entity.lines.forEach((line) => lines.push(line.line));
                 if (separateEntities) {
                     if (lines.length > 0 && lines[lines.length - 1] !== '\n') { lines.push(''); }
