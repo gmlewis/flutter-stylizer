@@ -282,6 +282,9 @@ class DartClass {
         }
 
         switch (sequence) {
+            case '=>;':  // a getter, for example.
+                entity.entityType = EntityType.OtherMethod;
+                break;
             case '(){}':
                 entity.entityType = EntityType.OtherMethod;
                 break;

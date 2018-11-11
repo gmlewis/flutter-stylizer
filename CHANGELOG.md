@@ -6,6 +6,9 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.3] - 2018-11-10
+- Fix placement of getters with other methods.
+
 ## [0.0.2] - 2018-11-10
 - Preserve solitary single- and multi-line comments.
 

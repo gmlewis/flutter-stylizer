@@ -63,6 +63,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.3
+
+- Fix placement of getters with other methods.
+
 ### 0.0.2
 
 - Preserve solitary single- and multi-line comments.
