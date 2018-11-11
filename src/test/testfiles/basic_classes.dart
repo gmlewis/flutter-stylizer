@@ -8,8 +8,16 @@ class Class1 {
   // _pvi is a private instance variable.
   List<String> _pvi = ['one', 'two'];
 
+  // This is a random single-line comment somewhere in the class.
+
   // _spv is a static private variable.
   static final String _spv = 'spv';
+
+  /* This is a
+   * random multi-
+   * line comment
+   * somewhere in the middle
+   * of the class */
 
   // _spvni is a static private variable with no initializer.
   static double _spvni;

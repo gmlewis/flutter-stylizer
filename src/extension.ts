@@ -216,7 +216,7 @@ class DartClass {
 
             // Preserve the comment lines leading up to the entity.
             for (let lineNum = i - 1; lineNum > 0; lineNum--) {
-                if (this.lines[lineNum].entityType === EntityType.SingleLineComment) {
+                if (isComment(this.lines[lineNum])) {
                     this.lines[lineNum].entityType = entity.entityType;
                     entity.lines.unshift(this.lines[lineNum]);
                     continue;
@@ -444,10 +444,16 @@ class DartClass {
         const absCloseParenOffset = await findMatchingParen(this.editor, absOpenParenOffset);
         const relCloseParenOffset = absCloseParenOffset - this.openCurlyOffset;
         const curlyDeltaOffset = this.fullBuf.substring(relCloseParenOffset).indexOf('{');
-        const absOpenCurlyOffset = absCloseParenOffset + curlyDeltaOffset;
-        const absCloseCurlyOffset = await findMatchingParen(this.editor, absOpenCurlyOffset);
-        const relCloseCurlyOffset = absCloseCurlyOffset - this.openCurlyOffset;
-        const constructorBuf = this.fullBuf.substring(lineOffset, relCloseCurlyOffset + 1);
+        const semicolonOffset = this.fullBuf.substring(relCloseParenOffset).indexOf(';');
+        let nextOffset = 0;
+        if (curlyDeltaOffset >= 0 && semicolonOffset >= 0 && semicolonOffset < curlyDeltaOffset) { // no body.
+            nextOffset = relCloseParenOffset + semicolonOffset;
+        } else {
+            const absOpenCurlyOffset = absCloseParenOffset + curlyDeltaOffset;
+            const absCloseCurlyOffset = await findMatchingParen(this.editor, absOpenCurlyOffset);
+            nextOffset = absCloseCurlyOffset - this.openCurlyOffset;
+        }
+        const constructorBuf = this.fullBuf.substring(lineOffset, nextOffset + 1);
         const numLines = constructorBuf.split('\n').length;
         for (let i = 0; i < numLines; i++) {
             this.lines[lineNum + i].entityType = entityType;
@@ -456,7 +462,7 @@ class DartClass {
 
         // Preserve the comment lines leading up to the method.
         for (lineNum--; lineNum > 0; lineNum--) {
-            if (this.lines[lineNum].entityType === EntityType.SingleLineComment) {
+            if (isComment(this.lines[lineNum])) {
                 this.lines[lineNum].entityType = entityType;
                 entity.lines.unshift(this.lines[lineNum]);
                 continue;
@@ -475,6 +481,11 @@ const findMatchingParen = async (editor: vscode.TextEditor, openParenOffset: num
     await vscode.commands.executeCommand('editor.action.jumpToBracket');
     const result = editor.document.offsetAt(editor.selection.active);
     return result;
+};
+
+const isComment = (line: DartLine) => {
+    return (line.entityType === EntityType.SingleLineComment ||
+        line.entityType === EntityType.MultiLineComment);
 };
 
 export function activate(context: vscode.ExtensionContext) {
@@ -527,6 +538,17 @@ export function activate(context: vscode.ExtensionContext) {
             dc.overrideMethods.sort(sortFunc);
             addEntities(dc.overrideMethods);
             addEntities(dc.otherMethods);
+
+            // Preserve random single-line and multi-line comments.
+            for (let i = 1; i < dc.lines.length; i++) {
+                let foundComment = false;
+                for (; i < dc.lines.length && isComment(dc.lines[i]); i++) {
+                    lines.push(dc.lines[i].line);
+                    foundComment = true;
+                }
+                if (foundComment) { lines.push(''); }
+            }
+
             addEntity(dc.buildMethod);
 
             editor.edit((editBuilder: vscode.TextEditorEdit) => {

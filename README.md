@@ -63,6 +63,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.2
+
+- Preserve solitary single- and multi-line comments.
+
 ### 0.0.1
 
 - Initial release, "Flutter Stylizer" is the provided command.
