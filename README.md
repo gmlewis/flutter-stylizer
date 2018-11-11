@@ -49,6 +49,8 @@ Even better, please submit a PR with your new "before"/"after" example coded-up
 as a unit test along with the code to fix the problem, and I'll try to
 incorporate the fix into the plugin.
 
+***Please remember to state which version of the plugin you are using!***
+
 [GitHub issue tracker]: https://github.com/gmlewis/flutter-stylizer/issues
 
 ## Known Issues
