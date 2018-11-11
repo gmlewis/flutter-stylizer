@@ -63,6 +63,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.4
+
+- Add support for missing getters.
+
 ### 0.0.3
 
 - Fix placement of getters with other methods.
