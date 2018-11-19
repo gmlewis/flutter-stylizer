@@ -65,6 +65,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.5
+
+- Fix bugs found with abstract classes, getters, and @overrides.
+
 ### 0.0.4
 
 - Add support for missing getters.

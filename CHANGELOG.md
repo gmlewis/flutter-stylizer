@@ -6,6 +6,9 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.5] - 2018-11-18
+- Fix bugs found with abstract classes, getters, and @overrides.
+
 ## [0.0.4] - 2018-11-10
 - Add support for missing getters.
 

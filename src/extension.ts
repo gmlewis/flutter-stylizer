@@ -70,6 +70,10 @@ class DartClass {
         this.classOffset = classOffset;
         this.openCurlyOffset = openCurlyOffset;
         this.closeCurlyOffset = closeCurlyOffset;
+        const lessThanOffset = className.indexOf('<');
+        if (lessThanOffset >= 0) {  // Strip off <T>.
+            this.className = className.substring(0, lessThanOffset);
+        }
     }
 
     async findFeatures(buf: string) {
@@ -191,12 +195,32 @@ class DartClass {
                     const entityType = (name === 'build') ? EntityType.BuildMethod : EntityType.OverrideMethod;
                     this.lines[i].entityType = entityType;
                     let entity = await this.markMethod(i + 1, name, entityType);
-                    entity.lines.unshift(this.lines[i]);
                     if (name === 'build') {
                         this.buildMethod = entity;
                     } else {
                         this.overrideMethods.push(entity);
                     }
+                } else {
+                    // No open paren - could be a getter. Find next ';'.
+                    let entity = new DartEntity();
+                    entity.entityType = EntityType.OverrideMethod;
+                    entity.lines.push(this.lines[i]);
+                    this.lines[i].entityType = entity.entityType;
+                    let lineNum = i + 1;
+                    for (let j = i + 1; j < this.lines.length; j++) {
+                        entity.lines.push(this.lines[j]);
+                        this.lines[j].entityType = entity.entityType;
+                        const semicolonOffset = this.lines[j].stripped.indexOf(';');
+                        if (semicolonOffset >= 0) {
+                            lineNum = j;
+                            break;
+                        }
+                    }
+                    for (lineNum = i - 1; isComment(this.lines[lineNum]); lineNum--) {
+                        entity.lines.unshift(this.lines[lineNum]);
+                        this.lines[lineNum].entityType = entity.entityType;
+                    }
+                    this.overrideMethods.push(entity);
                 }
             }
         }
@@ -310,6 +334,9 @@ class DartClass {
             case '()=>[]':
                 entity.entityType = EntityType.OtherMethod;
                 break;
+            case '();':  // Abstract method.
+                entity.entityType = EntityType.OtherMethod;
+                break;
 
             case '=(){}':
                 entity.entityType = EntityType.OtherMethod;
@@ -326,6 +353,11 @@ class DartClass {
             case '=()=>[]':
                 entity.entityType = EntityType.OtherMethod;
                 break;
+        }
+
+        // Force getters to be methods.
+        if (leadingText.indexOf(' get ')) {
+            entity.entityType = EntityType.OtherMethod;
         }
 
         for (let i = 0; i <= lineCount; i++) {
@@ -479,7 +511,7 @@ class DartClass {
 
         // Preserve the comment lines leading up to the method.
         for (lineNum--; lineNum > 0; lineNum--) {
-            if (isComment(this.lines[lineNum])) {
+            if (isComment(this.lines[lineNum]) || this.lines[lineNum].stripped.startsWith('@')) {
                 this.lines[lineNum].entityType = entityType;
                 entity.lines.unshift(this.lines[lineNum]);
                 continue;
@@ -490,7 +522,7 @@ class DartClass {
     }
 }
 
-const matchClassRE = /^class\s+(\S+)\s*.*$/mg;
+const matchClassRE = /^(?:abstract\s+)?class\s+(\S+)\s*.*$/mg;
 
 const findMatchingParen = async (editor: vscode.TextEditor, openParenOffset: number) => {
     const position = editor.document.positionAt(openParenOffset);
