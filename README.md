@@ -65,6 +65,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.7
+
+- Fix instance variable bug.
+
 ### 0.0.6
 
 - Keep groups of comments associated with following entity.

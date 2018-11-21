@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.7] - 2018-11-20
+
+- Fix instance variable bug.
+
 ## [0.0.6] - 2018-11-20
 
 - Keep groups of comments associated with following entity.

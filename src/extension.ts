@@ -314,34 +314,10 @@ class DartClass {
         }
 
         switch (sequence) {
-            case '=>();':
-                entity.entityType = EntityType.OtherMethod;
-                break;
-            case '=>;':
-                entity.entityType = EntityType.OtherMethod;
-                break;
-            case '=>{}':
-                entity.entityType = EntityType.OtherMethod;
-                break;
-            case '=>[]':
-                entity.entityType = EntityType.OtherMethod;
-                break;
-
             case '(){}':
                 entity.entityType = EntityType.OtherMethod;
                 break;
-            case '()=>();':
-                entity.entityType = EntityType.OtherMethod;
-                break;
-            case '()=>;':
-                entity.entityType = EntityType.OtherMethod;
-                break;
-            case '()=>{}':
-                entity.entityType = EntityType.OtherMethod;
-                break;
-            case '()=>[]':
-                entity.entityType = EntityType.OtherMethod;
-                break;
+
             case '();':  // Abstract method.
                 entity.entityType = EntityType.OtherMethod;
                 break;
@@ -349,22 +325,16 @@ class DartClass {
             case '=(){}':
                 entity.entityType = EntityType.OtherMethod;
                 break;
-            case '=()=>();':
-                entity.entityType = EntityType.OtherMethod;
-                break;
-            case '=()=>;':
-                entity.entityType = EntityType.OtherMethod;
-                break;
-            case '=()=>{}':
-                entity.entityType = EntityType.OtherMethod;
-                break;
-            case '=()=>[]':
-                entity.entityType = EntityType.OtherMethod;
+
+            default:
+                if (sequence.indexOf('=>') >= 0) {
+                    entity.entityType = EntityType.OtherMethod;
+                }
                 break;
         }
 
         // Force getters to be methods.
-        if (leadingText.indexOf(' get ')) {
+        if (leadingText.indexOf(' get ') >= 0) {
             entity.entityType = EntityType.OtherMethod;
         }
 
@@ -585,13 +555,13 @@ export function activate(context: vscode.ExtensionContext) {
             dc.namedConstructors.sort(sortFunc);
             addEntities(dc.namedConstructors);
             dc.staticVariables.sort(sortFunc);
-            addEntities(dc.staticVariables, false);
+            addEntities(dc.staticVariables);
             dc.instanceVariables.sort(sortFunc);
-            addEntities(dc.instanceVariables, false);
+            addEntities(dc.instanceVariables);
             dc.staticPrivateVariables.sort(sortFunc);
-            addEntities(dc.staticPrivateVariables, false);
+            addEntities(dc.staticPrivateVariables);
             dc.privateVariables.sort(sortFunc);
-            addEntities(dc.privateVariables, false);
+            addEntities(dc.privateVariables);
             dc.overrideMethods.sort(sortFunc);
             addEntities(dc.overrideMethods);
             addEntities(dc.otherMethods);
