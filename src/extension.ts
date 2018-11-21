@@ -83,6 +83,14 @@ class DartClass {
         lines.forEach((line) => {
             this.lines.push(new DartLine(line, lineOffset));
             lineOffset += line.length;
+            // Change a blank line following a comment to a SingleLineComment in
+            // order to keep it with the following entity.
+            const numLines = this.lines.length;
+            if (numLines > 1 &&
+                this.lines[numLines - 1].entityType === EntityType.BlankLine &&
+                isComment(this.lines[numLines - 2])) {
+                this.lines[numLines - 1].entityType = EntityType.SingleLineComment;
+            }
         });
 
         this.identifyMultiLineComments();

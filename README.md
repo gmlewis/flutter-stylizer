@@ -65,6 +65,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.6
+
+- Keep groups of comments associated with following entity.
+
 ### 0.0.5
 
 - Fix bugs found with abstract classes, getters, and @overrides.
