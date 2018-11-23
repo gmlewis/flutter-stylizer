@@ -540,13 +540,14 @@ export function activate(context: vscode.ExtensionContext) {
             let addEntity = (entity?: DartEntity, separateEntities?: boolean) => {  // separateEntities default is true.
                 if (entity === undefined) { return; }
                 entity.lines.forEach((line) => lines.push(line.line));
-                if (separateEntities === undefined || separateEntities === true) {
+                if (separateEntities !== false || entity.lines.length > 1) {
                     if (lines.length > 0 && lines[lines.length - 1] !== '\n') { lines.push(''); }
                 }
             };
             let addEntities = (entities: Array<DartEntity>, separateEntities?: boolean) => {  // separateEntities default is true.
+                if (entities.length == 0) { return; }
                 entities.forEach((e) => addEntity(e, separateEntities));
-                if (separateEntities === false && entities.length > 0 && lines.length > 0 && lines[lines.length - 1] !== '\n') {
+                if (separateEntities === false && lines.length > 0 && lines[lines.length - 1] !== '\n') {
                     lines.push('');
                 }
             };
@@ -555,13 +556,19 @@ export function activate(context: vscode.ExtensionContext) {
             dc.namedConstructors.sort(sortFunc);
             addEntities(dc.namedConstructors);
             dc.staticVariables.sort(sortFunc);
-            addEntities(dc.staticVariables);
+            addEntities(dc.staticVariables, false);
             dc.instanceVariables.sort(sortFunc);
-            addEntities(dc.instanceVariables);
+            addEntities(dc.instanceVariables, false);
             dc.staticPrivateVariables.sort(sortFunc);
-            addEntities(dc.staticPrivateVariables);
+            addEntities(dc.staticPrivateVariables, false);
             dc.privateVariables.sort(sortFunc);
-            addEntities(dc.privateVariables);
+            addEntities(dc.privateVariables, false);
+
+            // Strip a trailing blank line.
+            if (lines.length > 2 && lines[lines.length - 1] === '' && lines[lines.length - 2] === '') {
+                lines.pop();
+            }
+
             dc.overrideMethods.sort(sortFunc);
             addEntities(dc.overrideMethods);
             addEntities(dc.otherMethods);

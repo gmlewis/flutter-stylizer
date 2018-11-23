@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.8] - 2018-11-22
+
+- Improve spacing for single-line variables.
+
 ## [0.0.7] - 2018-11-20
 
 - Fix instance variable bug.
