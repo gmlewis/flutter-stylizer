@@ -65,6 +65,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.9
+
+- npm update vscode
+
 ### 0.0.8
 
 - Improve spacing for single-line variables.
