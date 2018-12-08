@@ -545,7 +545,7 @@ export function activate(context: vscode.ExtensionContext) {
                 }
             };
             let addEntities = (entities: Array<DartEntity>, separateEntities?: boolean) => {  // separateEntities default is true.
-                if (entities.length == 0) { return; }
+                if (entities.length === 0) { return; }
                 entities.forEach((e) => addEntity(e, separateEntities));
                 if (separateEntities === false && lines.length > 0 && lines[lines.length - 1] !== '\n') {
                     lines.push('');
