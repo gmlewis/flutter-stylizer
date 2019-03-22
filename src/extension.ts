@@ -585,7 +585,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             addEntity(dc.buildMethod);
 
-            editor.edit((editBuilder: vscode.TextEditorEdit) => {
+            await editor.edit((editBuilder: vscode.TextEditorEdit) => {
                 editBuilder.replace(editor.selection, lines.join('\n'));
             });
         }

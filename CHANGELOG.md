@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.10] - 2019-03-22
+
+- fix await bug
+
 ## [0.0.9] - 2018-12-08
 
 - npm update vscode

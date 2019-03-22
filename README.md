@@ -65,6 +65,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.10
+
+- fix await bug
+
 ### 0.0.9
 
 - npm update vscode
