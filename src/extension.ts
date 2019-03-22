@@ -515,6 +515,37 @@ const isComment = (line: DartLine) => {
         line.entityType === EntityType.MultiLineComment);
 };
 
+const findOpenCurlyOffset = (buf: string, startOffset: number) => {
+    const offset = buf.substring(startOffset).indexOf('{');
+    return startOffset + offset;
+};
+
+export const getClasses = async (editor: vscode.TextEditor) => {
+    let document = editor.document;
+    let classes = new Array<DartClass>();
+    const buf = document.getText();
+    while (true) {
+        let mm = matchClassRE.exec(buf);
+        if (!mm) { break; }
+        let className = mm[1];
+        let classOffset = buf.indexOf(mm[0]);
+        let openCurlyOffset = findOpenCurlyOffset(buf, classOffset);
+        if (openCurlyOffset <= classOffset) {
+            console.log('expected "{" after "class" at offset ' + classOffset.toString());
+            return classes;
+        }
+        let closeCurlyOffset = await findMatchingParen(editor, openCurlyOffset);
+        if (closeCurlyOffset <= openCurlyOffset) {
+            console.log('expected "}" after "{" at offset ' + openCurlyOffset.toString());
+            return classes;
+        }
+        let dartClass = new DartClass(editor, className, classOffset, openCurlyOffset, closeCurlyOffset);
+        await dartClass.findFeatures(buf.substring(openCurlyOffset, closeCurlyOffset));
+        classes.push(dartClass);
+    }
+    return classes;
+};
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, "Flutter Stylizer" is now active!');
 
@@ -592,37 +623,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         editor.selection = saveSelection;
     });
-
-    const getClasses = async (editor: vscode.TextEditor) => {
-        let document = editor.document;
-        let classes = new Array<DartClass>();
-        const buf = document.getText();
-        while (true) {
-            let mm = matchClassRE.exec(buf);
-            if (!mm) { break; }
-            let className = mm[1];
-            let classOffset = buf.indexOf(mm[0]);
-            let openCurlyOffset = findOpenCurlyOffset(buf, classOffset);
-            if (openCurlyOffset <= classOffset) {
-                console.log('expected "{" after "class" at offset ' + classOffset.toString());
-                return classes;
-            }
-            let closeCurlyOffset = await findMatchingParen(editor, openCurlyOffset);
-            if (closeCurlyOffset <= openCurlyOffset) {
-                console.log('expected "}" after "{" at offset ' + openCurlyOffset.toString());
-                return classes;
-            }
-            let dartClass = new DartClass(editor, className, classOffset, openCurlyOffset, closeCurlyOffset);
-            await dartClass.findFeatures(buf.substring(openCurlyOffset, closeCurlyOffset));
-            classes.push(dartClass);
-        }
-        return classes;
-    };
-
-    const findOpenCurlyOffset = (buf: string, startOffset: number) => {
-        const offset = buf.substring(startOffset).indexOf('{');
-        return startOffset + offset;
-    };
 
     context.subscriptions.push(disposable);
 }
