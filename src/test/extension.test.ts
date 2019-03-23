@@ -122,4 +122,89 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
                 'line #' + i.toString() + ': ' + line.line);
         }
     });
+
+    test("Handle overridden getters with bodies", async () => {
+        var source = `class CurvedAnimation extends Animation<double>
+    with AnimationWithParentMixin<double> {
+  @override
+  double get value {
+    final Curve activeCurve = _useForwardCurve ? curve : reverseCurve;
+
+    final double t = parent.value;
+    if (activeCurve == null) return t;
+    if (t == 0.0 || t == 1.0) {
+      assert(() {
+        final double transformedValue = activeCurve.transform(t);
+        final double roundedTransformedValue =
+            transformedValue.round().toDouble();
+        if (roundedTransformedValue != t) {
+          throw FlutterError('Invalid curve endpoint at $t.\n'
+              'Curves must map 0.0 to near zero and 1.0 to near one but '
+              'is near $roundedTransformedValue.');
+        }
+        return true;
+      }());
+      return t;
+    }
+    return activeCurve.transform(t);
+  }
+
+  @override
+  String toString() {
+    if (reverseCurve == null) return '$parent\u27A9$curve';
+    if (_useForwardCurve)
+      return '$parent\u27A9$curve\u2092\u2099/$reverseCurve';
+    return '$parent\u27A9$curve/$reverseCurve\u2092\u2099';
+  }
+}`;
+        let doc = await newDoc();
+        let editor = await newEditor(doc, source);
+        let got = await stylizer.getClasses(editor!);
+        assert.equal(got.length, 1);
+        assert.equal(got[0].lines.length, 33);
+
+        let want = [
+            stylizer.EntityType.Unknown,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.BlankLine,
+        ];
+
+        for (let i = 0; i < got[0].lines.length; i++) {
+            let line = got[0].lines[i];
+            assert.equal(
+                stylizer.EntityType[line.entityType],
+                stylizer.EntityType[want[i]],
+                'line #' + i.toString() + ': ' + line.line);
+        }
+    });
 });

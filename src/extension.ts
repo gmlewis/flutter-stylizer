@@ -212,24 +212,45 @@ class DartClass {
                         this.overrideMethods.push(entity);
                     }
                 } else {
-                    // No open paren - could be a getter. Find next ';'.
                     let entity = new DartEntity();
                     entity.entityType = EntityType.OverrideMethod;
-                    entity.lines.push(this.lines[i]);
-                    this.lines[i].entityType = entity.entityType;
                     let lineNum = i + 1;
-                    for (let j = i + 1; j < this.lines.length; j++) {
-                        entity.lines.push(this.lines[j]);
-                        this.lines[j].entityType = entity.entityType;
-                        const semicolonOffset = this.lines[j].stripped.indexOf(';');
-                        if (semicolonOffset >= 0) {
-                            lineNum = j;
-                            break;
+                    // No open paren - could be a getter. See if it has a body.
+                    if (this.lines[i + 1].stripped.indexOf('{') >= 0) {
+                        const lineOffset = this.fullBuf.indexOf(this.lines[i + 1].line);
+                        const inLineOffset = this.lines[i + 1].line.indexOf('{');
+                        const relOpenCurlyOffset = lineOffset + inLineOffset;
+                        assert.equal(this.fullBuf[relOpenCurlyOffset], '{', 'Expected open curly bracket at relative offset');
+                        const absOpenCurlyOffset = this.openCurlyOffset + relOpenCurlyOffset;
+                        const absCloseCurlyOffset = await findMatchingBracket(this.editor, absOpenCurlyOffset);
+                        const relCloseCurlyOffset = absCloseCurlyOffset - this.openCurlyOffset;
+                        assert.equal(this.fullBuf[relCloseCurlyOffset], '}', 'Expected close curly bracket at relative offset');
+                        let nextOffset = absCloseCurlyOffset - this.openCurlyOffset;
+                        const bodyBuf = this.fullBuf.substring(lineOffset, nextOffset + 1);
+                        const numLines = bodyBuf.split('\n').length;
+                        for (let j = 0; j < numLines; j++) {
+                            this.lines[lineNum + j].entityType = entity.entityType;
+                            entity.lines.push(this.lines[lineNum + j]);
+                        }
+                    } else {
+                        // Find next ';', marking entityType forward.
+                        for (let j = i + 1; j < this.lines.length; j++) {
+                            this.lines[j].entityType = entity.entityType;
+                            entity.lines.push(this.lines[j]);
+                            const semicolonOffset = this.lines[j].stripped.indexOf(';');
+                            if (semicolonOffset >= 0) {
+                                break;
+                            }
                         }
                     }
-                    for (lineNum = i - 1; isComment(this.lines[lineNum]); lineNum--) {
-                        entity.lines.unshift(this.lines[lineNum]);
-                        this.lines[lineNum].entityType = entity.entityType;
+                    // Preserve the comment lines leading up to the method.
+                    for (lineNum--; lineNum > 0; lineNum--) {
+                        if (isComment(this.lines[lineNum]) || this.lines[lineNum].stripped.startsWith('@')) {
+                            this.lines[lineNum].entityType = entity.entityType;
+                            entity.lines.unshift(this.lines[lineNum]);
+                            continue;
+                        }
+                        break;
                     }
                     this.overrideMethods.push(entity);
                 }
@@ -474,7 +495,7 @@ class DartClass {
         assert.equal(this.fullBuf[relOpenParenOffset], '(', 'Expected open parenthesis at relative offset');
 
         const absOpenParenOffset = this.openCurlyOffset + relOpenParenOffset;
-        const absCloseParenOffset = await findMatchingParen(this.editor, absOpenParenOffset);
+        const absCloseParenOffset = await findMatchingBracket(this.editor, absOpenParenOffset);
         const relCloseParenOffset = absCloseParenOffset - this.openCurlyOffset;
         assert.equal(this.fullBuf[relCloseParenOffset], ')', 'Expected close parenthesis at relative offset');
 
@@ -485,7 +506,7 @@ class DartClass {
             nextOffset = relCloseParenOffset + semicolonOffset;
         } else {
             const absOpenCurlyOffset = absCloseParenOffset + curlyDeltaOffset;
-            const absCloseCurlyOffset = await findMatchingParen(this.editor, absOpenCurlyOffset);
+            const absCloseCurlyOffset = await findMatchingBracket(this.editor, absOpenCurlyOffset);
             nextOffset = absCloseCurlyOffset - this.openCurlyOffset;
         }
         const constructorBuf = this.fullBuf.substring(lineOffset, nextOffset + 1);
@@ -510,7 +531,7 @@ class DartClass {
 
 const matchClassRE = /^(?:abstract\s+)?class\s+(\S+)\s*.*$/mg;
 
-const findMatchingParen = async (editor: vscode.TextEditor, openParenOffset: number) => {
+const findMatchingBracket = async (editor: vscode.TextEditor, openParenOffset: number) => {
     const position = editor.document.positionAt(openParenOffset);
     editor.selection = new vscode.Selection(position, position);
     await vscode.commands.executeCommand('editor.action.jumpToBracket');
@@ -543,7 +564,7 @@ export const getClasses = async (editor: vscode.TextEditor) => {
             console.log('expected "{" after "class" at offset ' + classOffset.toString());
             return classes;
         }
-        let closeCurlyOffset = await findMatchingParen(editor, openCurlyOffset);
+        let closeCurlyOffset = await findMatchingBracket(editor, openCurlyOffset);
         if (closeCurlyOffset <= openCurlyOffset) {
             console.log('expected "}" after "{" at offset ' + openCurlyOffset.toString());
             return classes;
