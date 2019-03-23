@@ -1,9 +1,10 @@
 'use strict';
+import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 const commentRE = /^(.*?)\s*\/\/.*$/;
 
-enum EntityType {
+export enum EntityType {  // export for testing only.
     Unknown,
     BlankLine,
     SingleLineComment,
@@ -179,7 +180,7 @@ class DartClass {
                     }
                 }
                 const openParenOffset = offset + line.stripped.substring(offset).indexOf('(');
-                const namedConstructor = line.stripped.substring(offset, openParenOffset);
+                const namedConstructor = line.stripped.substring(offset, openParenOffset + 1);  // Include open parenthesis.
                 this.lines[i].entityType = EntityType.NamedConstructor;
                 let entity = await this.markMethod(i, namedConstructor, EntityType.NamedConstructor);
                 this.namedConstructors.push(entity);
@@ -197,13 +198,15 @@ class DartClass {
             if (line.stripped.startsWith('@override') && i < this.lines.length - 1) {
                 const offset = this.lines[i + 1].stripped.indexOf('(');
                 if (offset >= 0) {
-                    const ss = this.lines[i + 1].stripped.substring(0, offset);
+                    // Include open paren in name.
+                    const ss = this.lines[i + 1].stripped.substring(0, offset + 1);
+                    // Search for beginning of method name.
                     const nameOffset = ss.lastIndexOf(' ') + 1;
                     const name = ss.substring(nameOffset);
-                    const entityType = (name === 'build') ? EntityType.BuildMethod : EntityType.OverrideMethod;
+                    const entityType = (name === 'build(') ? EntityType.BuildMethod : EntityType.OverrideMethod;
                     this.lines[i].entityType = entityType;
                     let entity = await this.markMethod(i + 1, name, entityType);
-                    if (name === 'build') {
+                    if (name === 'build(') {
                         this.buildMethod = entity;
                     } else {
                         this.overrideMethods.push(entity);
@@ -458,6 +461,7 @@ class DartClass {
     }
 
     private async markMethod(lineNum: number, methodName: string, entityType: EntityType): Promise<DartEntity> {
+        assert.equal(true, methodName.endsWith('('), 'markMethod: ' + methodName + ' must end with the open parenthesis.');
         let entity = new DartEntity;
         entity.entityType = entityType;
         entity.lines = [];
@@ -467,13 +471,17 @@ class DartClass {
         const lineOffset = this.fullBuf.indexOf(this.lines[lineNum].line);
         const inLineOffset = this.lines[lineNum].line.indexOf(methodName);
         const relOpenParenOffset = lineOffset + inLineOffset + methodName.length - 1;
+        assert.equal(this.fullBuf[relOpenParenOffset], '(', 'Expected open parenthesis at relative offset');
+
         const absOpenParenOffset = this.openCurlyOffset + relOpenParenOffset;
         const absCloseParenOffset = await findMatchingParen(this.editor, absOpenParenOffset);
         const relCloseParenOffset = absCloseParenOffset - this.openCurlyOffset;
+        assert.equal(this.fullBuf[relCloseParenOffset], ')', 'Expected close parenthesis at relative offset');
+
         const curlyDeltaOffset = this.fullBuf.substring(relCloseParenOffset).indexOf('{');
         const semicolonOffset = this.fullBuf.substring(relCloseParenOffset).indexOf(';');
         let nextOffset = 0;
-        if (curlyDeltaOffset >= 0 && semicolonOffset >= 0 && semicolonOffset < curlyDeltaOffset) { // no body.
+        if (curlyDeltaOffset < 0 || (curlyDeltaOffset >= 0 && semicolonOffset >= 0 && semicolonOffset < curlyDeltaOffset)) { // no body.
             nextOffset = relCloseParenOffset + semicolonOffset;
         } else {
             const absOpenCurlyOffset = absCloseParenOffset + curlyDeltaOffset;
@@ -520,6 +528,7 @@ const findOpenCurlyOffset = (buf: string, startOffset: number) => {
     return startOffset + offset;
 };
 
+// export for testing only.
 export const getClasses = async (editor: vscode.TextEditor) => {
     let document = editor.document;
     let classes = new Array<DartClass>();
