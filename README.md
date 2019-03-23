@@ -65,13 +65,17 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.11
+
+- Fix bugs running on flutter package.
+
 ### 0.0.10
 
-- fix await bug
+- Fix await bug.
 
 ### 0.0.9
 
-- npm update vscode
+- npm update vscode.
 
 ### 0.0.8
 
