@@ -6,6 +6,9 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.12] - 2019-07-02
+- Incorporate vulnerability fixes from #3, #4, and #5.
+
 ## [0.0.11] - 2019-03-22
 - Fix bugs running on flutter package.
 

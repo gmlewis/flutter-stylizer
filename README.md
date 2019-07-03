@@ -65,6 +65,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.12
+
+- Incorporate vulnerability fixes from #3, #4, and #5.
+
 ### 0.0.11
 
 - Fix bugs running on flutter package.
