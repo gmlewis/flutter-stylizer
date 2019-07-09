@@ -6,6 +6,13 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.13] - 2019-07-09
+- Adds a statusbar button (on the lower left) to run the stylizer command on the current file.
+  The button appears whenever an editor with the language type `dart` is the active editor.
+  This is accomplished with a language-based "activation event" for "flutter-stylizer".
+- Adds an extension dependency to the Dart extension (this adds `dart` as an editor language).
+- This feature was generously added by @sketchbuch in #7.
+
 ## [0.0.12] - 2019-07-02
 - Incorporate vulnerability fixes from #3, #4, and #5.
 
