@@ -1,6 +1,10 @@
 'use strict';
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import buttons from './buttons/buttons';
+import createButtons from './utils/create_buttons';
+import updateStatusbar from './utils/update_statusbar';
+import watchEditors from './utils/watch_editors';
 
 const commentRE = /^(.*?)\s*\/\/.*$/;
 
@@ -655,6 +659,12 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(disposable);
+
+    if (vscode.extensions.getExtension('dart-code.dart-code') !== undefined) {
+        const statusButtons: vscode.StatusBarItem[] = createButtons(buttons);
+        watchEditors(statusButtons);
+        updateStatusbar(vscode.window.activeTextEditor, statusButtons);
+    }
 }
 
 export function deactivate() {
