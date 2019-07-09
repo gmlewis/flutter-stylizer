@@ -11,8 +11,8 @@ const getMockEditor = (languageId: string) => {
 suite('updateStatusbar()', function() {
   let mockButton: vscode.StatusBarItem;
   let mockButtons: vscode.StatusBarItem[];
-  let spiedHide: sinon.SinonSpy<[], void>;
-  let spiedShow: sinon.SinonSpy<[], void>;
+  let spiedHide: sinon.SinonSpy;
+  let spiedShow: sinon.SinonSpy;
 
   beforeEach(() => {
     mockButton = { hide: () => {}, show: () => {} } as vscode.StatusBarItem;

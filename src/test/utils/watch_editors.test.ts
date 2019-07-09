@@ -7,7 +7,7 @@ import watchEditors from '../../utils/watch_editors';
 
 suite('watchEditors()', function() {
   test('updateStatusbar() called', function() {
-    const spiedUpdateStatusbar = sinon.spy(vscode.window, 'onDidChangeActiveTextEditor');
+    const spiedUpdateStatusbar: sinon.SinonSpy = sinon.spy(vscode.window, 'onDidChangeActiveTextEditor');
     const mockStatusButtons: vscode.StatusBarItem[] = createButtons(mockButtons);
     watchEditors(mockStatusButtons);
     assert(spiedUpdateStatusbar.called);
