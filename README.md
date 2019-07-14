@@ -65,6 +65,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.14
+
+- Upgrade lodash to fix security vulnerability in #8.
+
 ### 0.0.13
 
 - Adds a statusbar button (on the lower left) to run the stylizer command on the current file.

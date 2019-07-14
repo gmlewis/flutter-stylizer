@@ -3,7 +3,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "displayName": "flutter-stylizer",
   "description": "Flutter Stylizer organizes your Flutter classes in an opinionated and consistent manner.",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "publisher": "gmlewis-vscode",
   "repository": "https://github.com/gmlewis/flutter-stylizer",
   "engines": {
