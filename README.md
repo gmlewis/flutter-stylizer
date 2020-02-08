@@ -65,6 +65,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.15
+
+- Fix incorrectly-identified named constructor reported in #9.
+
 ### 0.0.14
 
 - Upgrade lodash to fix security vulnerability in #8.

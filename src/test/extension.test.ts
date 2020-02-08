@@ -207,4 +207,78 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
                 'line #' + i.toString() + ': ' + line.line);
         }
     });
+
+    test("Issue#9: constructor false positive", async () => {
+        var source = `class PGDateTime {
+// value xor isInfinity
+PGDateTime({
+    this.value,
+    this.isInfinity = false,
+}) : assert((value != null || isInfinity == true) &&
+            !(value != null && isInfinity == true));
+
+PGDateTime.infinity() {
+    isInfinity = true;
+}
+
+PGDateTime.now() {
+    value = DateTime.now();
+    isInfinity = false;
+}
+
+PGDateTime.fromDateTime(this.value) : isInfinity = false;
+
+bool isInfinity = false;
+DateTime value;
+
+static PGDateTime parse(String formattedString) =>
+    formattedString == 'infinity'
+        ? PGDateTime.infinity()
+        : PGDateTime(value: DateTime.parse(formattedString).toLocal());
+}`;
+
+        let doc = await newDoc();
+        let editor = await newEditor(doc, source);
+        let got = await stylizer.getClasses(editor!);
+        assert.equal(got.length, 1);
+        assert.equal(got[0].lines.length, 27);
+
+        let want = [
+            stylizer.EntityType.Unknown,
+            stylizer.EntityType.MainConstructor,
+            stylizer.EntityType.MainConstructor,
+            stylizer.EntityType.MainConstructor,
+            stylizer.EntityType.MainConstructor,
+            stylizer.EntityType.MainConstructor,
+            stylizer.EntityType.MainConstructor,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.NamedConstructor,
+            stylizer.EntityType.NamedConstructor,
+            stylizer.EntityType.NamedConstructor,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.NamedConstructor,
+            stylizer.EntityType.NamedConstructor,
+            stylizer.EntityType.NamedConstructor,
+            stylizer.EntityType.NamedConstructor,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.NamedConstructor,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.InstanceVariable,
+            stylizer.EntityType.InstanceVariable,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.OtherMethod,
+            stylizer.EntityType.OtherMethod,
+            stylizer.EntityType.OtherMethod,
+            stylizer.EntityType.OtherMethod,
+            stylizer.EntityType.BlankLine,
+        ];
+
+        for (let i = 0; i < got[0].lines.length; i++) {
+            let line = got[0].lines[i];
+            assert.equal(
+                stylizer.EntityType[line.entityType].toString(),
+                stylizer.EntityType[want[i]].toString(),
+                'line #' + i.toString() + ': ' + line.line);
+        }
+    });
 });

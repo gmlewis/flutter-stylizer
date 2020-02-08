@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.15] - 2020-02-07
+
+- Fix incorrectly-identified named constructor reported in #9.
+
 ## [0.0.14] - 2019-07-14
 
 - Upgrade lodash to fix security vulnerability in #8.
