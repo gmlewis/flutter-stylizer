@@ -104,7 +104,7 @@ class DartClass {
         await this.identifyOverrideMethods();
         await this.identifyOthers();
 
-        // this.lines.forEach((line, index) => console.log('line #' + index.toString() + ' type=' + EntityType[line.entityType] + ': ' + line.line));
+        // this.lines.forEach((line, index) => console.log(`line #${index} type=${EntityType[line.entityType]}: ${line.line}`));
     }
 
     private genStripped(startLine: number): string {
@@ -179,7 +179,7 @@ class DartClass {
             if (offset >= 0) {
                 if (offset > 0) {
                     const char = line.stripped.substring(offset - 1, offset);
-                    if (char !== ' ' && char !== '\t') {
+                    if (line.stripped[0] === '?' || line.stripped[0] === ':' || (char !== ' ' && char !== '\t')) {
                         continue;
                     }
                 }
