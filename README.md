@@ -59,7 +59,7 @@ VSCode User Preferences (`Control/Cmd-,`) like this:
   ],
 ```
 
-And then rearrange as member names desired.
+And then rearrange member names as desired.
 
 ## Limitations
 
