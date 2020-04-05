@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import createButtons from '../../utils/create_buttons';
+import createButtons from '../../../utils/create_buttons';
 import mockButtons from '../mocks/mockButtons';
-import watchEditors from '../../utils/watch_editors';
+import watchEditors from '../../../utils/watch_editors';
 
 suite('watchEditors()', function() {
   test('updateStatusbar() called', function() {

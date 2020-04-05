@@ -9,14 +9,23 @@ Flutter Stylizer organizes the class(es) within a `*.dart` file
 in the following manner (with a blank line separating these parts):
 
 * The main (possibly factory) constructor is listed first, if it exists.
+  - (`public-constructor` in configuration)
 * Any named constructors are listed next, in sorted order.
+  - (`named-constructors` in configuration)
 * Any static (class) variables are listed next, in sorted order.
+  - (`public-static-variables` in configuration)
 * Any instance variables are listed next, in sorted order.
+  - (`public-instance-variables` in configuration)
 * Any private static (class) variables are listed next, in sorted order.
+  - (`private-static-variables` in configuration)
 * Any private instance variables are listed next, in sorted order.
+  - (`private-instance-variables` in configuration)
 * Any `@override` methods are listed next, in sorted order.
+  - (`public-override-methods` in configuration)
 * Any other methods are listed next in their original (unchanged) order.
+  - (`public-other-methods` in configuration)
 * The `build` method is listed last.
+  - (`build-method` in configuration)
 
 I have found that developer productivity increases when all code in
 large projects follows a consistent and opinionated style.
@@ -30,6 +39,27 @@ Having an automated tool to do this ugly work for you, however, makes
 coding a lot more enjoyable, as you don't have to worry about the rules,
 but can just run the plugin on file save, and the rules are automatically
 enforced.
+
+## Configuration
+
+To override the default order of the stylizer, add a section to your
+VSCode User Preferences (`Control/Cmd-,`) like this:
+
+```
+  "flutterStylizer.memberOrdering": [
+      "public-constructor",
+      "named-constructors",
+      "public-static-variables",
+      "public-instance-variables",
+      "private-static-variables",
+      "private-instance-variables",
+      "public-override-methods",
+      "public-other-methods",
+      "build-method",
+  ],
+```
+
+And then rearrange as member names desired.
 
 ## Limitations
 
@@ -64,6 +94,11 @@ incorporate the fix into the plugin.
   supported even though the Dart compiler can handle it.
 
 ## Release Notes
+
+### 0.0.16
+
+- Add `flutterStylizer.memberOrdering` configuration property to allow
+  customization of member ordering, requested in #11.
 
 ### 0.0.15
 

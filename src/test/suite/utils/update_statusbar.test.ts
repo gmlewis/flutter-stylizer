@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { afterEach, beforeEach } from 'mocha';
-import updateStatusbar from '../../utils/update_statusbar';
+import updateStatusbar from '../../../utils/update_statusbar';
 
 const getMockEditor = (languageId: string) => {
   return { document: { languageId } } as vscode.TextEditor;

@@ -59,6 +59,7 @@ class DartClass {
     closeCurlyOffset: number;
     fullBuf: string = "";
     lines: Array<DartLine> = [];  // Line 0 is always the open curly brace.
+
     theConstructor?: DartEntity = undefined;
     namedConstructors: Array<DartEntity> = [];
     staticVariables: Array<DartEntity> = [];
@@ -580,6 +581,129 @@ export const getClasses = async (editor: vscode.TextEditor) => {
     return classes;
 };
 
+const validateMemberOrdering = (): Array<string> => {
+    const defaultOrdering = [
+        'public-constructor',
+        'named-constructors',
+        'public-static-variables',
+        'public-instance-variables',
+        'private-static-variables',
+        'private-instance-variables',
+        'public-override-methods',
+        'public-other-methods',
+        'build-method'
+    ];
+    const memberOrdering = vscode.workspace.getConfiguration('flutterStylizer').get<Array<string>>('memberOrdering');
+    if (memberOrdering === null || memberOrdering === undefined || memberOrdering.length !== defaultOrdering.length) {
+        console.log(`flutterStylizer.memberOrdering must have ${defaultOrdering.length} values. Ignoring and using defaults.`);
+        return defaultOrdering;
+    }
+
+    let lookup = new Map(defaultOrdering.map((el: string) => [el, true]));
+    let seen = new Map<string, boolean>();
+    for (let i = 0; i < memberOrdering.length; i++) {
+        const el = memberOrdering[i];
+        if (!lookup.get(el)) {
+            console.log(`Unknown member ${el} in flutterStylizer.memberOrdering. Ignoring and using defaults.`);
+            return defaultOrdering;
+        }
+        if (seen.get(el)) {
+            console.log(`Duplicate member ${el} in flutterStylizer.memberOrdering. Ignoring and using defaults.`);
+            return defaultOrdering;
+        }
+        seen.set(el, true);
+    }
+
+    return memberOrdering;
+};
+
+// export for testing only.
+export const reorderClass = (memberOrdering: Array<string>, dc: DartClass): Array<string> => {
+    let lines = new Array<string>();
+    lines.push(dc.lines[0].line);  // Curly brace.
+    let addEntity = (entity?: DartEntity, separateEntities?: boolean) => {  // separateEntities default is true.
+        if (entity === undefined) { return; }
+        entity.lines.forEach((line) => lines.push(line.line));
+        if (separateEntities !== false || entity.lines.length > 1) {
+            if (lines.length > 0 && lines[lines.length - 1] !== '\n') { lines.push(''); }
+        }
+    };
+    let addEntities = (entities: Array<DartEntity>, separateEntities?: boolean) => {  // separateEntities default is true.
+        if (entities.length === 0) { return; }
+        entities.forEach((e) => addEntity(e, separateEntities));
+        if (separateEntities === false && lines.length > 0 && lines[lines.length - 1] !== '\n') {
+            lines.push('');
+        }
+    };
+    let sortFunc = (a: DartEntity, b: DartEntity) => a.name.localeCompare(b.name);
+
+    for (let order = 0; order < memberOrdering.length; order++) {
+        const el = memberOrdering[order];
+
+        switch (el) {
+            case 'public-constructor': {
+                addEntity(dc.theConstructor);
+                break;
+            }
+            case 'named-constructors': {
+                dc.namedConstructors.sort(sortFunc);
+                addEntities(dc.namedConstructors);
+                break;
+            }
+            case 'public-static-variables': {
+                dc.staticVariables.sort(sortFunc);
+                addEntities(dc.staticVariables, false);
+                break;
+            }
+            case 'public-instance-variables': {
+                dc.instanceVariables.sort(sortFunc);
+                addEntities(dc.instanceVariables, false);
+                break;
+            }
+            case 'private-static-variables': {
+                dc.staticPrivateVariables.sort(sortFunc);
+                addEntities(dc.staticPrivateVariables, false);
+                break;
+            }
+            case 'private-instance-variables': {
+                dc.privateVariables.sort(sortFunc);
+                addEntities(dc.privateVariables, false);
+                break;
+            }
+            case 'public-override-methods': {
+                // Strip a trailing blank line.
+                if (lines.length > 2 && lines[lines.length - 1] === '' && lines[lines.length - 2] === '') {
+                    lines.pop();
+                }
+
+                dc.overrideMethods.sort(sortFunc);
+                addEntities(dc.overrideMethods);
+                break;
+            }
+            case 'public-other-methods': {
+                addEntities(dc.otherMethods);
+
+                // Preserve random single-line and multi-line comments.
+                for (let i = 1; i < dc.lines.length; i++) {
+                    let foundComment = false;
+                    for (; i < dc.lines.length && isComment(dc.lines[i]); i++) {
+                        lines.push(dc.lines[i].line);
+                        foundComment = true;
+                    }
+                    if (foundComment) { lines.push(''); }
+                }
+                break;
+            }
+            case 'build-method': {
+                addEntity(dc.buildMethod);
+                break;
+            }
+        }
+    }
+
+    return lines;
+};
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, "Flutter Stylizer" is now active!');
 
@@ -589,6 +713,8 @@ export function activate(context: vscode.ExtensionContext) {
             return; // No open text editor
         }
         let saveSelection = editor.selection;
+
+        const memberOrdering = validateMemberOrdering();
 
         const classes = await getClasses(editor);
         console.log("Found " + classes.length.toString() + " classes.");
@@ -600,55 +726,7 @@ export function activate(context: vscode.ExtensionContext) {
             const endPos = editor.document.positionAt(dc.closeCurlyOffset);
             editor.selection = new vscode.Selection(startPos, endPos);
 
-            let lines = new Array<string>();
-            lines.push(dc.lines[0].line);  // Curly brace.
-            let addEntity = (entity?: DartEntity, separateEntities?: boolean) => {  // separateEntities default is true.
-                if (entity === undefined) { return; }
-                entity.lines.forEach((line) => lines.push(line.line));
-                if (separateEntities !== false || entity.lines.length > 1) {
-                    if (lines.length > 0 && lines[lines.length - 1] !== '\n') { lines.push(''); }
-                }
-            };
-            let addEntities = (entities: Array<DartEntity>, separateEntities?: boolean) => {  // separateEntities default is true.
-                if (entities.length === 0) { return; }
-                entities.forEach((e) => addEntity(e, separateEntities));
-                if (separateEntities === false && lines.length > 0 && lines[lines.length - 1] !== '\n') {
-                    lines.push('');
-                }
-            };
-            let sortFunc = (a: DartEntity, b: DartEntity) => a.name.localeCompare(b.name);
-            addEntity(dc.theConstructor);
-            dc.namedConstructors.sort(sortFunc);
-            addEntities(dc.namedConstructors);
-            dc.staticVariables.sort(sortFunc);
-            addEntities(dc.staticVariables, false);
-            dc.instanceVariables.sort(sortFunc);
-            addEntities(dc.instanceVariables, false);
-            dc.staticPrivateVariables.sort(sortFunc);
-            addEntities(dc.staticPrivateVariables, false);
-            dc.privateVariables.sort(sortFunc);
-            addEntities(dc.privateVariables, false);
-
-            // Strip a trailing blank line.
-            if (lines.length > 2 && lines[lines.length - 1] === '' && lines[lines.length - 2] === '') {
-                lines.pop();
-            }
-
-            dc.overrideMethods.sort(sortFunc);
-            addEntities(dc.overrideMethods);
-            addEntities(dc.otherMethods);
-
-            // Preserve random single-line and multi-line comments.
-            for (let i = 1; i < dc.lines.length; i++) {
-                let foundComment = false;
-                for (; i < dc.lines.length && isComment(dc.lines[i]); i++) {
-                    lines.push(dc.lines[i].line);
-                    foundComment = true;
-                }
-                if (foundComment) { lines.push(''); }
-            }
-
-            addEntity(dc.buildMethod);
+            let lines = reorderClass(memberOrdering, dc);
 
             await editor.edit((editBuilder: vscode.TextEditorEdit) => {
                 editBuilder.replace(editor.selection, lines.join('\n'));

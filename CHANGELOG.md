@@ -6,6 +6,11 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.16] - 2020-04-05
+
+- Add `flutterStylizer.memberOrdering` configuration property to allow
+  customization of member ordering, requested in #11.
+
 ## [0.0.15] - 2020-02-07
 
 - Fix incorrectly-identified named constructor reported in #9.
