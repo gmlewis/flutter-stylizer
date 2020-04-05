@@ -6,7 +6,8 @@
 import * as assert from 'assert';
 
 import * as vscode from 'vscode';
-import * as stylizer from '../extension';
+import * as stylizer from '../../extension';
+const fs = require('fs');
 
 // Defines a Mocha test suite to group tests of similar kind together
 suite("Extension Tests", function() {
@@ -279,6 +280,164 @@ static PGDateTime parse(String formattedString) =>
                 stylizer.EntityType[line.entityType].toString(),
                 stylizer.EntityType[want[i]].toString(),
                 'line #' + i.toString() + ': ' + line.line);
+        }
+    });
+
+    test("Issue#11: run on basic_classes.dart with default memberOrdering", async () => {
+        let source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart', 'utf8');
+        let wantSource = fs.readFileSync('src/test/suite/testfiles/basic_classes_default_order.txt', 'utf8');
+
+        let doc = await newDoc();
+        let editor = await newEditor(doc, source);
+        let got = await stylizer.getClasses(editor!);
+        assert.equal(got.length, 1);
+        assert.equal(got[0].lines.length, 33);
+
+        let want = [
+            stylizer.EntityType.Unknown,
+            stylizer.EntityType.PrivateInstanceVariable,
+            stylizer.EntityType.PrivateInstanceVariable,
+            stylizer.EntityType.BuildMethod,
+            stylizer.EntityType.BuildMethod,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.MultiLineComment,
+            stylizer.EntityType.MultiLineComment,
+            stylizer.EntityType.MultiLineComment,
+            stylizer.EntityType.MultiLineComment,
+            stylizer.EntityType.MultiLineComment,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.PrivateInstanceVariable,
+            stylizer.EntityType.StaticVariable,
+            stylizer.EntityType.InstanceVariable,
+            stylizer.EntityType.InstanceVariable,
+            stylizer.EntityType.MainConstructor,
+            stylizer.EntityType.NamedConstructor,
+            stylizer.EntityType.OtherMethod,
+            stylizer.EntityType.OtherMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.BlankLine,
+        ];
+
+        for (let i = 0; i < got[0].lines.length; i++) {
+            let line = got[0].lines[i];
+            assert.equal(
+                stylizer.EntityType[line.entityType].toString(),
+                stylizer.EntityType[want[i]].toString(),
+                'line #' + i.toString() + ': ' + line.line);
+        }
+
+        const memberOrdering = [
+            'public-constructor',
+            'named-constructors',
+            'public-static-variables',
+            'public-instance-variables',
+            'private-static-variables',
+            'private-instance-variables',
+            'public-override-methods',
+            'public-other-methods',
+            'build-method'
+        ];
+
+        let lines = stylizer.reorderClass(memberOrdering, got[0]);
+        const wantLines = wantSource.split('\n');
+        assert.equal(lines.length, wantLines.length);
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            assert.equal(
+                line,
+                wantLines[i],
+                'line #' + i.toString());
+        }
+    });
+
+    test("Issue#11: run on basic_classes.dart with custom memberOrdering", async () => {
+        let source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart', 'utf8');
+        let wantSource = fs.readFileSync('src/test/suite/testfiles/basic_classes_custom_order.txt', 'utf8');
+
+        let doc = await newDoc();
+        let editor = await newEditor(doc, source);
+        let got = await stylizer.getClasses(editor!);
+        assert.equal(got.length, 1);
+        assert.equal(got[0].lines.length, 33);
+
+        let want = [
+            stylizer.EntityType.Unknown,
+            stylizer.EntityType.PrivateInstanceVariable,
+            stylizer.EntityType.PrivateInstanceVariable,
+            stylizer.EntityType.BuildMethod,
+            stylizer.EntityType.BuildMethod,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.MultiLineComment,
+            stylizer.EntityType.MultiLineComment,
+            stylizer.EntityType.MultiLineComment,
+            stylizer.EntityType.MultiLineComment,
+            stylizer.EntityType.MultiLineComment,
+            stylizer.EntityType.BlankLine,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.StaticPrivateVariable,
+            stylizer.EntityType.PrivateInstanceVariable,
+            stylizer.EntityType.StaticVariable,
+            stylizer.EntityType.InstanceVariable,
+            stylizer.EntityType.InstanceVariable,
+            stylizer.EntityType.MainConstructor,
+            stylizer.EntityType.NamedConstructor,
+            stylizer.EntityType.OtherMethod,
+            stylizer.EntityType.OtherMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.OverrideMethod,
+            stylizer.EntityType.BlankLine,
+        ];
+
+        for (let i = 0; i < got[0].lines.length; i++) {
+            let line = got[0].lines[i];
+            assert.equal(
+                stylizer.EntityType[line.entityType].toString(),
+                stylizer.EntityType[want[i]].toString(),
+                'line #' + i.toString() + ': ' + line.line);
+        }
+
+        const memberOrdering = [
+            'public-constructor',
+            'named-constructors',
+            'public-static-variables',
+            'public-instance-variables',
+            'public-override-methods',
+            'public-other-methods',
+            'private-static-variables',
+            'private-instance-variables',
+            'build-method',
+        ];
+
+        let lines = stylizer.reorderClass(memberOrdering, got[0]);
+        const wantLines = wantSource.split('\n');
+        assert.equal(lines.length, wantLines.length);
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            assert.equal(
+                line,
+                wantLines[i],
+                'line #' + i.toString());
         }
     });
 });

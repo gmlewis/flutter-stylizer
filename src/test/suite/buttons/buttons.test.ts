@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import buttons from '../../buttons/buttons';
+import buttons from '../../../buttons/buttons';
 
 suite('buttons:', function() {
   test('Contains 1 button', function() {
