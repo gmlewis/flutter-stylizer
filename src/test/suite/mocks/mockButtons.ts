@@ -1,4 +1,4 @@
-import { Button } from '../../../buttons/buttons.interface';
+import { Button } from '../../../buttons/buttons.interface'
 
 const mockButtons: Button[] = [
   {
@@ -11,6 +11,6 @@ const mockButtons: Button[] = [
     text: 'text-2',
     tooltip: 'toolti-2',
   },
-];
+]
 
-export default mockButtons;
+export default mockButtons

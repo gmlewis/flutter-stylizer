@@ -17,6 +17,7 @@ export enum EntityType {  // export for testing only.
   NamedConstructor,
   StaticVariable,
   InstanceVariable,
+  OverrideVariable,
   StaticPrivateVariable,
   PrivateInstanceVariable,
   OverrideMethod,
@@ -64,6 +65,7 @@ class DartClass {
   namedConstructors: Array<DartEntity> = []
   staticVariables: Array<DartEntity> = []
   instanceVariables: Array<DartEntity> = []
+  overrideVariables: Array<DartEntity> = []
   staticPrivateVariables: Array<DartEntity> = []
   privateVariables: Array<DartEntity> = []
   overrideMethods: Array<DartEntity> = []
@@ -297,6 +299,9 @@ class DartClass {
           break
         case EntityType.InstanceVariable:
           this.instanceVariables.push(entity)
+          break
+        case EntityType.OverrideVariable:
+          this.overrideVariables.push(entity)
           break
         case EntityType.PrivateInstanceVariable:
           this.privateVariables.push(entity)
@@ -587,6 +592,7 @@ const validateMemberOrdering = (): Array<string> => {
     'named-constructors',
     'public-static-variables',
     'public-instance-variables',
+    'public-override-variables',
     'private-static-variables',
     'private-instance-variables',
     'public-override-methods',
@@ -658,6 +664,11 @@ export const reorderClass = (memberOrdering: Array<string>, dc: DartClass): Arra
       case 'public-instance-variables': {
         dc.instanceVariables.sort(sortFunc)
         addEntities(dc.instanceVariables, false)
+        break
+      }
+      case 'public-override-variables': {
+        dc.overrideVariables.sort(sortFunc)
+        addEntities(dc.overrideVariables, false)
         break
       }
       case 'private-static-variables': {
