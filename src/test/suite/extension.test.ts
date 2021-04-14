@@ -13,7 +13,7 @@ const fs = require('fs')
 suite("Extension Tests", function() {
 
   const newDoc = async () => {
-    let doc = await vscode.workspace.openTextDocument({ language: 'dart' })
+    const doc = await vscode.workspace.openTextDocument({ language: 'dart' })
     await vscode.window.showTextDocument(doc)
     return doc
   }
@@ -28,19 +28,19 @@ suite("Extension Tests", function() {
   }
 
   test("Classes are found", async () => {
-    var source = `// test.dart
+    const source = `// test.dart
 class myClass extends Widget {
 
 }`
-    let doc = await newDoc()
-    let editor = await newEditor(doc, source)
-    let got = await stylizer.getClasses(editor!)
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!)
     assert.strictEqual(got.length, 1)
     assert.strictEqual(got[0].lines.length, 3)
   })
 
   test("Named constructors are kept intact", async () => {
-    var source = `class AnimationController extends Animation<double>
+    const source = `class AnimationController extends Animation<double>
 with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalStatusListenersMixin {
     AnimationController.unbounded({
     double value = 0.0,
@@ -57,13 +57,12 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
     _internalSetValue(value);
     }
 }`
-    let doc = await newDoc()
-    let editor = await newEditor(doc, source)
-    let got = await stylizer.getClasses(editor!)
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!)
     assert.strictEqual(got.length, 1)
-    assert.strictEqual(got[0].lines.length, 16)
 
-    let want = [
+    const want = [
       stylizer.EntityType.Unknown,
       stylizer.EntityType.NamedConstructor,
       stylizer.EntityType.NamedConstructor,
@@ -82,30 +81,31 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
       stylizer.EntityType.BlankLine,
     ]
 
+    assert.strictEqual(got[0].lines.length, want.length)
+
     for (let i = 0; i < got[0].lines.length; i++) {
-      let line = got[0].lines[i]
+      const line = got[0].lines[i]
       assert.strictEqual(
         stylizer.EntityType[line.entityType],
         stylizer.EntityType[want[i]],
-        'line #' + i.toString() + ': ' + line.line)
+        `line #${i}: ${line.line}`)
     }
   })
 
   test("Private constructors are kept intact", async () => {
-    var source = `class _InterpolationSimulation extends Simulation {
+    const source = `class _InterpolationSimulation extends Simulation {
   _InterpolationSimulation(this._begin, this._end, Duration duration, this._curve, double scale)
     : assert(_begin != null),
       assert(_end != null),
       assert(duration != null && duration.inMicroseconds > 0),
       _durationInSeconds = (duration.inMicroseconds * scale) / Duration.microsecondsPerSecond;
 }`
-    let doc = await newDoc()
-    let editor = await newEditor(doc, source)
-    let got = await stylizer.getClasses(editor!)
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!)
     assert.strictEqual(got.length, 1)
-    assert.strictEqual(got[0].lines.length, 7)
 
-    let want = [
+    const want = [
       stylizer.EntityType.Unknown,
       stylizer.EntityType.MainConstructor,
       stylizer.EntityType.MainConstructor,
@@ -115,17 +115,19 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
       stylizer.EntityType.BlankLine,
     ]
 
+    assert.strictEqual(got[0].lines.length, want.length)
+
     for (let i = 0; i < got[0].lines.length; i++) {
-      let line = got[0].lines[i]
+      const line = got[0].lines[i]
       assert.strictEqual(
         stylizer.EntityType[line.entityType],
         stylizer.EntityType[want[i]],
-        'line #' + i.toString() + ': ' + line.line)
+        `line #${i}: ${line.line}`)
     }
   })
 
   test("Handle overridden getters with bodies", async () => {
-    var source = `class CurvedAnimation extends Animation<double>
+    const source = `class CurvedAnimation extends Animation<double>
     with AnimationWithParentMixin<double> {
   @override
   double get value {
@@ -158,13 +160,12 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
     return '$parent\u27A9$curve/$reverseCurve\u2092\u2099';
   }
 }`
-    let doc = await newDoc()
-    let editor = await newEditor(doc, source)
-    let got = await stylizer.getClasses(editor!)
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!)
     assert.strictEqual(got.length, 1)
-    assert.strictEqual(got[0].lines.length, 33)
 
-    let want = [
+    const want = [
       stylizer.EntityType.Unknown,
       stylizer.EntityType.OverrideMethod,
       stylizer.EntityType.OverrideMethod,
@@ -200,17 +201,19 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
       stylizer.EntityType.BlankLine,
     ]
 
+    assert.strictEqual(got[0].lines.length, want.length)
+
     for (let i = 0; i < got[0].lines.length; i++) {
-      let line = got[0].lines[i]
+      const line = got[0].lines[i]
       assert.strictEqual(
         stylizer.EntityType[line.entityType],
         stylizer.EntityType[want[i]],
-        'line #' + i.toString() + ': ' + line.line)
+        `line #${i}: ${line.line}`)
     }
   })
 
   test("Issue#9: constructor false positive", async () => {
-    var source = `class PGDateTime {
+    const source = `class PGDateTime {
 // value xor isInfinity
 PGDateTime({
     this.value,
@@ -238,13 +241,12 @@ static PGDateTime parse(String formattedString) =>
         : PGDateTime(value: DateTime.parse(formattedString).toLocal());
 }`
 
-    let doc = await newDoc()
-    let editor = await newEditor(doc, source)
-    let got = await stylizer.getClasses(editor!)
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!)
     assert.strictEqual(got.length, 1)
-    assert.strictEqual(got[0].lines.length, 27)
 
-    let want = [
+    const want = [
       stylizer.EntityType.Unknown,
       stylizer.EntityType.MainConstructor,
       stylizer.EntityType.MainConstructor,
@@ -274,26 +276,27 @@ static PGDateTime parse(String formattedString) =>
       stylizer.EntityType.BlankLine,
     ]
 
+    assert.strictEqual(got[0].lines.length, want.length)
+
     for (let i = 0; i < got[0].lines.length; i++) {
-      let line = got[0].lines[i]
+      const line = got[0].lines[i]
       assert.strictEqual(
         stylizer.EntityType[line.entityType].toString(),
         stylizer.EntityType[want[i]].toString(),
-        'line #' + i.toString() + ': ' + line.line)
+        `line #${i}: ${line.line}`)
     }
   })
 
   test("Issue#11: run on basic_classes.dart with default memberOrdering", async () => {
-    let source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart', 'utf8')
-    let wantSource = fs.readFileSync('src/test/suite/testfiles/basic_classes_default_order.txt', 'utf8')
+    const source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart', 'utf8')
+    const wantSource = fs.readFileSync('src/test/suite/testfiles/basic_classes_default_order.txt', 'utf8')
 
-    let doc = await newDoc()
-    let editor = await newEditor(doc, source)
-    let got = await stylizer.getClasses(editor!)
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!)
     assert.strictEqual(got.length, 1)
-    assert.strictEqual(got[0].lines.length, 33)
 
-    let want = [
+    const want = [
       stylizer.EntityType.Unknown,
       stylizer.EntityType.PrivateInstanceVariable,
       stylizer.EntityType.PrivateInstanceVariable,
@@ -329,12 +332,14 @@ static PGDateTime parse(String formattedString) =>
       stylizer.EntityType.BlankLine,
     ]
 
+    assert.strictEqual(got[0].lines.length, want.length)
+
     for (let i = 0; i < got[0].lines.length; i++) {
-      let line = got[0].lines[i]
+      const line = got[0].lines[i]
       assert.strictEqual(
         stylizer.EntityType[line.entityType].toString(),
         stylizer.EntityType[want[i]].toString(),
-        'line #' + i.toString() + ': ' + line.line)
+        `line #${i}: ${line.line}`)
     }
 
     const memberOrdering = [
@@ -349,12 +354,12 @@ static PGDateTime parse(String formattedString) =>
       'build-method'
     ]
 
-    let lines = stylizer.reorderClass(memberOrdering, got[0])
+    const lines = stylizer.reorderClass(memberOrdering, got[0])
     const wantLines = wantSource.split('\n')
     assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
-      let line = lines[i]
+      const line = lines[i]
       assert.strictEqual(
         line,
         wantLines[i],
@@ -363,16 +368,15 @@ static PGDateTime parse(String formattedString) =>
   })
 
   test("Issue#11: run on basic_classes.dart with custom memberOrdering", async () => {
-    let source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart', 'utf8')
-    let wantSource = fs.readFileSync('src/test/suite/testfiles/basic_classes_custom_order.txt', 'utf8')
+    const source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart', 'utf8')
+    const wantSource = fs.readFileSync('src/test/suite/testfiles/basic_classes_custom_order.txt', 'utf8')
 
-    let doc = await newDoc()
-    let editor = await newEditor(doc, source)
-    let got = await stylizer.getClasses(editor!)
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!)
     assert.strictEqual(got.length, 1)
-    assert.strictEqual(got[0].lines.length, 33)
 
-    let want = [
+    const want = [
       stylizer.EntityType.Unknown,
       stylizer.EntityType.PrivateInstanceVariable,
       stylizer.EntityType.PrivateInstanceVariable,
@@ -408,12 +412,14 @@ static PGDateTime parse(String formattedString) =>
       stylizer.EntityType.BlankLine,
     ]
 
+    assert.strictEqual(got[0].lines.length, want.length)
+
     for (let i = 0; i < got[0].lines.length; i++) {
-      let line = got[0].lines[i]
+      const line = got[0].lines[i]
       assert.strictEqual(
         stylizer.EntityType[line.entityType].toString(),
         stylizer.EntityType[want[i]].toString(),
-        'line #' + i.toString() + ': ' + line.line)
+        `line #${i}: ${line.line}`)
     }
 
     const memberOrdering = [
@@ -428,16 +434,85 @@ static PGDateTime parse(String formattedString) =>
       'build-method',
     ]
 
-    let lines = stylizer.reorderClass(memberOrdering, got[0])
+    const lines = stylizer.reorderClass(memberOrdering, got[0])
     const wantLines = wantSource.split('\n')
     assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
-      let line = lines[i]
+      const line = lines[i]
       assert.strictEqual(
         line,
         wantLines[i],
-        'line #' + i.toString())
+        `line #${i}`)
+    }
+  })
+
+  test("Issue#16: support new public-override-variables feature", async () => {
+    const source = `
+class Chat extends Equatable implements SubscriptionObject {
+  final String displayName;
+  final ChatText? lastText;
+  final List<User> users;
+
+  Chat({
+    required this.id,
+    required this.users,
+    required this.lastText,
+    required this.displayName,
+  });
+
+  @override
+  final String id;
+
+  @override
+  List<Object?> get props => [
+        id,
+        users,
+        lastText,
+        displayName,
+      ];
+}
+`
+
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!)
+    assert.strictEqual(got.length, 1)
+
+    const want = [
+      stylizer.EntityType.Unknown,
+      stylizer.EntityType.InstanceVariable,
+      stylizer.EntityType.InstanceVariable,
+      stylizer.EntityType.InstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.BlankLine,
+    ]
+
+    assert.strictEqual(got[0].lines.length, want.length)
+
+    for (let i = 0; i < got[0].lines.length; i++) {
+      const line = got[0].lines[i]
+      assert.strictEqual(
+        stylizer.EntityType[line.entityType].toString(),
+        stylizer.EntityType[want[i]].toString(),
+        `line #${i}: ${line.line}`)
     }
   })
 })
