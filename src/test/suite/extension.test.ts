@@ -35,8 +35,8 @@ class myClass extends Widget {
     let doc = await newDoc()
     let editor = await newEditor(doc, source)
     let got = await stylizer.getClasses(editor!)
-    assert.equal(got.length, 1)
-    assert.equal(got[0].lines.length, 3)
+    assert.strictEqual(got.length, 1)
+    assert.strictEqual(got[0].lines.length, 3)
   })
 
   test("Named constructors are kept intact", async () => {
@@ -60,8 +60,8 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
     let doc = await newDoc()
     let editor = await newEditor(doc, source)
     let got = await stylizer.getClasses(editor!)
-    assert.equal(got.length, 1)
-    assert.equal(got[0].lines.length, 16)
+    assert.strictEqual(got.length, 1)
+    assert.strictEqual(got[0].lines.length, 16)
 
     let want = [
       stylizer.EntityType.Unknown,
@@ -84,7 +84,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
 
     for (let i = 0; i < got[0].lines.length; i++) {
       let line = got[0].lines[i]
-      assert.equal(
+      assert.strictEqual(
         stylizer.EntityType[line.entityType],
         stylizer.EntityType[want[i]],
         'line #' + i.toString() + ': ' + line.line)
@@ -102,8 +102,8 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
     let doc = await newDoc()
     let editor = await newEditor(doc, source)
     let got = await stylizer.getClasses(editor!)
-    assert.equal(got.length, 1)
-    assert.equal(got[0].lines.length, 7)
+    assert.strictEqual(got.length, 1)
+    assert.strictEqual(got[0].lines.length, 7)
 
     let want = [
       stylizer.EntityType.Unknown,
@@ -117,7 +117,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
 
     for (let i = 0; i < got[0].lines.length; i++) {
       let line = got[0].lines[i]
-      assert.equal(
+      assert.strictEqual(
         stylizer.EntityType[line.entityType],
         stylizer.EntityType[want[i]],
         'line #' + i.toString() + ': ' + line.line)
@@ -161,8 +161,8 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
     let doc = await newDoc()
     let editor = await newEditor(doc, source)
     let got = await stylizer.getClasses(editor!)
-    assert.equal(got.length, 1)
-    assert.equal(got[0].lines.length, 33)
+    assert.strictEqual(got.length, 1)
+    assert.strictEqual(got[0].lines.length, 33)
 
     let want = [
       stylizer.EntityType.Unknown,
@@ -202,7 +202,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
 
     for (let i = 0; i < got[0].lines.length; i++) {
       let line = got[0].lines[i]
-      assert.equal(
+      assert.strictEqual(
         stylizer.EntityType[line.entityType],
         stylizer.EntityType[want[i]],
         'line #' + i.toString() + ': ' + line.line)
@@ -241,8 +241,8 @@ static PGDateTime parse(String formattedString) =>
     let doc = await newDoc()
     let editor = await newEditor(doc, source)
     let got = await stylizer.getClasses(editor!)
-    assert.equal(got.length, 1)
-    assert.equal(got[0].lines.length, 27)
+    assert.strictEqual(got.length, 1)
+    assert.strictEqual(got[0].lines.length, 27)
 
     let want = [
       stylizer.EntityType.Unknown,
@@ -276,7 +276,7 @@ static PGDateTime parse(String formattedString) =>
 
     for (let i = 0; i < got[0].lines.length; i++) {
       let line = got[0].lines[i]
-      assert.equal(
+      assert.strictEqual(
         stylizer.EntityType[line.entityType].toString(),
         stylizer.EntityType[want[i]].toString(),
         'line #' + i.toString() + ': ' + line.line)
@@ -290,8 +290,8 @@ static PGDateTime parse(String formattedString) =>
     let doc = await newDoc()
     let editor = await newEditor(doc, source)
     let got = await stylizer.getClasses(editor!)
-    assert.equal(got.length, 1)
-    assert.equal(got[0].lines.length, 33)
+    assert.strictEqual(got.length, 1)
+    assert.strictEqual(got[0].lines.length, 33)
 
     let want = [
       stylizer.EntityType.Unknown,
@@ -331,7 +331,7 @@ static PGDateTime parse(String formattedString) =>
 
     for (let i = 0; i < got[0].lines.length; i++) {
       let line = got[0].lines[i]
-      assert.equal(
+      assert.strictEqual(
         stylizer.EntityType[line.entityType].toString(),
         stylizer.EntityType[want[i]].toString(),
         'line #' + i.toString() + ': ' + line.line)
@@ -351,11 +351,11 @@ static PGDateTime parse(String formattedString) =>
 
     let lines = stylizer.reorderClass(memberOrdering, got[0])
     const wantLines = wantSource.split('\n')
-    assert.equal(lines.length, wantLines.length)
+    assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i]
-      assert.equal(
+      assert.strictEqual(
         line,
         wantLines[i],
         'line #' + i.toString())
@@ -369,8 +369,8 @@ static PGDateTime parse(String formattedString) =>
     let doc = await newDoc()
     let editor = await newEditor(doc, source)
     let got = await stylizer.getClasses(editor!)
-    assert.equal(got.length, 1)
-    assert.equal(got[0].lines.length, 33)
+    assert.strictEqual(got.length, 1)
+    assert.strictEqual(got[0].lines.length, 33)
 
     let want = [
       stylizer.EntityType.Unknown,
@@ -410,7 +410,7 @@ static PGDateTime parse(String formattedString) =>
 
     for (let i = 0; i < got[0].lines.length; i++) {
       let line = got[0].lines[i]
-      assert.equal(
+      assert.strictEqual(
         stylizer.EntityType[line.entityType].toString(),
         stylizer.EntityType[want[i]].toString(),
         'line #' + i.toString() + ': ' + line.line)
@@ -430,11 +430,11 @@ static PGDateTime parse(String formattedString) =>
 
     let lines = stylizer.reorderClass(memberOrdering, got[0])
     const wantLines = wantSource.split('\n')
-    assert.equal(lines.length, wantLines.length)
+    assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i]
-      assert.equal(
+      assert.strictEqual(
         line,
         wantLines[i],
         'line #' + i.toString())
