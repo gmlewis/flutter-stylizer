@@ -6,6 +6,14 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.19] - 2021-04-15
+
+- Add two new configuration booleans for experimental features,
+  requested in #18. Please use these features with caution and
+  file any bugs you find on GitHub.
+  - `groupAndSortGetterMethods` (default: `false`)
+  - `sortOtherMethods` (default: `false`)
+
 ## [0.0.18] - 2021-04-15
 
 - Fix incorrectly-identified Function-type variable reported in #17.

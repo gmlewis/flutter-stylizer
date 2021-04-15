@@ -25,6 +25,7 @@ in the following manner (with a blank line separating these parts):
 * Any `@override` methods are listed next, in sorted order.
   - (`public-override-methods` in configuration)
 * Any other methods are listed next in their original (unchanged) order.
+  (As of version `v0.0.19`, two new flags affect this section; see below.)
   - (`public-other-methods` in configuration)
 * The `build` method is listed last.
   - (`build-method` in configuration)
@@ -48,7 +49,9 @@ To override the default order of the stylizer, add a section to your
 VSCode User Preferences (`Control/Cmd-,`) like this:
 
 ```
-  "flutterStylizer.memberOrdering": [
+  "flutterStylizer": {
+    "groupAndSortGetterMethods": false,
+    "memberOrdering": [
       "public-constructor",
       "named-constructors",
       "public-static-variables",
@@ -59,10 +62,25 @@ VSCode User Preferences (`Control/Cmd-,`) like this:
       "public-override-methods",
       "public-other-methods",
       "build-method",
-  ],
+    ],
+    "sortOtherMethods": false,
+  }
 ```
 
 And then rearrange member names as desired.
+
+Note that as of `v0.0.19`, two new flags were added to modify the
+behavior of the "public-other-methods" as requested in #18:
+
+- `groupAndSortGetterMethods` (default: `false`)
+  - Whether to group getters separately (before 'public-other-methods')
+    and sort them within their group.
+
+- `sortOtherMethods` (default: `false`)
+  - Whether to sort the 'public-other-methods' within their group.
+
+These features are experimental and should be used with caution.
+Please file any bugs you find on the [GitHub issue tracker].
 
 ## Limitations
 
@@ -97,6 +115,14 @@ incorporate the fix into the plugin.
   supported even though the Dart compiler can handle it.
 
 ## Release Notes
+
+### 0.0.19
+
+- Add two new configuration booleans for experimental features,
+  requested in #18. Please use these features with caution and
+  file any bugs you find on GitHub.
+  - `groupAndSortGetterMethods` (default: `false`)
+  - `sortOtherMethods` (default: `false`)
 
 ### 0.0.18
 

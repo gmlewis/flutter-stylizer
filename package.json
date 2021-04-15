@@ -3,7 +3,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "displayName": "flutter-stylizer",
   "description": "Flutter Stylizer organizes your Flutter classes in an opinionated and consistent manner.",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "publisher": "gmlewis-vscode",
   "repository": "https://github.com/gmlewis/flutter-stylizer",
   "engines": {
@@ -27,20 +27,32 @@
     "configuration": {
       "title": "Flutter Stylizer",
       "properties": {
-        "flutterStylizer.memberOrdering": {
-          "type": "array",
-          "default": [
-            "public-constructor",
-            "named-constructors",
-            "public-static-variables",
-            "public-instance-variables",
-            "private-static-variables",
-            "private-instance-variables",
-            "public-override-methods",
-            "public-other-methods",
-            "build-method"
-          ],
-          "description": "Ordered list of members to control reordering of source code."
+        "flutterStylizer": {
+          "groupAndSortGetterMethods": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to group getters separately (before 'public-other-methods') and sort them within their group. (EXPERIMENTAL - use with caution.)"
+          },
+          "memberOrdering": {
+            "type": "array",
+            "default": [
+              "public-constructor",
+              "named-constructors",
+              "public-static-variables",
+              "public-instance-variables",
+              "private-static-variables",
+              "private-instance-variables",
+              "public-override-methods",
+              "public-other-methods",
+              "build-method"
+            ],
+            "description": "Ordered list of members to control reordering of source code."
+          },
+          "sortOtherMethods": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to sort the 'public-other-methods' within their group. (EXPERIMENTAL - use with caution.)"
+          }
         }
       }
     }

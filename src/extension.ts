@@ -23,6 +23,7 @@ export enum EntityType {  // export for testing only.
   OverrideMethod,
   OtherMethod,
   BuildMethod,
+  GetterMethod,
 }
 
 class DartLine {
@@ -58,6 +59,7 @@ class DartClass {
   classOffset: number
   openCurlyOffset: number
   closeCurlyOffset: number
+  groupAndSortGetterMethods: boolean
   fullBuf: string = ""
   lines: Array<DartLine> = []  // Line 0 is always the open curly brace.
 
@@ -71,13 +73,16 @@ class DartClass {
   overrideMethods: Array<DartEntity> = []
   otherMethods: Array<DartEntity> = []
   buildMethod?: DartEntity = undefined
+  getterMethods: Array<DartEntity> = []
 
-  constructor(editor: vscode.TextEditor, className: string, classOffset: number, openCurlyOffset: number, closeCurlyOffset: number) {
+  constructor(editor: vscode.TextEditor, className: string, classOffset: number,
+    openCurlyOffset: number, closeCurlyOffset: number, groupAndSortGetterMethods: boolean) {
     this.editor = editor
     this.className = className
     this.classOffset = classOffset
     this.openCurlyOffset = openCurlyOffset
     this.closeCurlyOffset = closeCurlyOffset
+    this.groupAndSortGetterMethods = groupAndSortGetterMethods
     const lessThanOffset = className.indexOf('<')
     if (lessThanOffset >= 0) {  // Strip off <T>.
       this.className = className.substring(0, lessThanOffset)
@@ -379,7 +384,11 @@ class DartClass {
 
     // Force getters to be methods.
     if (leadingText.indexOf(' get ') >= 0) {
-      entity.entityType = EntityType.OtherMethod
+      if (this.groupAndSortGetterMethods) {
+        entity.entityType = EntityType.GetterMethod
+      } else {
+        entity.entityType = EntityType.OtherMethod
+      }
     }
 
     for (let i = 0; i <= lineCount; i++) {
@@ -570,7 +579,7 @@ const findOpenCurlyOffset = (buf: string, startOffset: number) => {
 }
 
 // export for testing only.
-export const getClasses = async (editor: vscode.TextEditor) => {
+export const getClasses = async (editor: vscode.TextEditor, groupAndSortGetterMethods: boolean) => {
   let document = editor.document
   let classes = new Array<DartClass>()
   const buf = document.getText()
@@ -589,14 +598,14 @@ export const getClasses = async (editor: vscode.TextEditor) => {
       console.log('expected "}" after "{" at offset ' + openCurlyOffset.toString())
       return classes
     }
-    let dartClass = new DartClass(editor, className, classOffset, openCurlyOffset, closeCurlyOffset)
+    let dartClass = new DartClass(editor, className, classOffset, openCurlyOffset, closeCurlyOffset, groupAndSortGetterMethods)
     await dartClass.findFeatures(buf.substring(openCurlyOffset, closeCurlyOffset))
     classes.push(dartClass)
   }
   return classes
 }
 
-const validateMemberOrdering = (): Array<string> => {
+const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): Array<string> => {
   const defaultOrdering = [
     'public-constructor',
     'named-constructors',
@@ -609,7 +618,7 @@ const validateMemberOrdering = (): Array<string> => {
     'public-other-methods',
     'build-method'
   ]
-  const memberOrdering = vscode.workspace.getConfiguration('flutterStylizer').get<Array<string>>('memberOrdering')
+  const memberOrdering = config.get<Array<string>>('memberOrdering')
   if (memberOrdering === null || memberOrdering === undefined || memberOrdering.length !== defaultOrdering.length) {
     console.log(`flutterStylizer.memberOrdering must have ${defaultOrdering.length} values. Ignoring and using defaults.`)
     return defaultOrdering
@@ -634,7 +643,7 @@ const validateMemberOrdering = (): Array<string> => {
 }
 
 // export for testing only.
-export const reorderClass = (memberOrdering: Array<string>, dc: DartClass): Array<string> => {
+export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, _sortOtherMethods: boolean): Array<string> => {
   let lines = new Array<string>()
   lines.push(dc.lines[0].line)  // Curly brace.
   let addEntity = (entity?: DartEntity, separateEntities?: boolean) => {  // separateEntities default is true.
@@ -737,9 +746,13 @@ export function activate(context: vscode.ExtensionContext) {
     }
     let saveSelection = editor.selection
 
-    const memberOrdering = validateMemberOrdering()
+    const config = vscode.workspace.getConfiguration('flutterStylizer')
+    const memberOrdering = validateMemberOrdering(config)
 
-    const classes = await getClasses(editor)
+    const groupAndSortGetterMethods = config.get<boolean>('groupAndSortGetterMethods') || false
+    const sortOtherMethods = config.get<boolean>('sortOtherMethods') || false
+
+    const classes = await getClasses(editor, groupAndSortGetterMethods)
     console.log("Found " + classes.length.toString() + " classes.")
 
     // Rewrite the classes.
@@ -749,7 +762,7 @@ export function activate(context: vscode.ExtensionContext) {
       const endPos = editor.document.positionAt(dc.closeCurlyOffset)
       editor.selection = new vscode.Selection(startPos, endPos)
 
-      let lines = reorderClass(memberOrdering, dc)
+      let lines = reorderClass(memberOrdering, dc, sortOtherMethods)
 
       await editor.edit((editBuilder: vscode.TextEditorEdit) => {
         editBuilder.replace(editor.selection, lines.join('\n'))
