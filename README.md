@@ -98,6 +98,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.18
+
+- Fix incorrectly-identified Function-type variable reported in #17.
+
 ### 0.0.17
 
 - Breaking change:

@@ -360,8 +360,10 @@ class DartClass {
         entity.entityType = EntityType.OtherMethod
         break
 
-      case '();':  // Abstract method.
-        entity.entityType = EntityType.OtherMethod
+      case '();':  // instance variable or abstract method.
+        if (!leadingText.endsWith(' Function')) {
+          entity.entityType = EntityType.OtherMethod
+        }
         break
 
       case '=(){}':

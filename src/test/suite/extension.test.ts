@@ -526,6 +526,10 @@ class Test {
   String fun(){
     return "fun";
   }
+
+  Function makeAdder(int addBy) {
+    return (int i) => addBy + i;
+  }
 }
 `
 
@@ -536,6 +540,10 @@ class Test {
 
     const want = [
       stylizer.EntityType.Unknown,
+      stylizer.EntityType.InstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
       stylizer.EntityType.OtherMethod,
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.OtherMethod,
