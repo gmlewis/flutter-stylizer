@@ -34,7 +34,7 @@ class myClass extends Widget {
 }`
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
-    const got = await stylizer.getClasses(editor!)
+    const got = await stylizer.getClasses(editor!, false)
     assert.strictEqual(got.length, 1)
     assert.strictEqual(got[0].lines.length, 3)
   })
@@ -59,7 +59,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
 }`
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
-    const got = await stylizer.getClasses(editor!)
+    const got = await stylizer.getClasses(editor!, false)
     assert.strictEqual(got.length, 1)
 
     const want = [
@@ -102,7 +102,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
 }`
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
-    const got = await stylizer.getClasses(editor!)
+    const got = await stylizer.getClasses(editor!, false)
     assert.strictEqual(got.length, 1)
 
     const want = [
@@ -162,7 +162,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
 }`
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
-    const got = await stylizer.getClasses(editor!)
+    const got = await stylizer.getClasses(editor!, false)
     assert.strictEqual(got.length, 1)
 
     const want = [
@@ -243,7 +243,7 @@ static PGDateTime parse(String formattedString) =>
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
-    const got = await stylizer.getClasses(editor!)
+    const got = await stylizer.getClasses(editor!, false)
     assert.strictEqual(got.length, 1)
 
     const want = [
@@ -288,12 +288,12 @@ static PGDateTime parse(String formattedString) =>
   })
 
   test("Issue#11: run on basic_classes.dart with default memberOrdering", async () => {
-    const source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart', 'utf8')
+    const source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart.txt', 'utf8')
     const wantSource = fs.readFileSync('src/test/suite/testfiles/basic_classes_default_order.txt', 'utf8')
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
-    const got = await stylizer.getClasses(editor!)
+    const got = await stylizer.getClasses(editor!, false)
     assert.strictEqual(got.length, 1)
 
     const want = [
@@ -355,7 +355,7 @@ static PGDateTime parse(String formattedString) =>
       'build-method'
     ]
 
-    const lines = stylizer.reorderClass(memberOrdering, got[0])
+    const lines = stylizer.reorderClass(memberOrdering, got[0], false)
     const wantLines = wantSource.split('\n')
     assert.strictEqual(lines.length, wantLines.length)
 
@@ -369,12 +369,12 @@ static PGDateTime parse(String formattedString) =>
   })
 
   test("Issue#11: run on basic_classes.dart with custom memberOrdering", async () => {
-    const source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart', 'utf8')
+    const source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart.txt', 'utf8')
     const wantSource = fs.readFileSync('src/test/suite/testfiles/basic_classes_custom_order.txt', 'utf8')
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
-    const got = await stylizer.getClasses(editor!)
+    const got = await stylizer.getClasses(editor!, false)
     assert.strictEqual(got.length, 1)
 
     const want = [
@@ -436,7 +436,7 @@ static PGDateTime parse(String formattedString) =>
       'build-method',
     ]
 
-    const lines = stylizer.reorderClass(memberOrdering, got[0])
+    const lines = stylizer.reorderClass(memberOrdering, got[0], false)
     const wantLines = wantSource.split('\n')
     assert.strictEqual(lines.length, wantLines.length)
 
@@ -478,7 +478,7 @@ class Chat extends Equatable implements SubscriptionObject {
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
-    const got = await stylizer.getClasses(editor!)
+    const got = await stylizer.getClasses(editor!, false)
     assert.strictEqual(got.length, 1)
 
     const want = [
@@ -535,7 +535,7 @@ class Test {
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
-    const got = await stylizer.getClasses(editor!)
+    const got = await stylizer.getClasses(editor!, false)
     assert.strictEqual(got.length, 1)
 
     const want = [

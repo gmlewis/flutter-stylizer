@@ -1,10 +1,10 @@
-module.exports = {
+export default {
   "env": {
     "es6": true,
     "node": true
   },
   "extends": [],
-  "ignorePatterns": [],
+  "ignorePatterns": ["*.md"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": "tsconfig.json",
