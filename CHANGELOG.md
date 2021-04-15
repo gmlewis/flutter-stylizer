@@ -6,6 +6,14 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.17] - 2021-04-14
+
+- Breaking change:
+  Add `"public-override-variables"` configuration property to allow
+  customization of `@override` variables ordering, requested in #16.
+  You will need to add this new property to your `flutterStylizer.memberOrdering`,
+  otherwise it will use the default built-in ordering.
+
 ## [0.0.16] - 2020-04-05
 
 - Add `flutterStylizer.memberOrdering` configuration property to allow

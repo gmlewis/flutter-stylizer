@@ -16,6 +16,8 @@ in the following manner (with a blank line separating these parts):
   - (`public-static-variables` in configuration)
 * Any instance variables are listed next, in sorted order.
   - (`public-instance-variables` in configuration)
+* Any `@override` variables are listed next, in sorted order.
+  - (`public-override-variables` in configuration)
 * Any private static (class) variables are listed next, in sorted order.
   - (`private-static-variables` in configuration)
 * Any private instance variables are listed next, in sorted order.
@@ -51,6 +53,7 @@ VSCode User Preferences (`Control/Cmd-,`) like this:
       "named-constructors",
       "public-static-variables",
       "public-instance-variables",
+      "public-override-variables",
       "private-static-variables",
       "private-instance-variables",
       "public-override-methods",
@@ -94,6 +97,14 @@ incorporate the fix into the plugin.
   supported even though the Dart compiler can handle it.
 
 ## Release Notes
+
+### 0.0.17
+
+- Breaking change:
+  Add `"public-override-variables"` configuration property to allow
+  customization of `@override` variables ordering, requested in #16.
+  You will need to add this new property to your `flutterStylizer.memberOrdering`,
+  otherwise it will use the default built-in ordering.
 
 ### 0.0.16
 

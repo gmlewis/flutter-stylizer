@@ -88,7 +88,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
       assert.strictEqual(
         stylizer.EntityType[line.entityType],
         stylizer.EntityType[want[i]],
-        `line #${i}: ${line.line}`)
+        `line #${i + 1}: ${line.line}`)
     }
   })
 
@@ -122,7 +122,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
       assert.strictEqual(
         stylizer.EntityType[line.entityType],
         stylizer.EntityType[want[i]],
-        `line #${i}: ${line.line}`)
+        `line #${i + 1}: ${line.line}`)
     }
   })
 
@@ -208,7 +208,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
       assert.strictEqual(
         stylizer.EntityType[line.entityType],
         stylizer.EntityType[want[i]],
-        `line #${i}: ${line.line}`)
+        `line #${i + 1}: ${line.line}`)
     }
   })
 
@@ -283,7 +283,7 @@ static PGDateTime parse(String formattedString) =>
       assert.strictEqual(
         stylizer.EntityType[line.entityType].toString(),
         stylizer.EntityType[want[i]].toString(),
-        `line #${i}: ${line.line}`)
+        `line #${i + 1}: ${line.line}`)
     }
   })
 
@@ -339,7 +339,7 @@ static PGDateTime parse(String formattedString) =>
       assert.strictEqual(
         stylizer.EntityType[line.entityType].toString(),
         stylizer.EntityType[want[i]].toString(),
-        `line #${i}: ${line.line}`)
+        `line #${i + 1}: ${line.line}`)
     }
 
     const memberOrdering = [
@@ -347,6 +347,7 @@ static PGDateTime parse(String formattedString) =>
       'named-constructors',
       'public-static-variables',
       'public-instance-variables',
+      'public-override-variables',
       'private-static-variables',
       'private-instance-variables',
       'public-override-methods',
@@ -363,7 +364,7 @@ static PGDateTime parse(String formattedString) =>
       assert.strictEqual(
         line,
         wantLines[i],
-        'line #' + i.toString())
+        `line #${i + 1}`)
     }
   })
 
@@ -419,7 +420,7 @@ static PGDateTime parse(String formattedString) =>
       assert.strictEqual(
         stylizer.EntityType[line.entityType].toString(),
         stylizer.EntityType[want[i]].toString(),
-        `line #${i}: ${line.line}`)
+        `line #${i + 1}: ${line.line}`)
     }
 
     const memberOrdering = [
@@ -427,6 +428,7 @@ static PGDateTime parse(String formattedString) =>
       'named-constructors',
       'public-static-variables',
       'public-instance-variables',
+      'public-override-variables',
       'public-override-methods',
       'public-other-methods',
       'private-static-variables',
@@ -443,7 +445,7 @@ static PGDateTime parse(String formattedString) =>
       assert.strictEqual(
         line,
         wantLines[i],
-        `line #${i}`)
+        `line #${i + 1}`)
     }
   })
 
@@ -492,8 +494,8 @@ class Chat extends Equatable implements SubscriptionObject {
       stylizer.EntityType.MainConstructor,
       stylizer.EntityType.MainConstructor,
       stylizer.EntityType.BlankLine,
-      stylizer.EntityType.OverrideMethod,
-      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.OverrideVariable,
+      stylizer.EntityType.OverrideVariable,
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.OverrideMethod,
       stylizer.EntityType.OverrideMethod,
@@ -512,7 +514,7 @@ class Chat extends Equatable implements SubscriptionObject {
       assert.strictEqual(
         stylizer.EntityType[line.entityType].toString(),
         stylizer.EntityType[want[i]].toString(),
-        `line #${i}: ${line.line}`)
+        `line #${i + 1}: ${line.line}`)
     }
   })
 })

@@ -16,7 +16,6 @@
   // _spvni is a static private variable with no initializer.
   static double _spvni;
 
-
   // _pvi is a private instance variable.
   List<String> _pvi = ['one', 'two'];
 

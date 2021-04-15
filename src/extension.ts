@@ -104,7 +104,7 @@ class DartClass {
     this.identifyMultiLineComments()
     await this.identifyMainConstructor()
     await this.identifyNamedConstructors()
-    await this.identifyOverrideMethods()
+    await this.identifyOverrideMethodsAndVars()
     await this.identifyOthers()
 
     // this.lines.forEach((line, index) => console.log(`line #${index} type=${EntityType[line.entityType]}: ${line.line}`));
@@ -195,7 +195,7 @@ class DartClass {
     }
   }
 
-  private async identifyOverrideMethods() {
+  private async identifyOverrideMethodsAndVars() {
     for (let i = 1; i < this.lines.length; i++) {
       const line = this.lines[i]
       if (line.entityType !== EntityType.Unknown) {
@@ -232,7 +232,7 @@ class DartClass {
             const absCloseCurlyOffset = await findMatchingBracket(this.editor, absOpenCurlyOffset)
             const relCloseCurlyOffset = absCloseCurlyOffset - this.openCurlyOffset
             assert.strictEqual(this.fullBuf[relCloseCurlyOffset], '}', 'Expected close curly bracket at relative offset')
-            let nextOffset = absCloseCurlyOffset - this.openCurlyOffset
+            const nextOffset = absCloseCurlyOffset - this.openCurlyOffset
             const bodyBuf = this.fullBuf.substring(lineOffset, nextOffset + 1)
             const numLines = bodyBuf.split('\n').length
             for (let j = 0; j < numLines; j++) {
@@ -240,6 +240,10 @@ class DartClass {
               entity.lines.push(this.lines[lineNum + j])
             }
           } else {
+            // Does not have a body - if it has no fat arrow, it is a variable.
+            if (this.lines[i + 1].stripped.indexOf('=>') < 0) {
+              entity.entityType = EntityType.OverrideVariable
+            }
             // Find next ';', marking entityType forward.
             for (let j = i + 1; j < this.lines.length; j++) {
               this.lines[j].entityType = entity.entityType
@@ -259,7 +263,11 @@ class DartClass {
             }
             break
           }
-          this.overrideMethods.push(entity)
+          if (entity.entityType === EntityType.OverrideVariable) {
+            this.overrideVariables.push(entity)
+          } else {
+            this.overrideMethods.push(entity)
+          }
         }
       }
     }
@@ -645,6 +653,12 @@ export const reorderClass = (memberOrdering: Array<string>, dc: DartClass): Arra
 
   for (let order = 0; order < memberOrdering.length; order++) {
     const el = memberOrdering[order]
+    console.log(`Ordering step #${order + 1}: placing all '${el}'...`)
+
+    // Strip trailing blank lines.
+    while (lines.length > 2 && lines[lines.length - 1] === '' && lines[lines.length - 2] === '') {
+      lines.pop()
+    }
 
     switch (el) {
       case 'public-constructor': {
@@ -682,11 +696,6 @@ export const reorderClass = (memberOrdering: Array<string>, dc: DartClass): Arra
         break
       }
       case 'public-override-methods': {
-        // Strip a trailing blank line.
-        if (lines.length > 2 && lines[lines.length - 1] === '' && lines[lines.length - 2] === '') {
-          lines.pop()
-        }
-
         dc.overrideMethods.sort(sortFunc)
         addEntities(dc.overrideMethods)
         break
@@ -712,6 +721,7 @@ export const reorderClass = (memberOrdering: Array<string>, dc: DartClass): Arra
     }
   }
 
+  console.log(`Ordering done. Placed ${lines.length} lines.`)
   return lines
 }
 
