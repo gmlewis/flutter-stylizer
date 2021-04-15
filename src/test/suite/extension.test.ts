@@ -517,4 +517,41 @@ class Chat extends Equatable implements SubscriptionObject {
         `line #${i + 1}: ${line.line}`)
     }
   })
+
+  test("Issue#17: function-type variable is not a function", async () => {
+    const source = `
+class Test {
+  final String Function() functionName;
+
+  String fun(){
+    return "fun";
+  }
+}
+`
+
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!)
+    assert.strictEqual(got.length, 1)
+
+    const want = [
+      stylizer.EntityType.Unknown,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+    ]
+
+    assert.strictEqual(got[0].lines.length, want.length)
+
+    for (let i = 0; i < got[0].lines.length; i++) {
+      const line = got[0].lines[i]
+      assert.strictEqual(
+        stylizer.EntityType[line.entityType].toString(),
+        stylizer.EntityType[want[i]].toString(),
+        `line #${i + 1}: ${line.line}`)
+    }
+  })
 })
