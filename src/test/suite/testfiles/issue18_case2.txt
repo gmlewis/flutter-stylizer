@@ -6,9 +6,11 @@
 
   double get aBalance => _aBalance;
 
-  void utility() {}
-
   double get balance => _balance;
+
+  bool isNotValid() {
+    return false;
+  }
 
   bool isValid() {
     return true;
@@ -16,6 +18,4 @@
 
   void printer() {}
 
-  bool isNotValid() {
-    return false;
-  }
+  void utility() {}
