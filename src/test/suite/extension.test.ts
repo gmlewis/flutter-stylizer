@@ -711,7 +711,6 @@ class Test {
     }
   })
 
-  /*
   test("Issue#18: case 3: groupAndSortGetterMethods=true, sortOtherMethods=false", async () => {
     const groupAndSortGetterMethods = true
     const sortOtherMethods = false
@@ -730,13 +729,13 @@ class Test {
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.MainConstructor,
       stylizer.EntityType.BlankLine,
-      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.GetterMethod,
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.PrivateInstanceVariable,
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.OtherMethod,
       stylizer.EntityType.BlankLine,
-      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.GetterMethod,
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.OtherMethod,
       stylizer.EntityType.OtherMethod,
@@ -804,13 +803,13 @@ class Test {
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.MainConstructor,
       stylizer.EntityType.BlankLine,
-      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.GetterMethod,
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.PrivateInstanceVariable,
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.OtherMethod,
       stylizer.EntityType.BlankLine,
-      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.GetterMethod,
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.OtherMethod,
       stylizer.EntityType.OtherMethod,
@@ -859,5 +858,4 @@ class Test {
         `line #${i + 1}`)
     }
   })
-  */
 })

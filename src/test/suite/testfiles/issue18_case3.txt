@@ -5,10 +5,9 @@
   double _balance;
 
   double get aBalance => _aBalance;
+  double get balance => _balance;
 
   void utility() {}
-
-  double get balance => _balance;
 
   bool isValid() {
     return true;

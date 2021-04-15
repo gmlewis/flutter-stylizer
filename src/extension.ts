@@ -304,6 +304,9 @@ class DartClass {
         case EntityType.OtherMethod:
           this.otherMethods.push(entity)
           break
+        case EntityType.GetterMethod:
+          this.getterMethods.push(entity)
+          break
         case EntityType.StaticVariable:
           this.staticVariables.push(entity)
           break
@@ -643,7 +646,7 @@ const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): Array<st
 }
 
 // export for testing only.
-export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, _groupAndSortGetterMethods: boolean, sortOtherMethods: boolean): Array<string> => {
+export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, groupAndSortGetterMethods: boolean, sortOtherMethods: boolean): Array<string> => {
   let lines = new Array<string>()
   lines.push(dc.lines[0].line)  // Curly brace.
   let addEntity = (entity?: DartEntity, separateEntities?: boolean) => {  // separateEntities default is true.
@@ -712,6 +715,11 @@ export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, _grou
         break
       }
       case 'public-other-methods': {
+        if (groupAndSortGetterMethods) {
+          dc.getterMethods.sort(sortFunc)
+          addEntities(dc.getterMethods)
+        }
+
         if (sortOtherMethods) {
           dc.otherMethods.sort(sortFunc)
         }
