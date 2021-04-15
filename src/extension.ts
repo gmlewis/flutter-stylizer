@@ -643,7 +643,7 @@ const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): Array<st
 }
 
 // export for testing only.
-export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, _sortOtherMethods: boolean): Array<string> => {
+export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, _groupAndSortGetterMethods: boolean, _sortOtherMethods: boolean): Array<string> => {
   let lines = new Array<string>()
   lines.push(dc.lines[0].line)  // Curly brace.
   let addEntity = (entity?: DartEntity, separateEntities?: boolean) => {  // separateEntities default is true.
@@ -762,7 +762,7 @@ export function activate(context: vscode.ExtensionContext) {
       const endPos = editor.document.positionAt(dc.closeCurlyOffset)
       editor.selection = new vscode.Selection(startPos, endPos)
 
-      let lines = reorderClass(memberOrdering, dc, sortOtherMethods)
+      let lines = reorderClass(memberOrdering, dc, groupAndSortGetterMethods, sortOtherMethods)
 
       await editor.edit((editBuilder: vscode.TextEditorEdit) => {
         editBuilder.replace(editor.selection, lines.join('\n'))

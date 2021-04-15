@@ -355,7 +355,7 @@ static PGDateTime parse(String formattedString) =>
       'build-method'
     ]
 
-    const lines = stylizer.reorderClass(memberOrdering, got[0], false)
+    const lines = stylizer.reorderClass(memberOrdering, got[0], false, false)
     const wantLines = wantSource.split('\n')
     assert.strictEqual(lines.length, wantLines.length)
 
@@ -436,7 +436,7 @@ static PGDateTime parse(String formattedString) =>
       'build-method',
     ]
 
-    const lines = stylizer.reorderClass(memberOrdering, got[0], false)
+    const lines = stylizer.reorderClass(memberOrdering, got[0], false, false)
     const wantLines = wantSource.split('\n')
     assert.strictEqual(lines.length, wantLines.length)
 
@@ -562,4 +562,302 @@ class Test {
         `line #${i + 1}: ${line.line}`)
     }
   })
+
+  test("Issue#18: case 1: groupAndSortGetterMethods=false, sortOtherMethods=false", async () => {
+    const groupAndSortGetterMethods = false
+    const sortOtherMethods = false
+
+    const source = fs.readFileSync('src/test/suite/testfiles/issue18.dart.txt', 'utf8')
+    const wantSource = fs.readFileSync('src/test/suite/testfiles/issue18_case1.txt', 'utf8')
+
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!, groupAndSortGetterMethods)
+    assert.strictEqual(got.length, 1)
+
+    const want = [
+      stylizer.EntityType.Unknown,
+      stylizer.EntityType.PrivateInstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.PrivateInstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+    ]
+
+    assert.strictEqual(got[0].lines.length, want.length)
+
+    for (let i = 0; i < got[0].lines.length; i++) {
+      const line = got[0].lines[i]
+      assert.strictEqual(
+        stylizer.EntityType[line.entityType].toString(),
+        stylizer.EntityType[want[i]].toString(),
+        `line #${i + 1}: ${line.line}`)
+    }
+
+    const memberOrdering = [
+      'public-constructor',
+      'named-constructors',
+      'public-static-variables',
+      'public-instance-variables',
+      'public-override-variables',
+      'private-static-variables',
+      'private-instance-variables',
+      'public-override-methods',
+      'public-other-methods',
+      'build-method'
+    ]
+
+    const lines = stylizer.reorderClass(memberOrdering, got[0], groupAndSortGetterMethods, sortOtherMethods)
+    const wantLines = wantSource.split('\n')
+    assert.strictEqual(lines.length, wantLines.length)
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      assert.strictEqual(
+        line,
+        wantLines[i],
+        `line #${i + 1}`)
+    }
+  })
+
+  test("Issue#18: case 2: groupAndSortGetterMethods=false, sortOtherMethods=true", async () => {
+    const groupAndSortGetterMethods = false
+    const sortOtherMethods = true
+
+    const source = fs.readFileSync('src/test/suite/testfiles/issue18.dart.txt', 'utf8')
+    const wantSource = fs.readFileSync('src/test/suite/testfiles/issue18_case2.txt', 'utf8')
+
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!, groupAndSortGetterMethods)
+    assert.strictEqual(got.length, 1)
+
+    const want = [
+      stylizer.EntityType.Unknown,
+      stylizer.EntityType.PrivateInstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.PrivateInstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+    ]
+
+    assert.strictEqual(got[0].lines.length, want.length)
+
+    for (let i = 0; i < got[0].lines.length; i++) {
+      const line = got[0].lines[i]
+      assert.strictEqual(
+        stylizer.EntityType[line.entityType].toString(),
+        stylizer.EntityType[want[i]].toString(),
+        `line #${i + 1}: ${line.line}`)
+    }
+
+    const memberOrdering = [
+      'public-constructor',
+      'named-constructors',
+      'public-static-variables',
+      'public-instance-variables',
+      'public-override-variables',
+      'private-static-variables',
+      'private-instance-variables',
+      'public-override-methods',
+      'public-other-methods',
+      'build-method'
+    ]
+
+    const lines = stylizer.reorderClass(memberOrdering, got[0], groupAndSortGetterMethods, sortOtherMethods)
+    const wantLines = wantSource.split('\n')
+    assert.strictEqual(lines.length, wantLines.length)
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      assert.strictEqual(
+        line,
+        wantLines[i],
+        `line #${i + 1}`)
+    }
+  })
+
+  /*
+  test("Issue#18: case 3: groupAndSortGetterMethods=true, sortOtherMethods=false", async () => {
+    const groupAndSortGetterMethods = true
+    const sortOtherMethods = false
+
+    const source = fs.readFileSync('src/test/suite/testfiles/issue18.dart.txt', 'utf8')
+    const wantSource = fs.readFileSync('src/test/suite/testfiles/issue18_case3.txt', 'utf8')
+
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!, groupAndSortGetterMethods)
+    assert.strictEqual(got.length, 1)
+
+    const want = [
+      stylizer.EntityType.Unknown,
+      stylizer.EntityType.PrivateInstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.PrivateInstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+    ]
+
+    assert.strictEqual(got[0].lines.length, want.length)
+
+    for (let i = 0; i < got[0].lines.length; i++) {
+      const line = got[0].lines[i]
+      assert.strictEqual(
+        stylizer.EntityType[line.entityType].toString(),
+        stylizer.EntityType[want[i]].toString(),
+        `line #${i + 1}: ${line.line}`)
+    }
+
+    const memberOrdering = [
+      'public-constructor',
+      'named-constructors',
+      'public-static-variables',
+      'public-instance-variables',
+      'public-override-variables',
+      'private-static-variables',
+      'private-instance-variables',
+      'public-override-methods',
+      'public-other-methods',
+      'build-method'
+    ]
+
+    const lines = stylizer.reorderClass(memberOrdering, got[0], groupAndSortGetterMethods, sortOtherMethods)
+    const wantLines = wantSource.split('\n')
+    assert.strictEqual(lines.length, wantLines.length)
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      assert.strictEqual(
+        line,
+        wantLines[i],
+        `line #${i + 1}`)
+    }
+  })
+
+  test("Issue#18: case 4: groupAndSortGetterMethods=true, sortOtherMethods=true", async () => {
+    const groupAndSortGetterMethods = true
+    const sortOtherMethods = true
+
+    const source = fs.readFileSync('src/test/suite/testfiles/issue18.dart.txt', 'utf8')
+    const wantSource = fs.readFileSync('src/test/suite/testfiles/issue18_case4.txt', 'utf8')
+
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!, groupAndSortGetterMethods)
+    assert.strictEqual(got.length, 1)
+
+    const want = [
+      stylizer.EntityType.Unknown,
+      stylizer.EntityType.PrivateInstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.PrivateInstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.OtherMethod,
+      stylizer.EntityType.BlankLine,
+    ]
+
+    assert.strictEqual(got[0].lines.length, want.length)
+
+    for (let i = 0; i < got[0].lines.length; i++) {
+      const line = got[0].lines[i]
+      assert.strictEqual(
+        stylizer.EntityType[line.entityType].toString(),
+        stylizer.EntityType[want[i]].toString(),
+        `line #${i + 1}: ${line.line}`)
+    }
+
+    const memberOrdering = [
+      'public-constructor',
+      'named-constructors',
+      'public-static-variables',
+      'public-instance-variables',
+      'public-override-variables',
+      'private-static-variables',
+      'private-instance-variables',
+      'public-override-methods',
+      'public-other-methods',
+      'build-method'
+    ]
+
+    const lines = stylizer.reorderClass(memberOrdering, got[0], groupAndSortGetterMethods, sortOtherMethods)
+    const wantLines = wantSource.split('\n')
+    assert.strictEqual(lines.length, wantLines.length)
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      assert.strictEqual(
+        line,
+        wantLines[i],
+        `line #${i + 1}`)
+    }
+  })
+  */
 })

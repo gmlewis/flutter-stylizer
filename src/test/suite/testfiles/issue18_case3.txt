@@ -1,0 +1,21 @@
+{
+  Global(this._balance, this._aBalance) {}
+
+  double _aBalance;
+  double _balance;
+
+  double get aBalance => _aBalance;
+
+  void utility() {}
+
+  double get balance => _balance;
+
+  bool isValid() {
+    return true;
+  }
+
+  void printer() {}
+
+  bool isNotValid() {
+    return false;
+  }
