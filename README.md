@@ -116,6 +116,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.20
+
+- Fix factory contructor bug reported in #19.
+
 ### 0.0.19
 
 - Add two new configuration booleans for experimental features,

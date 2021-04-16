@@ -858,4 +858,94 @@ class Test {
         `line #${i + 1}`)
     }
   })
+
+  test("Issue#19: factory contructor should not be duplicated", async () => {
+    const groupAndSortGetterMethods = false
+    const sortOtherMethods = false
+
+    const source = fs.readFileSync('src/test/suite/testfiles/issue19.dart.txt', 'utf8')
+    const wantSource = fs.readFileSync('src/test/suite/testfiles/issue19_want.txt', 'utf8')
+
+    const doc = await newDoc()
+    const editor = await newEditor(doc, source)
+    const got = await stylizer.getClasses(editor!, groupAndSortGetterMethods)
+    assert.strictEqual(got.length, 1)
+
+    const want = [
+      stylizer.EntityType.Unknown,
+      stylizer.EntityType.InstanceVariable,
+      stylizer.EntityType.InstanceVariable,
+      stylizer.EntityType.InstanceVariable,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.MainConstructor,
+      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.NamedConstructor,
+      stylizer.EntityType.BlankLine,
+    ]
+
+    assert.strictEqual(got[0].lines.length, want.length)
+
+    for (let i = 0; i < got[0].lines.length; i++) {
+      const line = got[0].lines[i]
+      assert.strictEqual(
+        stylizer.EntityType[line.entityType].toString(),
+        stylizer.EntityType[want[i]].toString(),
+        `line #${i + 1}: ${line.line}`)
+    }
+
+    const memberOrdering = [
+      'public-constructor',
+      'named-constructors',
+      'public-static-variables',
+      'public-instance-variables',
+      'public-override-variables',
+      'private-static-variables',
+      'private-instance-variables',
+      'public-override-methods',
+      'public-other-methods',
+      'build-method'
+    ]
+
+    const lines = stylizer.reorderClass(memberOrdering, got[0], groupAndSortGetterMethods, sortOtherMethods)
+    console.log(`got:\n${lines.join('\n')}`)
+    const wantLines = wantSource.split('\n')
+    assert.strictEqual(lines.length, wantLines.length)
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      assert.strictEqual(
+        line,
+        wantLines[i],
+        `line #${i + 1}`)
+    }
+  })
 })

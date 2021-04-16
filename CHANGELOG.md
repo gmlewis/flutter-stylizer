@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.20] - 2021-04-15
+
+- Fix factory contructor bug reported in #19.
+
 ## [0.0.19] - 2021-04-15
 
 - Add two new configuration booleans for experimental features,

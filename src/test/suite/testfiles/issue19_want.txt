@@ -1,0 +1,37 @@
+{
+  CustomAttribute(IMetaDataImport2 reader, int token, this.modifiedObjectToken,
+      this.attributeType, this.signatureBlob)
+      : super(reader, token);
+
+  /// Creates a custom attribute object from its given token.
+  factory CustomAttribute.fromToken(IMetaDataImport2 reader, int token) {
+    final ptkObj = calloc<mdToken>();
+    final ptkType = calloc<mdToken>();
+    final ppBlob = calloc<IntPtr>();
+    final pcbBlob = calloc<ULONG>();
+
+    try {
+      final hr = reader.GetCustomAttributeProps(
+          token, ptkObj, ptkType, ppBlob, pcbBlob);
+      if (SUCCEEDED(hr)) {
+        return CustomAttribute(
+            reader,
+            token,
+            ptkObj.value,
+            ptkType.value,
+            Pointer<Uint8>.fromAddress(ppBlob.value)
+                .asTypedList(pcbBlob.value));
+      } else {
+        throw WindowsException(hr);
+      }
+    } finally {
+      free(pcbBlob);
+      free(ppBlob);
+      free(ptkType);
+      free(ptkObj);
+    }
+  }
+
+  final int attributeType;
+  final int modifiedObjectToken;
+  final Uint8List signatureBlob;
