@@ -717,7 +717,7 @@ export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, group
       case 'public-other-methods': {
         if (groupAndSortGetterMethods) {
           dc.getterMethods.sort(sortFunc)
-          addEntities(dc.getterMethods)
+          addEntities(dc.getterMethods, false)
         }
 
         if (sortOtherMethods) {
