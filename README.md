@@ -118,7 +118,7 @@ incorporate the fix into the plugin.
 
 ### 0.0.20
 
-- Fix factory contructor bug reported in #19.
+- Fix plugin broken on Windows bug reported in #19.
 
 ### 0.0.19
 

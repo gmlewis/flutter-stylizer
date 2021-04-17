@@ -8,9 +8,11 @@ import * as assert from 'assert'
 import * as vscode from 'vscode'
 import * as stylizer from '../../extension'
 const fs = require('fs')
+const path = require('path')
 
 // Defines a Mocha test suite to group tests of similar kind together
 suite("Extension Tests", function() {
+  const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 
   const newDoc = async () => {
     const doc = await vscode.workspace.openTextDocument({ language: 'dart' })
@@ -288,8 +290,8 @@ static PGDateTime parse(String formattedString) =>
   })
 
   test("Issue#11: run on basic_classes.dart with default memberOrdering", async () => {
-    const source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart.txt', 'utf8')
-    const wantSource = fs.readFileSync('src/test/suite/testfiles/basic_classes_default_order.txt', 'utf8')
+    const source = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'basic_classes_default_order.txt'), 'utf8')
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
@@ -360,7 +362,7 @@ static PGDateTime parse(String formattedString) =>
     assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
+      const line = lines[i].replace(/\r/, '')
       assert.strictEqual(
         line,
         wantLines[i],
@@ -369,8 +371,8 @@ static PGDateTime parse(String formattedString) =>
   })
 
   test("Issue#11: run on basic_classes.dart with custom memberOrdering", async () => {
-    const source = fs.readFileSync('src/test/suite/testfiles/basic_classes.dart.txt', 'utf8')
-    const wantSource = fs.readFileSync('src/test/suite/testfiles/basic_classes_custom_order.txt', 'utf8')
+    const source = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'basic_classes_custom_order.txt'), 'utf8')
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
@@ -441,7 +443,7 @@ static PGDateTime parse(String formattedString) =>
     assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
+      const line = lines[i].replace(/\r/, '')
       assert.strictEqual(
         line,
         wantLines[i],
@@ -567,8 +569,8 @@ class Test {
     const groupAndSortGetterMethods = false
     const sortOtherMethods = false
 
-    const source = fs.readFileSync('src/test/suite/testfiles/issue18.dart.txt', 'utf8')
-    const wantSource = fs.readFileSync('src/test/suite/testfiles/issue18_case1.txt', 'utf8')
+    const source = fs.readFileSync(path.join(testfilesDir, 'issue18.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue18_case1.txt'), 'utf8')
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
@@ -629,7 +631,7 @@ class Test {
     assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
+      const line = lines[i].replace(/\r/, '')
       assert.strictEqual(
         line,
         wantLines[i],
@@ -641,8 +643,8 @@ class Test {
     const groupAndSortGetterMethods = false
     const sortOtherMethods = true
 
-    const source = fs.readFileSync('src/test/suite/testfiles/issue18.dart.txt', 'utf8')
-    const wantSource = fs.readFileSync('src/test/suite/testfiles/issue18_case2.txt', 'utf8')
+    const source = fs.readFileSync(path.join(testfilesDir, 'issue18.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue18_case2.txt'), 'utf8')
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
@@ -703,7 +705,7 @@ class Test {
     assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
+      const line = lines[i].replace(/\r/, '')
       assert.strictEqual(
         line,
         wantLines[i],
@@ -715,8 +717,8 @@ class Test {
     const groupAndSortGetterMethods = true
     const sortOtherMethods = false
 
-    const source = fs.readFileSync('src/test/suite/testfiles/issue18.dart.txt', 'utf8')
-    const wantSource = fs.readFileSync('src/test/suite/testfiles/issue18_case3.txt', 'utf8')
+    const source = fs.readFileSync(path.join(testfilesDir, 'issue18.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue18_case3.txt'), 'utf8')
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
@@ -777,7 +779,7 @@ class Test {
     assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
+      const line = lines[i].replace(/\r/, '')
       assert.strictEqual(
         line,
         wantLines[i],
@@ -789,8 +791,8 @@ class Test {
     const groupAndSortGetterMethods = true
     const sortOtherMethods = true
 
-    const source = fs.readFileSync('src/test/suite/testfiles/issue18.dart.txt', 'utf8')
-    const wantSource = fs.readFileSync('src/test/suite/testfiles/issue18_case4.txt', 'utf8')
+    const source = fs.readFileSync(path.join(testfilesDir, 'issue18.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue18_case4.txt'), 'utf8')
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
@@ -851,7 +853,7 @@ class Test {
     assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
+      const line = lines[i].replace(/\r/, '')
       assert.strictEqual(
         line,
         wantLines[i],
@@ -863,8 +865,8 @@ class Test {
     const groupAndSortGetterMethods = false
     const sortOtherMethods = false
 
-    const source = fs.readFileSync('src/test/suite/testfiles/issue19.dart.txt', 'utf8')
-    const wantSource = fs.readFileSync('src/test/suite/testfiles/issue19_want.txt', 'utf8')
+    const source = fs.readFileSync(path.join(testfilesDir, 'issue19.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue19_want.txt'), 'utf8')
 
     const doc = await newDoc()
     const editor = await newEditor(doc, source)
@@ -936,12 +938,11 @@ class Test {
     ]
 
     const lines = stylizer.reorderClass(memberOrdering, got[0], groupAndSortGetterMethods, sortOtherMethods)
-    console.log(`got:\n${lines.join('\n')}`)
     const wantLines = wantSource.split('\n')
     assert.strictEqual(lines.length, wantLines.length)
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
+      const line = lines[i].replace(/\r/, '')
       assert.strictEqual(
         line,
         wantLines[i],

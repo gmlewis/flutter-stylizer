@@ -6,7 +6,7 @@ import createButtons from './utils/create_buttons'
 import updateStatusbar from './utils/update_statusbar'
 import watchEditors from './utils/watch_editors'
 
-const commentRE = /^(.*?)\s*\/\/.*$/
+const commentRE = /^(.*?)\s*\/\/.*\r?$/
 
 export enum EntityType {  // export for testing only.
   Unknown,
@@ -37,7 +37,7 @@ class DartLine {
     this.line = line
     this.startOffset = startOffset
     this.endOffset = startOffset + line.length - 1
-    let m = commentRE.exec(line)
+    const m = commentRE.exec(line)
     this.stripped = (m ? m[1] : this.line).trim()
     if (this.stripped.length === 0) {
       this.entityType = (line.indexOf('//') >= 0) ?
@@ -91,7 +91,7 @@ class DartClass {
 
   async findFeatures(buf: string) {
     this.fullBuf = buf
-    let lines = this.fullBuf.split('\n')
+    const lines = this.fullBuf.split('\n')
     let lineOffset = 0
     lines.forEach((line) => {
       this.lines.push(new DartLine(line, lineOffset))
@@ -116,7 +116,7 @@ class DartClass {
   }
 
   private genStripped(startLine: number): string {
-    let strippedLines = new Array<string>()
+    const strippedLines = new Array<string>()
     for (let i = startLine; i < this.lines.length; i++) {
       strippedLines.push(this.lines[i].stripped)
     }
@@ -126,7 +126,7 @@ class DartClass {
   private identifyMultiLineComments() {
     let inComment = false
     for (let i = 1; i < this.lines.length; i++) {
-      let line = this.lines[i]
+      const line = this.lines[i]
       if (line.entityType !== EntityType.Unknown) {
         continue
       }
@@ -134,7 +134,7 @@ class DartClass {
         this.lines[i].entityType = EntityType.MultiLineComment
         // Note: a multiline comment followed by code on the same
         // line is not supported.
-        let endComment = line.stripped.indexOf('*/')
+        const endComment = line.stripped.indexOf('*/')
         if (endComment >= 0) {
           inComment = false
           if (line.stripped.lastIndexOf('/*') > endComment + 1) {
@@ -143,7 +143,7 @@ class DartClass {
         }
         continue
       }
-      let startComment = line.stripped.indexOf('/*')
+      const startComment = line.stripped.indexOf('/*')
       if (startComment >= 0) {
         inComment = true
         this.lines[i].entityType = EntityType.MultiLineComment
@@ -194,7 +194,7 @@ class DartClass {
         const openParenOffset = offset + line.stripped.substring(offset).indexOf('(')
         const namedConstructor = line.stripped.substring(offset, openParenOffset + 1)  // Include open parenthesis.
         this.lines[i].entityType = EntityType.NamedConstructor
-        let entity = await this.markMethod(i, namedConstructor, EntityType.NamedConstructor)
+        const entity = await this.markMethod(i, namedConstructor, EntityType.NamedConstructor)
         this.namedConstructors.push(entity)
       }
     }
@@ -217,14 +217,14 @@ class DartClass {
           const name = ss.substring(nameOffset)
           const entityType = (name === 'build(') ? EntityType.BuildMethod : EntityType.OverrideMethod
           this.lines[i].entityType = entityType
-          let entity = await this.markMethod(i + 1, name, entityType)
+          const entity = await this.markMethod(i + 1, name, entityType)
           if (name === 'build(') {
             this.buildMethod = entity
           } else {
             this.overrideMethods.push(entity)
           }
         } else {
-          let entity = new DartEntity()
+          const entity = new DartEntity()
           entity.entityType = EntityType.OverrideMethod
           let lineNum = i + 1
           // No open paren - could be a getter. See if it has a body.
@@ -285,7 +285,7 @@ class DartClass {
         continue
       }
 
-      let entity = await this.scanMethod(i)
+      const entity = await this.scanMethod(i)
       if (entity.entityType === EntityType.Unknown) {
         continue
       }
@@ -330,13 +330,13 @@ class DartClass {
   }
 
   private scanMethod(lineNum: number): DartEntity {
-    let entity = new DartEntity
+    const entity = new DartEntity
 
-    let buf = this.genStripped(lineNum)
-    let result = this.findSequence(buf)
-    let sequence = result[0]
-    let lineCount = result[1]
-    let leadingText = result[2]
+    const buf = this.genStripped(lineNum)
+    const result = this.findSequence(buf)
+    const sequence = result[0]
+    const lineCount = result[1]
+    const leadingText = result[2]
 
     const nameParts = leadingText.split(' ')
     let staticKeyword = false
@@ -403,7 +403,7 @@ class DartClass {
   }
 
   private findSequence(buf: string): [string, number, string] {
-    let result = new Array<string>()
+    const result = new Array<string>()
 
     let leadingText = ""
     let lineCount = 0
@@ -515,7 +515,7 @@ class DartClass {
 
   private async markMethod(lineNum: number, methodName: string, entityType: EntityType): Promise<DartEntity> {
     assert.strictEqual(true, methodName.endsWith('('), 'markMethod: ' + methodName + ' must end with the open parenthesis.')
-    let entity = new DartEntity
+    const entity = new DartEntity
     entity.entityType = entityType
     entity.lines = []
     entity.name = methodName
@@ -561,7 +561,12 @@ class DartClass {
   }
 }
 
-const matchClassRE = /^(?:abstract\s+)?class\s+(\S+)\s*.*$/mg
+// const matchClassRE = /^(?:abstract\s+)?class\s+(\S+)\s*.*$/mg  // Fails on Windows!!!
+// const matchClassRE = /^(?:abstract\s+)?class\s+(\S+)\s*.*\r?$/mg  // Fails on Windows!!!
+// const matchClassRE = /^(?:abstract\s+)?class\s+(\S+).*\r?$/mg  // Fails on Windows!!!
+// const matchClassRE = /^(?:abstract\s+)?class\s+(\S+).*$/mg  // Fails on Windows!!!
+// const matchClassRE = /^(?:abstract\s+)?class\s+(\S+).*$/m  // Fails on Windows!!!
+const matchClassRE = /^(?:abstract\s+)?class\s+(\S+).*$/  // WHAT A HACK!!! Workaround below.
 
 const findMatchingBracket = async (editor: vscode.TextEditor, openParenOffset: number) => {
   const position = editor.document.positionAt(openParenOffset)
@@ -583,25 +588,30 @@ const findOpenCurlyOffset = (buf: string, startOffset: number) => {
 
 // export for testing only.
 export const getClasses = async (editor: vscode.TextEditor, groupAndSortGetterMethods: boolean) => {
-  let document = editor.document
-  let classes = new Array<DartClass>()
+  const document = editor.document
+  const classes = new Array<DartClass>()
   const buf = document.getText()
-  while (true) {
-    let mm = matchClassRE.exec(buf)
-    if (!mm) { break }
-    let className = mm[1]
-    let classOffset = buf.indexOf(mm[0])
-    let openCurlyOffset = findOpenCurlyOffset(buf, classOffset)
+  // Regular expressions are totally broken in VSCode on Windows!
+  // This section was rewritten to manually split up the lines so that this plugin works on Windows.
+  const windowsResiliantBuf = buf.replace(/\r/g, '')
+  const lines = windowsResiliantBuf.split(/\n/)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const mm = matchClassRE.exec(line)
+    if (!mm) { continue }
+    const className = mm[1]
+    const classOffset = buf.indexOf(mm[0])
+    const openCurlyOffset = findOpenCurlyOffset(buf, classOffset)
     if (openCurlyOffset <= classOffset) {
       console.log('expected "{" after "class" at offset ' + classOffset.toString())
       return classes
     }
-    let closeCurlyOffset = await findMatchingBracket(editor, openCurlyOffset)
+    const closeCurlyOffset = await findMatchingBracket(editor, openCurlyOffset)
     if (closeCurlyOffset <= openCurlyOffset) {
       console.log('expected "}" after "{" at offset ' + openCurlyOffset.toString())
       return classes
     }
-    let dartClass = new DartClass(editor, className, classOffset, openCurlyOffset, closeCurlyOffset, groupAndSortGetterMethods)
+    const dartClass = new DartClass(editor, className, classOffset, openCurlyOffset, closeCurlyOffset, groupAndSortGetterMethods)
     await dartClass.findFeatures(buf.substring(openCurlyOffset, closeCurlyOffset))
     classes.push(dartClass)
   }
@@ -627,8 +637,8 @@ const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): Array<st
     return defaultOrdering
   }
 
-  let lookup = new Map(defaultOrdering.map((el: string) => [el, true]))
-  let seen = new Map<string, boolean>()
+  const lookup = new Map(defaultOrdering.map((el: string) => [el, true]))
+  const seen = new Map<string, boolean>()
   for (let i = 0; i < memberOrdering.length; i++) {
     const el = memberOrdering[i]
     if (!lookup.get(el)) {
@@ -647,23 +657,23 @@ const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): Array<st
 
 // export for testing only.
 export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, groupAndSortGetterMethods: boolean, sortOtherMethods: boolean): Array<string> => {
-  let lines = new Array<string>()
+  const lines = new Array<string>()
   lines.push(dc.lines[0].line)  // Curly brace.
-  let addEntity = (entity?: DartEntity, separateEntities?: boolean) => {  // separateEntities default is true.
+  const addEntity = (entity?: DartEntity, separateEntities?: boolean) => {  // separateEntities default is true.
     if (entity === undefined) { return }
     entity.lines.forEach((line) => lines.push(line.line))
     if (separateEntities !== false || entity.lines.length > 1) {
       if (lines.length > 0 && lines[lines.length - 1] !== '\n') { lines.push('') }
     }
   }
-  let addEntities = (entities: Array<DartEntity>, separateEntities?: boolean) => {  // separateEntities default is true.
+  const addEntities = (entities: Array<DartEntity>, separateEntities?: boolean) => {  // separateEntities default is true.
     if (entities.length === 0) { return }
     entities.forEach((e) => addEntity(e, separateEntities))
     if (separateEntities === false && lines.length > 0 && lines[lines.length - 1] !== '\n') {
       lines.push('')
     }
   }
-  let sortFunc = (a: DartEntity, b: DartEntity) => a.name.localeCompare(b.name)
+  const sortFunc = (a: DartEntity, b: DartEntity) => a.name.localeCompare(b.name)
 
   for (let order = 0; order < memberOrdering.length; order++) {
     const el = memberOrdering[order]
@@ -750,12 +760,12 @@ export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, group
 export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, "Flutter Stylizer" is now active!')
 
-  let disposable = vscode.commands.registerCommand('extension.flutterStylizer', async () => {
+  const disposable = vscode.commands.registerCommand('extension.flutterStylizer', async () => {
     const editor = vscode.window.activeTextEditor
     if (!editor) {
       return // No open text editor
     }
-    let saveSelection = editor.selection
+    const saveSelection = editor.selection
 
     const config = vscode.workspace.getConfiguration('flutterStylizer')
     const memberOrdering = validateMemberOrdering(config)
@@ -773,7 +783,7 @@ export function activate(context: vscode.ExtensionContext) {
       const endPos = editor.document.positionAt(dc.closeCurlyOffset)
       editor.selection = new vscode.Selection(startPos, endPos)
 
-      let lines = reorderClass(memberOrdering, dc, groupAndSortGetterMethods, sortOtherMethods)
+      const lines = reorderClass(memberOrdering, dc, groupAndSortGetterMethods, sortOtherMethods)
 
       await editor.edit((editBuilder: vscode.TextEditorEdit) => {
         editBuilder.replace(editor.selection, lines.join('\n'))
