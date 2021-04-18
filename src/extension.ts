@@ -169,6 +169,9 @@ class DartClass {
             continue
           }
         }
+        if (this.lines[i].entityType > EntityType.MainConstructor) {
+          this.repairIncorrectlyLabeledLine(i)
+        }
         this.lines[i].entityType = EntityType.MainConstructor
         this.theConstructor = await this.markMethod(i, className, EntityType.MainConstructor)
         break
@@ -193,6 +196,9 @@ class DartClass {
         }
         const openParenOffset = offset + line.stripped.substring(offset).indexOf('(')
         const namedConstructor = line.stripped.substring(offset, openParenOffset + 1)  // Include open parenthesis.
+        if (this.lines[i].entityType >= EntityType.MainConstructor && this.lines[i].entityType !== EntityType.NamedConstructor) {
+          this.repairIncorrectlyLabeledLine(i)
+        }
         this.lines[i].entityType = EntityType.NamedConstructor
         const entity = await this.markMethod(i, namedConstructor, EntityType.NamedConstructor)
         this.namedConstructors.push(entity)
@@ -216,6 +222,9 @@ class DartClass {
           const nameOffset = ss.lastIndexOf(' ') + 1
           const name = ss.substring(nameOffset)
           const entityType = (name === 'build(') ? EntityType.BuildMethod : EntityType.OverrideMethod
+          if (this.lines[i].entityType >= EntityType.MainConstructor && this.lines[i].entityType !== entityType) {
+            this.repairIncorrectlyLabeledLine(i)
+          }
           this.lines[i].entityType = entityType
           const entity = await this.markMethod(i + 1, name, entityType)
           if (name === 'build(') {
@@ -241,6 +250,9 @@ class DartClass {
             const bodyBuf = this.fullBuf.substring(lineOffset, nextOffset + 1)
             const numLines = bodyBuf.split('\n').length
             for (let j = 0; j < numLines; j++) {
+              if (this.lines[lineNum + j].entityType >= EntityType.MainConstructor && this.lines[lineNum + j].entityType !== entity.entityType) {
+                this.repairIncorrectlyLabeledLine(lineNum + j)
+              }
               this.lines[lineNum + j].entityType = entity.entityType
               entity.lines.push(this.lines[lineNum + j])
             }
@@ -251,6 +263,9 @@ class DartClass {
             }
             // Find next ';', marking entityType forward.
             for (let j = i + 1; j < this.lines.length; j++) {
+              if (this.lines[j].entityType >= EntityType.MainConstructor && this.lines[j].entityType !== entity.entityType) {
+                this.repairIncorrectlyLabeledLine(j)
+              }
               this.lines[j].entityType = entity.entityType
               entity.lines.push(this.lines[j])
               const semicolonOffset = this.lines[j].stripped.indexOf(';')
@@ -395,11 +410,37 @@ class DartClass {
     }
 
     for (let i = 0; i <= lineCount; i++) {
+      if (this.lines[lineNum + i].entityType >= EntityType.MainConstructor && this.lines[lineNum + i].entityType !== entity.entityType) {
+        this.repairIncorrectlyLabeledLine(lineNum + i)
+      }
       this.lines[lineNum + i].entityType = entity.entityType
       entity.lines.push(this.lines[lineNum + i])
     }
 
     return entity
+  }
+
+  private repairIncorrectlyLabeledLine(lineNum: number): void {
+    const incorrectLabel = this.lines[lineNum].entityType
+    switch (incorrectLabel) {
+      case EntityType.NamedConstructor:
+        for (let i = 0; i < this.namedConstructors.length; i++) {
+          const el = this.namedConstructors[i]
+          for (let j = 0; j < el.lines.length; j++) {
+            const line = el.lines[j]
+            if (line !== this.lines[lineNum]) { continue }
+            this.namedConstructors[i].lines.splice(j, 1)
+            if (this.namedConstructors[i].lines.length === 0) {
+              this.namedConstructors.splice(i)
+            }
+            return
+          }
+        }
+        break
+      default:
+        console.log(`repairIncorrectlyLabeledLine: Unhandled case ${incorrectLabel}. Please report on GitHub Issue Tracker with example test case.`)
+        break
+    }
   }
 
   private findSequence(buf: string): [string, number, string] {
@@ -544,6 +585,9 @@ class DartClass {
     const constructorBuf = this.fullBuf.substring(lineOffset, nextOffset + 1)
     const numLines = constructorBuf.split('\n').length
     for (let i = 0; i < numLines; i++) {
+      if (this.lines[lineNum + i].entityType >= EntityType.MainConstructor && this.lines[lineNum + i].entityType !== entityType) {
+        this.repairIncorrectlyLabeledLine(lineNum + i)
+      }
       this.lines[lineNum + i].entityType = entityType
       entity.lines.push(this.lines[lineNum + i])
     }

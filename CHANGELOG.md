@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.0.21] - 2021-04-17
+
+- Fix incorrectly identified NamedConstructor bug reported in #20.
+
 ## [0.0.20] - 2021-04-17
 
 - Fix plugin broken on Windows bug reported in #19.

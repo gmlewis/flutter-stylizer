@@ -116,6 +116,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.0.21
+
+- Fix incorrectly identified NamedConstructor bug reported in #20.
+
 ### 0.0.20
 
 - Fix plugin broken on Windows bug reported in #19.
