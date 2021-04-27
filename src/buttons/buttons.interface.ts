@@ -1,5 +1,5 @@
 export interface Button {
-  command: string;
-  text: string;
-  tooltip: string;
+  command: string,
+  text: string,
+  tooltip: string,
 }
