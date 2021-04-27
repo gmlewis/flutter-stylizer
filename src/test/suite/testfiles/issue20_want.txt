@@ -1,4 +1,46 @@
-{
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:ffi';
+
+import 'package:ffi/ffi.dart';
+import 'package:win32/win32.dart';
+
+import 'base.dart';
+import 'classlayout.dart';
+import 'com/IMetaDataImport2.dart';
+import 'constants.dart';
+import 'event.dart';
+import 'field.dart';
+import 'metadatastore.dart';
+import 'method.dart';
+import 'mixins/customattributes_mixin.dart';
+import 'mixins/genericparams_mixin.dart';
+import 'property.dart';
+import 'systemtokens.dart';
+import 'type_aliases.dart';
+import 'typeidentifier.dart';
+import 'utils.dart';
+
+enum TypeVisibility {
+  notPublic,
+  public,
+  nestedPublic,
+  nestedPrivate,
+  nestedFamily,
+  nestedAssembly,
+  nestedFamilyAndAssembly,
+  nestedFamilyOrAssembly
+}
+
+enum TypeLayout { auto, sequential, explicit }
+
+enum StringFormat { ansi, unicode, auto, custom }
+
+/// Represents a TypeDef in the Windows Metadata file
+class TypeDef extends TokenObject
+    with CustomAttributesMixin, GenericParamsMixin {
   final int baseTypeToken;
   final String typeName;
   final TypeIdentifier? typeSpec;
@@ -434,3 +476,4 @@
 
     return guid;
   }
+}

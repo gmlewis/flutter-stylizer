@@ -1,0 +1,5 @@
+abstract class ElementImpl implements Element {
+  /// An Unicode right arrow.
+  @deprecated
+  static final String RIGHT_ARROW = " \u2192 ";
+}
