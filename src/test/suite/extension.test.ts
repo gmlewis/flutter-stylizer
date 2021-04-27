@@ -191,7 +191,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
       stylizer.EntityType.OverrideMethod,
       stylizer.EntityType.OverrideMethod,
       stylizer.EntityType.OverrideMethod,
-      stylizer.EntityType.OverrideMethod,
+      stylizer.EntityType.OverrideMethod,  // extra?!?
       stylizer.EntityType.BlankLine,
       stylizer.EntityType.OverrideMethod,
       stylizer.EntityType.OverrideMethod,
@@ -299,39 +299,54 @@ static PGDateTime parse(String formattedString) =>
     assert.strictEqual(got.length, 1)
 
     const want = [
-      stylizer.EntityType.Unknown,
-      stylizer.EntityType.PrivateInstanceVariable,
-      stylizer.EntityType.PrivateInstanceVariable,
-      stylizer.EntityType.BuildMethod,
-      stylizer.EntityType.BuildMethod,
-      stylizer.EntityType.BlankLine,
-      stylizer.EntityType.StaticPrivateVariable,
-      stylizer.EntityType.StaticPrivateVariable,
-      stylizer.EntityType.StaticPrivateVariable,
-      stylizer.EntityType.StaticPrivateVariable,
-      stylizer.EntityType.BlankLine,
-      stylizer.EntityType.MultiLineComment,
-      stylizer.EntityType.MultiLineComment,
-      stylizer.EntityType.MultiLineComment,
-      stylizer.EntityType.MultiLineComment,
-      stylizer.EntityType.MultiLineComment,
-      stylizer.EntityType.BlankLine,
-      stylizer.EntityType.StaticPrivateVariable,
-      stylizer.EntityType.StaticPrivateVariable,
-      stylizer.EntityType.PrivateInstanceVariable,
-      stylizer.EntityType.StaticVariable,
-      stylizer.EntityType.InstanceVariable,
-      stylizer.EntityType.InstanceVariable,
-      stylizer.EntityType.MainConstructor,
-      stylizer.EntityType.NamedConstructor,
-      stylizer.EntityType.OtherMethod,
-      stylizer.EntityType.OtherMethod,
-      stylizer.EntityType.OverrideMethod,
-      stylizer.EntityType.OverrideMethod,
-      stylizer.EntityType.OverrideMethod,
-      stylizer.EntityType.OverrideMethod,
-      stylizer.EntityType.OverrideMethod,
-      stylizer.EntityType.BlankLine,
+      stylizer.EntityType.Unknown,                 // line #7: class Class1 {
+      stylizer.EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
+      stylizer.EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
+      stylizer.EntityType.BuildMethod,             // line #10:   @override
+      stylizer.EntityType.BuildMethod,             // line #11:   build() {}  // build method
+      stylizer.EntityType.BlankLine,               // line #12:
+      stylizer.EntityType.StaticPrivateVariable,   // line #13:   // This is a random single-line comment somewhere in the class.
+      stylizer.EntityType.StaticPrivateVariable,   // line #14:
+      stylizer.EntityType.StaticPrivateVariable,   // line #15:   // _spv is a static private variable.
+      stylizer.EntityType.StaticPrivateVariable,   // line #16:   static final String _spv = 'spv';
+      stylizer.EntityType.BlankLine,               // line #17:
+      stylizer.EntityType.StaticPrivateVariable,   // line #18:   /* This is a
+      stylizer.EntityType.StaticPrivateVariable,   // line #19:    * random multi-
+      stylizer.EntityType.StaticPrivateVariable,   // line #20:    * line comment
+      stylizer.EntityType.StaticPrivateVariable,   // line #21:    * somewhere in the middle
+      stylizer.EntityType.StaticPrivateVariable,   // line #22:    * of the class */
+      stylizer.EntityType.StaticPrivateVariable,   // line #23:
+      stylizer.EntityType.StaticPrivateVariable,   // line #24:   // _spvni is a static private variable with no initializer.
+      stylizer.EntityType.StaticPrivateVariable,   // line #25:   static double _spvni;
+      stylizer.EntityType.PrivateInstanceVariable, // line #26:   int _pvini;
+      stylizer.EntityType.StaticVariable,          // line #27:   static int sv;
+      stylizer.EntityType.InstanceVariable,        // line #28:   int v;
+      stylizer.EntityType.InstanceVariable,        // line #29:   final double fv = 42.0;
+      stylizer.EntityType.MainConstructor,         // line #30:   Class1();
+      stylizer.EntityType.NamedConstructor,        // line #31:   Class1.fromNum();
+      stylizer.EntityType.OtherMethod,             // line #32:   var myfunc = (int n) => n;
+      stylizer.EntityType.OtherMethod,             // line #33:   get vv => v; // getter
+      stylizer.EntityType.OverrideMethod,          // line #34:   @override
+      stylizer.EntityType.OverrideMethod,          // line #35:   toString() {
+      stylizer.EntityType.OverrideMethod,          // line #36:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
+      stylizer.EntityType.OverrideMethod,          // line #37:     return '';
+      stylizer.EntityType.OverrideMethod,          // line #38:   }
+      stylizer.EntityType.BlankLine,               // line #39:
+      stylizer.EntityType.InstanceVariable,        // line #40:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
+      stylizer.EntityType.InstanceVariable,        // line #41:   /*
+      stylizer.EntityType.InstanceVariable,        // line #42:     '''
+      stylizer.EntityType.InstanceVariable,        // line #43:     """
+      stylizer.EntityType.InstanceVariable,        // line #44:     //
+      stylizer.EntityType.InstanceVariable,        // line #45:   */
+      stylizer.EntityType.InstanceVariable,        // line #46:   const a = """
+      stylizer.EntityType.InstanceVariable,        // line #47:    '${b}
+      stylizer.EntityType.InstanceVariable,        // line #48:    '''
+      stylizer.EntityType.InstanceVariable,        // line #49:   """
+      stylizer.EntityType.InstanceVariable,        // line #50:   const b = '''
+      stylizer.EntityType.InstanceVariable,        // line #51:     {  (  ))) """ {{{} ))))
+      stylizer.EntityType.InstanceVariable,        // line #52:   '''
+      stylizer.EntityType.InstanceVariable,        // line #53:   const c = { '{{{((... """ ${'((('}' }
+      stylizer.EntityType.BlankLine,               // line #54: }
     ]
 
     assert.strictEqual(got[0].lines.length, want.length)

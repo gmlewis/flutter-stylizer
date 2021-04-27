@@ -60,7 +60,7 @@ class DartClass {
   openCurlyOffset: number
   closeCurlyOffset: number
   groupAndSortGetterMethods: boolean
-  fullBuf: string = ""
+  classBody: string = ""
   lines: Array<DartLine> = []  // Line 0 is always the open curly brace.
 
   theConstructor?: DartEntity = undefined
@@ -90,8 +90,8 @@ class DartClass {
   }
 
   async findFeatures(buf: string) {
-    this.fullBuf = buf
-    const lines = this.fullBuf.split('\n')
+    this.classBody = buf
+    const lines = this.classBody.split('\n')
     let lineOffset = 0
     lines.forEach((line) => {
       this.lines.push(new DartLine(line, lineOffset))
@@ -238,16 +238,16 @@ class DartClass {
           let lineNum = i + 1
           // No open paren - could be a getter. See if it has a body.
           if (this.lines[i + 1].stripped.indexOf('{') >= 0) {
-            const lineOffset = this.fullBuf.indexOf(this.lines[i + 1].line)
+            const lineOffset = this.classBody.indexOf(this.lines[i + 1].line)
             const inLineOffset = this.lines[i + 1].line.indexOf('{')
             const relOpenCurlyOffset = lineOffset + inLineOffset
-            assert.strictEqual(this.fullBuf[relOpenCurlyOffset], '{', 'Expected open curly bracket at relative offset')
+            assert.strictEqual(this.classBody[relOpenCurlyOffset], '{', 'Expected open curly bracket at relative offset')
             const absOpenCurlyOffset = this.openCurlyOffset + relOpenCurlyOffset
             const absCloseCurlyOffset = await findMatchingBracket(this.editor, absOpenCurlyOffset)
             const relCloseCurlyOffset = absCloseCurlyOffset - this.openCurlyOffset
-            assert.strictEqual(this.fullBuf[relCloseCurlyOffset], '}', 'Expected close curly bracket at relative offset')
+            assert.strictEqual(this.classBody[relCloseCurlyOffset], '}', 'Expected close curly bracket at relative offset')
             const nextOffset = absCloseCurlyOffset - this.openCurlyOffset
-            const bodyBuf = this.fullBuf.substring(lineOffset, nextOffset + 1)
+            const bodyBuf = this.classBody.substring(lineOffset, nextOffset + 1)
             const numLines = bodyBuf.split('\n').length
             for (let j = 0; j < numLines; j++) {
               if (this.lines[lineNum + j].entityType >= EntityType.MainConstructor && this.lines[lineNum + j].entityType !== entity.entityType) {
@@ -562,18 +562,18 @@ class DartClass {
     entity.name = methodName
 
     // Identify all lines within the main (or factory) constructor.
-    const lineOffset = this.fullBuf.indexOf(this.lines[lineNum].line)
+    const lineOffset = this.classBody.indexOf(this.lines[lineNum].line)
     const inLineOffset = this.lines[lineNum].line.indexOf(methodName)
     const relOpenParenOffset = lineOffset + inLineOffset + methodName.length - 1
-    assert.strictEqual(this.fullBuf[relOpenParenOffset], '(', 'Expected open parenthesis at relative offset')
+    assert.strictEqual(this.classBody[relOpenParenOffset], '(', 'Expected open parenthesis at relative offset')
 
     const absOpenParenOffset = this.openCurlyOffset + relOpenParenOffset
     const absCloseParenOffset = await findMatchingBracket(this.editor, absOpenParenOffset)
     const relCloseParenOffset = absCloseParenOffset - this.openCurlyOffset
-    assert.strictEqual(this.fullBuf[relCloseParenOffset], ')', 'Expected close parenthesis at relative offset')
+    assert.strictEqual(this.classBody[relCloseParenOffset], ')', 'Expected close parenthesis at relative offset')
 
-    const curlyDeltaOffset = this.fullBuf.substring(relCloseParenOffset).indexOf('{')
-    const semicolonOffset = this.fullBuf.substring(relCloseParenOffset).indexOf(';')
+    const curlyDeltaOffset = this.classBody.substring(relCloseParenOffset).indexOf('{')
+    const semicolonOffset = this.classBody.substring(relCloseParenOffset).indexOf(';')
     let nextOffset = 0
     if (curlyDeltaOffset < 0 || (curlyDeltaOffset >= 0 && semicolonOffset >= 0 && semicolonOffset < curlyDeltaOffset)) { // no body.
       nextOffset = relCloseParenOffset + semicolonOffset
@@ -582,7 +582,7 @@ class DartClass {
       const absCloseCurlyOffset = await findMatchingBracket(this.editor, absOpenCurlyOffset)
       nextOffset = absCloseCurlyOffset - this.openCurlyOffset
     }
-    const constructorBuf = this.fullBuf.substring(lineOffset, nextOffset + 1)
+    const constructorBuf = this.classBody.substring(lineOffset, nextOffset + 1)
     const numLines = constructorBuf.split('\n').length
     for (let i = 0; i < numLines; i++) {
       if (this.lines[lineNum + i].entityType >= EntityType.MainConstructor && this.lines[lineNum + i].entityType !== entityType) {
