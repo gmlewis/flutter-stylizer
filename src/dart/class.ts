@@ -733,41 +733,42 @@ func(c * Class) classCloseLineIndex(pair * MatchingPair): number {
 // startClassLineNum is the starting class line index of the body.
 // endClassLineNum is the ending class line index of the body (if ";" was used).
 // lastCharAbsOffset must either point to the body's opening "{" or to its ending ";".
-func(c * Class) markBody(entity * Entity, startClassLineNum: number, entityType EntityType, endClassLineNum, lastCharAbsOffset: number)(* Entity, error) {
-  if c.e.fullBuf[lastCharAbsOffset] === '{' {
-    pair, ok := c.e.matchingPairs[lastCharAbsOffset]
-    if !ok {
-      return null, Error("expected matching '}' pair at lastCharAbsOffset=%v", lastCharAbsOffset)
+markBody(entity: Entity, startClassLineNum: number, entityType: EntityType, endClassLineNum: number, lastCharAbsOffset: number): [Entity, Error | null] {
+  if (this.e.fullBuf[lastCharAbsOffset] === '{') {
+    const pair = this.e.matchingPairs[lastCharAbsOffset]
+    if (!pair) {
+      return [null, Error(`expected matching '}' pair at lastCharAbsOffset=${lastCharAbsOffset}`)]
     }
-    if pair.open !== "{" || pair.close !== "}" {
-      return null, Error("programming error: expected '{' but got pair=%#v", pair)
+    if (pair.open !== "{" || pair.close !== "}") {
+      return [null, Error(`programming error: expected '{' but got pair=%${pair}`)]
     }
-    endClassLineNum = c.classCloseLineIndex(pair)
+    endClassLineNum = this.classCloseLineIndex(pair)
   }
 
-  c.e.logf("markBody marking lines #%v-%v as %v ...", startClassLineNum + 1, endClassLineNum + 1, entityType)
-  for i := startClassLineNum; i <= endClassLineNum; i++ {
-    if i >= len(c.lines) {
+  this.e.logf("markBody marking lines #%v-%v as %v ...", startClassLineNum + 1, endClassLineNum + 1, entityType)
+  for (let i = startClassLineNum; i <= endClassLineNum; i++) {
+    if (i >= this.lines.length) {
       break
     }
 
-    if c.lines[i].entityType >= MainConstructor && c.lines[i].entityType !== entityType {
-      if err := c.repairIncorrectlyLabeledLine(i); err !== null {
+    if (this.lines[i].entityType >= MainConstructor && this.lines[i].entityType !== entityType) {
+      const err = this.repairIncorrectlyLabeledLine(i)
+      if (err !== null) {
         return null, err
       }
     }
 
-    c.e.logf("markMethod: marking line #%v as type %v", i + 1, entityType)
-    c.lines[i].entityType = entityType
-    entity.lines = append(entity.lines, c.lines[i])
+    this.e.logf(`markMethod: marking line #${i + 1} as type ${entityType}`)
+    this.lines[i].entityType = entityType
+    entity.lines = append(entity.lines, this.lines[i])
   }
 
   // Preserve the comment lines leading up to the method.
-  for startClassLineNum--; startClassLineNum > 0; startClassLineNum-- {
-    if isComment(c.lines[startClassLineNum]) || strings.HasPrefix(c.lines[startClassLineNum].stripped, "@") {
-      c.e.logf("markMethod: marking comment line %v as type %v", startClassLineNum + 1, entityType)
-      c.lines[startClassLineNum].entityType = entityType
-      entity.lines = append([] * Line{ c.lines[startClassLineNum] }, entity.lines...)
+  for (startClassLineNum--; startClassLineNum > 0; startClassLineNum--) {
+    if (isComment(this.lines[startClassLineNum]) || strings.HasPrefix(this.lines[startClassLineNum].stripped, "@")) {
+      this.e.logf(`markMethod: marking comment line #${startClassLineNum + 1} as type ${entityType}`)
+      this.lines[startClassLineNum].entityType = entityType
+      entity.lines.unshift(this.lines[startClassLineNum])
       continue
     }
     break
