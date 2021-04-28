@@ -721,98 +721,109 @@ export class Class {
 
   // markMethod marks an entire method with the same entityType.
   // methodName must end with "(" and absOpenParenOffset must point to that open paren.
-  markMethod(classLineNum: number, methodName: string, entityType: EntityType, absOpenParenOffset: number): [Entity, Error] {
+  markMethod(classLineNum: number, methodName: string, entityType: EntityType, absOpenParenOffset: number): [Entity | null, Error | null] {
     if (!methodName.endsWith('(')) {
       return [null, Error(`programming error: markMethod: '${methodName}' must end with the open parenthesis '('`)]
     }
 
     const entity: Entity = {
       name: methodName,
+      lines: [],
       entityType: entityType,
     }
 
     const pair = this.e.matchingPairs[absOpenParenOffset]
     if (!pair) {
-      return [null, Error(`programming error: expected '()' pair at absOpenParenOffset = ${ }, line = ${ } ", absOpenParenOffset, this.lines[classLineNum]`)]
+      return [null, Error(`programming error: expected '()' pair at absOpenParenOffset = ${absOpenParenOffset}, line = ${this.lines[classLineNum]}`)]
     }
-    classCloseLineIndex:= this.classCloseLineIndex(pair)
+    const classCloseLineIndex = this.classCloseLineIndex(pair)
 
-    features, classLineIndex, lastCharAbsOffset, err := this.findNext(classCloseLineIndex, '=>', '{', ';')
-    if err !== null {
-      return [null, Error(`expected method body starting at classCloseLineIndex=${}: ${}", classCloseLineIndex, err`)]
+    const { features: resFeatures, classLineNum: resClassLineNum, absOffsetIndex, err } = this.findNext(classCloseLineIndex, '=>', '{', ';')
+    if (err !== null) {
+      return [null, Error(`expected method body starting at classCloseLineIndex=${classCloseLineIndex}: ${err}`)]
+    }
+    const features = resFeatures || ''
+    let classLineIndex = resClassLineNum || 0
+    let lastCharAbsOffset = absOffsetIndex || 0
+
+    if (features.endsWith('{')) {
+      this.e.logf(`markMethod '${methodName}': moving past initializers: classLineIndex #${classLineIndex + this.lines[0].originalIndex + 1}, features=${features}`)
+      while (classLineIndex < this.lines.length - 1 &&
+        !this.lines[classLineIndex].classLevelText.endsWith(' {') &&
+        !this.lines[classLineIndex].classLevelText.endsWith('}')) {
+        classLineIndex++
+      }
+      const v = this.lines[classLineIndex].classLevelTextOffsets.length
+      if (v !== this.lines[classLineIndex].classLevelText.length) {
+        return [null, Error(`programming error: line #${classLineIndex + 1}: classLevelText = ${this.e.lines[classLineIndex].classLevelText.length} !== classLevelTextOffsets=${this.e.lines[classLineIndex].classLevelTextOffsets.length}`)]
+      }
+      if (v > 0) {
+        lastCharAbsOffset = this.lines[classLineIndex].classLevelTextOffsets[v - 1]
+      }
+
+      this.e.logf(`markMethod '${methodName}': after move past initializers: lastCharAbsOffset=${lastCharAbsOffset}, classLineIndex #${classLineIndex + this.lines[0].originalIndex + 1}, classLevelText=${this.lines[classLineIndex].classLevelText}`)
     }
 
-    if features.endsWith('{') {
-      this.e.logf(`markMethod '${}': moving past initializers: classLineIndex #${}, features=${}", methodName, classLineIndex + this.lines[0].originalIndex + 1, features)
-    for classLineIndex < this.lines.length - 1 && !strings.HasSuffix(this.lines[classLineIndex].classLevelText, " {") && !strings.HasSuffix(this.lines[classLineIndex].classLevelText, "}") {
-      classLineIndex++
-		}
-  v:= len(this.lines[classLineIndex].classLevelTextOffsets)
-  if v !== len(this.lines[classLineIndex].classLevelText) {
-    return [null, Error(`programming error: line #${}: classLevelText = ${} !== classLevelTextOffsets=${}", classLineIndex + 1, len(this.e.lines[classLineIndex].classLevelText), len(this.e.lines[classLineIndex].classLevelTextOffsets)`)]
-  }
-    if v > 0 {
-      lastCharAbsOffset = this.lines[classLineIndex].classLevelTextOffsets[v - 1]
+    if (features.endsWith("=>")) {
+      const { classLineNum: resClassLineNum, absOffsetIndex, err } = this.findNext(classCloseLineIndex, "{", ";")
+      if (err !== null) {
+        return [null, Error(`expected fat arrow method body starting at classCloseLineIndex=${classCloseLineIndex}: ${err.message}`)]
+      }
+      classLineIndex = resClassLineNum || 0
+      lastCharAbsOffset = absOffsetIndex || 0
     }
 
-    this.e.logf(`markMethod '${}': after move past initializers: lastCharAbsOffset=${}, classLineIndex #${}, classLevelText=${}", methodName, lastCharAbsOffset, classLineIndex + this.lines[0].originalIndex + 1, this.lines[classLineIndex].classLevelText)
-}
-
-if features.endsWith("=>") {
-  features, classLineIndex, lastCharAbsOffset, err = this.findNext(classCloseLineIndex, "{", ";")
-}
-
-return this.markBody(entity, classLineNum, entityType, classLineIndex, lastCharAbsOffset)
-}
-
-func(c * Class) classCloseLineIndex(pair * MatchingPair): number {
-  return pair.closeLineIndex - this.lines[0].originalIndex
-}
-
-// markBody marks an entire body with the same entityType.
-// startClassLineNum is the starting class line index of the body.
-// endClassLineNum is the ending class line index of the body (if ";" was used).
-// lastCharAbsOffset must either point to the body's opening "{" or to its ending ";".
-markBody(entity: Entity, startClassLineNum: number, entityType: EntityType, endClassLineNum: number, lastCharAbsOffset: number): [Entity, Error | null] {
-  if (this.e.fullBuf[lastCharAbsOffset] === '{') {
-    const pair = this.e.matchingPairs[lastCharAbsOffset]
-    if (!pair) {
-      return [null, Error(`expected matching '}' pair at lastCharAbsOffset = ${ lastCharAbsOffset }`)]
-    }
-    if (pair.open !== "{" || pair.close !== "}") {
-      return [null, Error(`programming error: expected '{' but got pair =% ${ pair }`)]
-    }
-    endClassLineNum = this.classCloseLineIndex(pair)
+    return this.markBody(entity, classLineNum, entityType, classLineIndex, lastCharAbsOffset)
   }
 
-  this.e.logf(`markBody marking lines #${ startClassLineNum + 1} -${ endClassLineNum + 1 } as ${ entityType } ...`)
-  for (let i = startClassLineNum; i <= endClassLineNum; i++) {
-    if (i >= this.lines.length) {
+  func(c * Class) classCloseLineIndex(pair * MatchingPair): number {
+    return pair.closeLineIndex - this.lines[0].originalIndex
+  }
+
+  // markBody marks an entire body with the same entityType.
+  // startClassLineNum is the starting class line index of the body.
+  // endClassLineNum is the ending class line index of the body (if ";" was used).
+  // lastCharAbsOffset must either point to the body's opening "{" or to its ending ";".
+  markBody(entity: Entity, startClassLineNum: number, entityType: EntityType, endClassLineNum: number, lastCharAbsOffset: number): [Entity, Error | null] {
+    if (this.e.fullBuf[lastCharAbsOffset] === '{') {
+      const pair = this.e.matchingPairs[lastCharAbsOffset]
+      if (!pair) {
+        return [null, Error(`expected matching '}' pair at lastCharAbsOffset = ${lastCharAbsOffset}`)]
+      }
+      if (pair.open !== "{" || pair.close !== "}") {
+        return [null, Error(`programming error: expected '{' but got pair =% ${pair}`)]
+      }
+      endClassLineNum = this.classCloseLineIndex(pair)
+    }
+
+    this.e.logf(`markBody marking lines #${startClassLineNum + 1} -${endClassLineNum + 1} as ${entityType} ...`)
+    for (let i = startClassLineNum; i <= endClassLineNum; i++) {
+      if (i >= this.lines.length) {
+        break
+      }
+
+      if (this.lines[i].entityType >= MainConstructor && this.lines[i].entityType !== entityType) {
+        const err = this.repairIncorrectlyLabeledLine(i)
+        if (err !== null) {
+          return null, err
+        }
+      }
+
+      this.e.logf(`markMethod: marking line #${i + 1} as type ${entityType}`)
+      this.lines[i].entityType = entityType
+      entity.lines = append(entity.lines, this.lines[i])
+    }
+
+    // Preserve the comment lines leading up to the method.
+    for (startClassLineNum--; startClassLineNum > 0; startClassLineNum--) {
+      if (isComment(this.lines[startClassLineNum]) || strings.HasPrefix(this.lines[startClassLineNum].stripped, "@")) {
+        this.e.logf(`markMethod: marking comment line #${startClassLineNum + 1} as type ${entityType}`)
+        this.lines[startClassLineNum].entityType = entityType
+        entity.lines.unshift(this.lines[startClassLineNum])
+        continue
+      }
       break
     }
 
-    if (this.lines[i].entityType >= MainConstructor && this.lines[i].entityType !== entityType) {
-      const err = this.repairIncorrectlyLabeledLine(i)
-      if (err !== null) {
-        return null, err
-      }
-    }
-
-    this.e.logf(`markMethod: marking line #${ i + 1 } as type ${ entityType }`)
-    this.lines[i].entityType = entityType
-    entity.lines = append(entity.lines, this.lines[i])
+    return entity, null
   }
-
-  // Preserve the comment lines leading up to the method.
-  for (startClassLineNum--; startClassLineNum > 0; startClassLineNum--) {
-    if (isComment(this.lines[startClassLineNum]) || strings.HasPrefix(this.lines[startClassLineNum].stripped, "@")) {
-      this.e.logf(`markMethod: marking comment line #${ startClassLineNum + 1 } as type ${ entityType }`)
-      this.lines[startClassLineNum].entityType = entityType
-      entity.lines.unshift(this.lines[startClassLineNum])
-      continue
-    }
-    break
-  }
-
-  return entity, null
-}
