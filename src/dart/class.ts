@@ -412,7 +412,7 @@ export class Class {
 
       if (this.lines[i].entityType >= EntityType.MainConstructor && this.lines[i].entityType !== EntityType.NamedConstructor) {
         const err = this.repairIncorrectlyLabeledLine(i)
-        if (err != null) {
+        if (err !== null) {
           return err
         }
       }
@@ -538,27 +538,26 @@ export class Class {
 
   identifyOthers(): Error | null {
     for (let i = 1; i < this.lines.length; i++) {
-      line:= this.lines[i]
-      if line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === '' {
+      const line = this.lines[i]
+      if (line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === '') {
         continue
       }
 
-      entity, err := this.scanMethod(i)
-      if err !== null {
+      const [entity, err] = this.scanMethod(i)
+      if (err !== null) {
         return err
       }
 
-      if entity.entityType === EntityType.Unknown {
+      if (entity.entityType === EntityType.Unknown) {
         continue
       }
 
       // Preserve the comment lines leading up to the entity.
       for (let lineNum = i - 1; lineNum > 0; lineNum--) {
-        if isComment(this.lines[lineNum]) {
-          this.e.logf(`identifyOthers: marking line #${lineNum + 1} as type ${entity.entityType
-            } `)
+        if (isComment(this.lines[lineNum])) {
+          this.e.logf(`identifyOthers: marking line #${lineNum + 1} as type ${entity.entityType}`)
           this.lines[lineNum].entityType = entity.entityType
-          entity.lines = append([] * Line{ this.lines[lineNum] }, entity.lines...)
+          entity.lines.unshift(this.lines[lineNum])
           continue
         }
         break
@@ -587,7 +586,7 @@ export class Class {
           this.privateVariables.push(entity)
           break
         default:
-          return Error('unexpected EntityType=${}', entity.entityType)
+          return Error(`unexpected EntityType=${entity.entityType}`)
       }
     }
 
@@ -595,83 +594,90 @@ export class Class {
   }
 
   scanMethod(lineNum: number): [Entity, Error | null] {
-    const entity: Entity = {}
+    const entity: Entity = {
+      name: '',
+      lines: [],
+      entityType: EntityType.Unknown,
+    }
 
-    sequence, lineCount, leadingText, err := this.findSequence(lineNum)
-    if err !== null {
-      return null, err
+    const { sequence, lineCount, leadingText, err } = this.findSequence(lineNum)
+    if (err !== null) {
+      return [entity, err]
     }
     this.e.logf(`scanMethod(line =#${lineNum + 1}), sequence = ${sequence}, lineCount = ${lineCount}, leadingText = '${leadingText}'`)
 
-    nameParts:= strings.Split(leadingText, ' ')
-    var staticKeyword bool
-    var privateVar bool
-    if len(nameParts) > 0 {
-      entity.name = nameParts[len(nameParts) - 1]
-      if strings.HasPrefix(entity.name, '_') {
+    const nameParts = (leadingText || '').split(' ')
+    let staticKeyword = false
+    let privateVar = false
+    if (nameParts.length > 0) {
+      entity.name = nameParts[nameParts.length - 1]
+      if (entity.name.startsWith('_')) {
         privateVar = true
       }
-      if nameParts[0] === 'static' {
+      if (nameParts[0] === 'static') {
         staticKeyword = true
       }
     }
 
-    entity.entityType = InstanceVariable
-    switch true {
+    entity.entityType = EntityType.InstanceVariable
+    switch (true) {
       case privateVar && staticKeyword:
-        entity.entityType = StaticPrivateVariable
+        entity.entityType = EntityType.StaticPrivateVariable
+        break
       case staticKeyword:
-        entity.entityType = StaticVariable
+        entity.entityType = EntityType.StaticVariable
+        break
       case privateVar:
-        entity.entityType = PrivateInstanceVariable
+        entity.entityType = EntityType.PrivateInstanceVariable
+        break
     }
 
     switch (sequence) {
       case '(){}':
-        entity.entityType = OtherMethod
+        entity.entityType = EntityType.OtherMethod
         break
       case '();': // instance variable or abstract method.
-        if !strings.HasSuffix(leadingText, ' Function') {
-          entity.entityType = OtherMethod
+        if (!leadingText?.endsWith(' Function')) {
+          entity.entityType = EntityType.OtherMethod
         }
         break
       case '=(){}':
-        entity.entityType = OtherMethod
+        entity.entityType = EntityType.OtherMethod
         break
       default:
-        if strings.Index(sequence, '=>') >= 0 {
-          entity.entityType = OtherMethod
+        if ((sequence || '')?.indexOf('=>') >= 0) {
+          entity.entityType = EntityType.OtherMethod
         }
     }
 
     // Force getters to be methods.
-    if (strings.Index(leadingText, ' get ') >= 0) {
-      if this.groupAndSortGetterMethods {
-        entity.entityType = GetterMethod
+    if ((leadingText || '').indexOf(' get ') >= 0) {
+      if (this.groupAndSortGetterMethods) {
+        entity.entityType = EntityType.GetterMethod
       } else {
-        entity.entityType = OtherMethod
+        entity.entityType = EntityType.OtherMethod
       }
     }
 
-    for (let i = 0; i < lineCount; i++) {
-      if lineNum + i >= this.lines.length {
+    for (let i = 0; i < (lineCount || 0); i++) {
+      if (lineNum + i >= this.lines.length) {
         break
       }
 
-      if this.lines[lineNum + i].entityType >= MainConstructor && this.lines[lineNum + i].entityType !== entity.entityType {
-        this.e.logf(`scanMethod: Changing line #${lineNum + i + 1} from type ${this.lines[lineNum + i].entityType
-          } to type ${entity.entityType}`)
-        if err := this.repairIncorrectlyLabeledLine(lineNum + i); err !== null {
-          return null, err
+      if (this.lines[lineNum + i].entityType >= EntityType.MainConstructor && this.lines[lineNum + i].entityType !== entity.entityType) {
+        this.e.logf(`scanMethod: Changing line #${lineNum + i + 1} from type ${this.lines[lineNum + i].entityType} to type ${entity.entityType}`)
+        const err = this.repairIncorrectlyLabeledLine(lineNum + i)
+        if (err !== null) {
+          return [entity, err]
         }
       }
 
       this.e.logf(`scanMethod: marking line #${lineNum + i + 1} as type ${entity.entityType}`)
       this.lines[lineNum + i].entityType = entity.entityType
-      entity.lines = append(entity.lines, this.lines[lineNum + i])
+      entity.lines.push(this.lines[lineNum + i])
     }
 
-    return entity, null
+    return [entity, null]
   }
 
   repairIncorrectlyLabeledLine(lineNum: number): Error | null {
