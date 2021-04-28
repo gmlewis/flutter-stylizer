@@ -43,7 +43,7 @@ export class Editor {
 
   fullBuf: string
   lines: Line[] = []
-  eofOffset
+  eofOffset: number
 
   matchingPairs: MatchingPairsMap = {}
   // classLineIndices contains line indices where a class or abstract class starts.

@@ -57,8 +57,8 @@ suite('DartEditor Parsing Tests', function() {
   const bcWindoze = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.windz.txt'), 'utf8')
 
   test('FindLineIndexAtOffset', () => {
-    const [bc, _unused1, bcOCO, _unused2] = setupEditor('class Class1 {', basicClasses)
-    const [wz, _unused3, wzOCO, _unused4] = setupEditor('class Class1 {', bcWindoze)
+    const [bc, /* _unused1 */, bcOCO, /* _unused2 */] = setupEditor('class Class1 {', basicClasses)
+    const [wz, /* _unused3 */, wzOCO, /* _unused4 */] = setupEditor('class Class1 {', bcWindoze)
 
     const tests: {
       name: string,
@@ -104,9 +104,9 @@ suite('DartEditor Parsing Tests', function() {
           wantRelOffset: 14,
         },
         {
-          name: 'var myfunction = (int n) => n;',
+          name: 'var myfunc = (int n) => n;',
           editor: bc,
-          openOffset: basicClasses.indexOf('var myfunction = (int n) => n;') + 13,
+          openOffset: basicClasses.indexOf('var myfunc = (int n) => n;') + 13,
           wantLineIndex: 31,
           wantRelOffset: 13,
         },
@@ -183,9 +183,9 @@ suite('DartEditor Parsing Tests', function() {
           wantRelOffset: 14,
         },
         {
-          name: 'windoze var myfunction = (int n) => n;',
+          name: 'windoze var myfunc = (int n) => n;',
           editor: wz,
-          openOffset: bcWindoze.indexOf('var myfunction = (int n) => n;') + 13,
+          openOffset: bcWindoze.indexOf('var myfunc = (int n) => n;') + 13,
           wantLineIndex: 31,
           wantRelOffset: 13,
         },
@@ -228,8 +228,8 @@ suite('DartEditor Parsing Tests', function() {
 
     for (let tt of tests) {
       const [gotLineIndex, gotRelOffset] = tt.editor.findLineIndexAtOffset(tt.openOffset)
-      assert.strictEqual(gotLineIndex, tt.wantLineIndex, `${tt.name}: findLineIndexAtOffset(${tt.openOffset})`)
-      assert.strictEqual(gotRelOffset, tt.wantRelOffset, `${tt.name}: findLineIndexAtOffset(${tt.openOffset})`)
+      assert.strictEqual(gotLineIndex, tt.wantLineIndex, `name='${tt.name}': lineIndex: findLineIndexAtOffset(${tt.openOffset})`)
+      assert.strictEqual(gotRelOffset, tt.wantRelOffset, `name='${tt.name}': relOffset: findLineIndexAtOffset(${tt.openOffset})`)
     }
   })
 

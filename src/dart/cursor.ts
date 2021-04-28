@@ -136,7 +136,7 @@ export class Cursor {
 
   // parse parses the Dart source, identifies line entity types in the source,
   // keeps track of matching pairs, and returns a list of class line indices.
-  parse(matchingPairs: MatchingPairsMap) {
+  parse(matchingPairs: MatchingPairsMap): Error | null {
     let lastFeature = ''
     let nf = '' // nextFeature
     const matchingPairStack: MatchingPair[] = []
@@ -145,11 +145,13 @@ export class Cursor {
       lastFeature = nf
       const nextFeature = this.advanceToNextFeature()
       if (nextFeature.err) {
-        if (nextFeature.err !== Error('EOF')) {
-          return Error(`advanceToNextFeature: ${nextFeature.err}`)
+        if (nextFeature.err.message !== 'EOF') {
+          return Error(`advanceToNextFeature: ${nextFeature.err.message}`)
         }
+        this.editor.logf(`parse: Success! Done parsing.`)
         return null
       }
+      nf = nextFeature.nf
 
       this.editor.logf(`nf='${nf}' matchingPairStack=${matchingPairStack.length}, abs=${this.absOffset}, ind=${this.lineIndex}, rel=${this.relStrippedOffset}`)
 
@@ -423,20 +425,25 @@ export class Cursor {
     let r: string
     let size: number
     if (this.runeBuf.length > 0) {
-      this.editor.logf(`Grabbing rune from runeBuf... before=${this.runeBuf}`)
+      // this.editor.logf(`getRune: grabbing rune from runeBuf... before=${this.runeBuf}`)
       r = this.runeBuf.splice(0, 1)[0]
       size = r.length
       this.absOffset += size
       this.relStrippedOffset += size
-      this.editor.logf(`rune='${r}', size=${size}, after=${this.runeBuf}`)
+      // this.editor.logf(`getRune: grabbing rune from runeBuf... rune='${r}', size=${size}, after=${this.runeBuf}`)
       return { r, size, err: null }
     }
 
-    if (this.reader.length === 0) { return { r: '', size: 0, err: Error('EOF') } }
+    if (this.reader.length === 0) {
+      // this.editor.logf(`getRune: empty reader: returning EOF`)
+      return { r: '', size: 0, err: Error('EOF') }
+    }
+    // this.editor.logf(`reader=${this.reader}, length=${this.reader.length}`)
     r = this.reader.shift() || ''  // Make TypeScript compiler happy.
     size = r.length
     this.absOffset += size
     this.relStrippedOffset += size
+    // this.editor.logf(`getRune: returning rune from reader... rune='${r}', size=${size}, after: reader=${this.reader}, length=${this.reader.length}`)
     return { r, size, err: null }
   }
 
@@ -456,6 +463,7 @@ export class Cursor {
     const firstRune = this.getRune()
     let r = firstRune.r
     let size = firstRune.size
+    // this.editor.logf(`firstRune: r=${r}, size=${size}`)
 
     if (firstRune.err !== null) {
       const err = this.advanceToNextLine()
@@ -465,6 +473,7 @@ export class Cursor {
         }
         return { nf: '', err }
       }
+      // this.editor.logf(`advanceToNextFeature: replacing newline with single space`)
       r = ' ' // replace newline with single space
       size = 1
       firstRune.err = null
@@ -475,6 +484,7 @@ export class Cursor {
     }
 
     let nextRune: NextRune = { r: '', size: 0, err: null }
+    // this.editor.logf(`switch: r=${r}, size=${size}`)
     switch (r) {
       case '\\':
         if (this.stringIsRaw || this.inMultiLineComment > 0) {
