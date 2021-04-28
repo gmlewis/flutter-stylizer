@@ -5,26 +5,10 @@ import buttons from './buttons/buttons'
 import createButtons from './utils/create_buttons'
 import updateStatusbar from './utils/update_statusbar'
 import watchEditors from './utils/watch_editors'
+import { EntityType } from './dart/entity'
+import { defaultMemberOrdering } from './dart/dart'
 
 const commentRE = /^(.*?)\s*\/\/.*\r?$/
-
-export enum EntityType {  // export for testing only.
-  Unknown,
-  BlankLine,
-  SingleLineComment,
-  MultiLineComment,
-  MainConstructor,
-  NamedConstructor,
-  StaticVariable,
-  InstanceVariable,
-  OverrideVariable,
-  StaticPrivateVariable,
-  PrivateInstanceVariable,
-  OverrideMethod,
-  OtherMethod,
-  BuildMethod,
-  GetterMethod,
-}
 
 class DartLine {
   line: string
@@ -663,35 +647,23 @@ export const getClasses = async (editor: vscode.TextEditor, groupAndSortGetterMe
 }
 
 const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): string[] => {
-  const defaultOrdering = [
-    'public-constructor',
-    'named-constructors',
-    'public-static-variables',
-    'public-instance-variables',
-    'public-override-variables',
-    'private-static-variables',
-    'private-instance-variables',
-    'public-override-methods',
-    'public-other-methods',
-    'build-method'
-  ]
   const memberOrdering = config.get<string[]>('memberOrdering')
-  if (memberOrdering === null || memberOrdering === undefined || memberOrdering.length !== defaultOrdering.length) {
-    console.log(`flutterStylizer.memberOrdering must have ${defaultOrdering.length} values. Ignoring and using defaults.`)
-    return defaultOrdering
+  if (memberOrdering === null || memberOrdering === undefined || memberOrdering.length !== defaultMemberOrdering.length) {
+    console.log(`flutterStylizer.memberOrdering must have ${defaultMemberOrdering.length} values. Ignoring and using defaults.`)
+    return defaultMemberOrdering
   }
 
-  const lookup = new Map(defaultOrdering.map((el: string) => [el, true]))
+  const lookup = new Map(defaultMemberOrdering.map((el: string) => [el, true]))
   const seen = new Map<string, boolean>()
   for (let i = 0; i < memberOrdering.length; i++) {
     const el = memberOrdering[i]
     if (!lookup.get(el)) {
       console.log(`Unknown member ${el} in flutterStylizer.memberOrdering. Ignoring and using defaults.`)
-      return defaultOrdering
+      return defaultMemberOrdering
     }
     if (seen.get(el)) {
       console.log(`Duplicate member ${el} in flutterStylizer.memberOrdering. Ignoring and using defaults.`)
-      return defaultOrdering
+      return defaultMemberOrdering
     }
     seen.set(el, true)
   }

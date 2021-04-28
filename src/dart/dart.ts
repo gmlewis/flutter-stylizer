@@ -14,11 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Class } from './class'
-import { Editor } from './editor'
-import { Entity, EntityType } from './entity'
-import { Line } from './line'
+// import { Class } from './class'
+// import { Editor } from './editor'
+// import { Entity, EntityType } from './entity'
+// import { Line } from './line'
 
-class Client {
+export class Client {
 
 }
+
+export interface Options {
+  GroupAndSortGetterMethods: boolean,
+  MemberOrdering: string[],
+  SortOtherMethods: boolean,
+  Verbose: boolean,
+}
+
+export const defaultMemberOrdering = [
+  'public-constructor',
+  'named-constructors',
+  'public-static-variables',
+  'public-instance-variables',
+  'public-override-variables',
+  'private-static-variables',
+  'private-instance-variables',
+  'public-override-methods',
+  'public-other-methods',
+  'build-method'
+]
