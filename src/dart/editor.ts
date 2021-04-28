@@ -14,9 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { Class } from './class'
 import { Cursor } from './cursor'
 import { Line } from './line'
 import { MatchingPairsMap } from './pairs'
+
 
 // Editor represents a text editor that understands Dart syntax.
 export class Editor {
@@ -50,6 +52,44 @@ export class Editor {
   classLineIndices: number[] = []
 
   verbose: boolean
+
+  getClasses(groupAndSortGetterMethods: boolean): [Class[], Error | null] {
+    const classes: Class[] = []
+
+    for (let lineIndex = 0; lineIndex < this.classLineIndices.length; lineIndex++) {
+      const line = this.lines[lineIndex]
+      const mm = Class.matchClassRE.exec(line.line)
+      if (!mm || mm.length !== 2) {
+        return [[], Error(`programming error: expected class on line #${lineIndex + 1}, got '${line.line}'`)]
+      }
+
+      const className = mm[1]
+      const classOffset = line.startOffset
+      const openCurlyOffset = this.findStartOfClass(classOffset)
+      if (this.fullBuf[openCurlyOffset] === ';') { // this is valid and can be ignored: class D = Object with Function;
+        continue
+      }
+
+      this.logf(`\n\nFound new class '${className}' at classOffset=${classOffset}, openCurlyOffset=${openCurlyOffset}, line=${line}`)
+      const pair = this.matchingPairs[openCurlyOffset]
+      if (!pair) {
+        return [[], Error(`programming error: no matching pair found at openCurlyOffset ${openCurlyOffset}`)]
+      }
+
+      const closeCurlyOffset = pair.closeAbsOffset
+      this.logf(`\n\nFound end of class '${className}' at closeCurlyOffset=${closeCurlyOffset}`)
+
+      const dartClass = new Class(this, className, openCurlyOffset, closeCurlyOffset, groupAndSortGetterMethods)
+      const err = dartClass.findFeatures()
+      if (err !== null) {
+        return [[], err]
+      }
+
+      classes.push(dartClass)
+    }
+
+    return [classes, null]
+  }
 
   // findStartOfClass returns the absolute offset of the next top-level '{' or ';'
   // starting at offset startOffset.

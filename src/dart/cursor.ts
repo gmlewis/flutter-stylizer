@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { Class } from './class'
 import { Editor } from './editor'
 import { EntityType } from './entity'
 import { MatchingPair, MatchingPairsMap } from './pairs'
@@ -602,14 +603,12 @@ export class Cursor {
     return this.braceLevels.length === braceLevel
   }
 
-  static matchClassRE = /^(?:abstract\s+)?class\s+(\S+).*$/
-
   // advanceToNextLine advances the cursor to the next line.
   // It returns io.EOF when it reaches the end of the file.
   //
   // It also detects the start of class lines.
   advanceToNextLine() {
-    const mm = Cursor.matchClassRE.exec(this.editor.lines[this.lineIndex].line)
+    const mm = Class.matchClassRE.exec(this.editor.lines[this.lineIndex].line)
     if (this.lineIndex === 0 && mm) {
       this.classLineIndices.push(this.lineIndex)
     }
