@@ -127,7 +127,7 @@ export class Class {
 
     // if (this.e.Verbose) {
     // 	this.e.logf("\n\nBEFORE IDENTIFICATION:")
-    // 	for i := 0; i < len(this.lines); i++ {
+    // 	for i := 0; i < this.lines.length; i++ {
     // 		line := this.lines[i]
     // 		this.e.logf("line #%v type=%v: %v", i+1, line.entityType, line.line)
     // 	}
@@ -266,76 +266,84 @@ export class Class {
     return null
   }
 
-  func(c * Class) identifyMainConstructor() error {
-  className:= c.className + "("
-  for i := 1; i < len(c.lines); i++ {
-    line:= c.lines[i]
-    if line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === "" {
-      continue
-    }
+  identifyMainConstructor(): Error | null {
+    const className = this.className + "("
+    for (let i = 1; i < this.lines.length; i++) {
+      const line = this.lines[i]
+      if (line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === "") {
+        continue
+      }
 
-    features, lineIndex, lastCharAbsOffset, err := c.findNext(i, "=", "{", ";", "(")
-    if err !== null {
-      // An error here is OK... it just means we reached EOF.
-      return null
-    }
+      const { features: retFeatures, classLineNum, absOffsetIndex, err } = this.findNext(i, "=", "{", ";", "(")
+      if (err !== null) {
+        // An error here is OK... it just means we reached EOF.
+        return null
+      }
+      let features = retFeatures || ''
+      let lineIndex = classLineNum || 0
+      let lastCharAbsOffset = absOffsetIndex || 0
 
-    advanceToNextLineIndex:= func() {
-      if !strings.HasSuffix(features, "}") && !strings.HasSuffix(features, ";") {
-        features, lineIndex, lastCharAbsOffset, err = c.findNext(i, "}", ";")
-        if err !== null {
-          // An error here is OK... it just means we reached EOF.
-          return
+      const advanceToNextLineIndex = () => {
+        if (!features.endsWith("}") && !features.endsWith(";")) {
+          const { features: retFeatures, classLineNum, absOffsetIndex, err } = this.findNext(i, "}", ";")
+          if (err !== null) {
+            // An error here is OK... it just means we reached EOF.
+            return
+          }
+          features = retFeatures || features
+          lineIndex = classLineNum || lineIndex
+          lastCharAbsOffset = absOffsetIndex || lastCharAbsOffset
+        }
+        while (i + 1 < this.lines.length && i + 1 <= lineIndex) {
+          i++
         }
       }
-      for i + 1 < len(c.lines) && i + 1 <= lineIndex {
-        i++
-			}
-  }
 
-  if !strings.HasSuffix(features, "(") {
-    advanceToNextLineIndex()
-    continue
-  }
+      if (!features.endsWith("(")) {
+        advanceToNextLineIndex()
+        continue
+      }
 
-  if c.e.fullBuf[lastCharAbsOffset] !== '(' {
-    return Error("programming error: expected fullBuf[%v]='(' but got '%c'", lastCharAbsOffset, c.e.fullBuf[lastCharAbsOffset])
-  }
+      if (this.e.fullBuf[lastCharAbsOffset] !== '(') {
+        return Error(`programming error: expected fullBuf[${lastCharAbsOffset}]='(' but got '${this.e.fullBuf[lastCharAbsOffset]}'`)
+      }
 
-  classNameIndex:= strings.Index(features, className)
-  if classNameIndex < 0 {
-    advanceToNextLineIndex()
-    continue
-  }
+      const classNameIndex = features.indexOf(className)
+      if (classNameIndex < 0) {
+        advanceToNextLineIndex()
+        continue
+      }
 
-  if classNameIndex > 0 {
-    char:= features[classNameIndex - 1 : classNameIndex]
-    if char !== " " && char !== "\t" {
-      advanceToNextLineIndex()
-      continue
+      if (classNameIndex > 0) {
+        const char = features[classNameIndex - 1]
+        if (!/\s/.test(char)) {
+          advanceToNextLineIndex()
+          continue
+        }
+      }
+
+      if (line.entityType > EntityType.MainConstructor) {
+        const err = this.repairIncorrectlyLabeledLine(i)
+        if (err !== null) {
+          return err
+        }
+      }
+      this.e.logf(`identifyMainConstructor: marking line #${i + 1} as type MainConstructor`)
+      line.entityType = EntityType.MainConstructor
+
+      this.e.logf(`identifyMainConstructor: calling markMethod(line #${i + 1}, className='${className}', MainConstructor)`)
+      const [tc, err2] = this.markMethod(i, className, EntityType.MainConstructor, lastCharAbsOffset)
+      if (err2 !== null) {
+        return err2
+      }
+      this.theConstructor = tc
+      break
     }
+
+    return null
   }
 
-  if line.entityType > MainConstructor {
-    if err := c.repairIncorrectlyLabeledLine(i); err !== null {
-      return err
-    }
-  }
-  c.e.logf("identifyMainConstructor: marking line %v as type MainConstructor", i + 1)
-  line.entityType = MainConstructor
-
-  c.e.logf("identifyMainConstructor: calling markMethod(line #%v, className=%q, MainConstructor)", i + 1, className)
-  c.theConstructor, err = c.markMethod(i, className, MainConstructor, lastCharAbsOffset)
-  if err !== null {
-    return err
-  }
-  break
-}
-
-return null
-}
-
-func(c * Class) identifyNamedConstructors() error {
+  func(c * Class) identifyNamedConstructors() error {
   className:= c.className + "."
   for i := 1; i < len(c.lines); i++ {
     line:= c.lines[i]
