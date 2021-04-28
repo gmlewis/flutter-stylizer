@@ -16,6 +16,8 @@ limitations under the License.
 
 import * as assert from 'assert'
 import { Editor } from '../../../dart/editor'
+import { EntityType } from '../../../dart/entity'
+import { Line } from '../../../dart/line'
 
 // import * as vscode from 'vscode'
 // import * as stylizer from '../../extension'
@@ -55,6 +57,7 @@ suite('DartEditor Parsing Tests', function() {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
   const basicClasses = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.txt'), 'utf8')
   const bcWindoze = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.windz.txt'), 'utf8')
+  const utf8Text = fs.readFileSync(path.join(testfilesDir, 'utf8_text.dart.txt'), 'utf8')
 
   test('FindLineIndexAtOffset', () => {
     const [bc, /* _unused1 */, bcOCO, /* _unused2 */] = setupEditor('class Class1 {', basicClasses)
@@ -233,90 +236,101 @@ suite('DartEditor Parsing Tests', function() {
     }
   })
 
-  //go:embed testfiles/utf8_text.dart.txt
-  // var utf8Text string
+  test('New Editor with utf8', () => {
+    const tests: {
+      name: string,
+      buf: string,
+      want: Line[],
+    }[] = [
+        {
+          name: 'utf8 string',
+          buf: utf8Text,
+          want: [
+            {
+              line: 'abstract class ElementImpl implements Element {',
+              stripped: 'abstract class ElementImpl implements Element {',
+              strippedOffset: 0,
+              originalIndex: 0,
+              startOffset: 0,
+              endOffset: 47,
+              entityType: 0,
+              classLevelText: '',
+              classLevelTextOffsets: [],
+              isCommentOrString: false,
+            },
+            {
+              line: '  /// An Unicode right arrow.',
+              stripped: '',
+              strippedOffset: 2,
+              classLevelText: '',
+              classLevelTextOffsets: [],
+              originalIndex: 1,
+              startOffset: 48,
+              endOffset: 77,
+              entityType: EntityType.SingleLineComment,
+              isCommentOrString: false,
+            },
+            {
+              line: '  @deprecated',
+              stripped: '@deprecated',
+              strippedOffset: 2,
+              classLevelText: '@deprecated',
+              classLevelTextOffsets: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90],
+              originalIndex: 2,
+              startOffset: 78,
+              endOffset: 91,
+              entityType: 0,
+              isCommentOrString: false,
+            },
+            {
+              line: `  static final String RIGHT_ARROW = " \\u2192 ";`,
+              stripped: `static final String RIGHT_ARROW = " \\u2192 ";`,
+              strippedOffset: 2,
+              classLevelText: `static final String RIGHT_ARROW = "";`,
+              classLevelTextOffsets: [94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 137, 138],
+              originalIndex: 3,
+              startOffset: 92,
+              endOffset: 139,
+              entityType: 0,
+              isCommentOrString: false,
+            },
+            {
+              line: '}',
+              stripped: '}',
+              strippedOffset: 0,
+              classLevelTextOffsets: [],
+              originalIndex: 4,
+              startOffset: 140,
+              endOffset: 141,
+              entityType: 0,
+              classLevelText: '',
+              isCommentOrString: false,
+            },
+          ],
+        },
+      ]
 
-  //   test('NewEditor_with_utf8(t * testing.T)', () => {
-  //     tests:= []struct {
-  //       name string
-  //       buf  string
-  //       want[] * Line
-  //     } {
-  //       {
-  //         name: 'utf8 string',
-  //           buf: utf8Text,
-  //             want: [] * Line{
-  //           {
-  //             line: 'abstract class ElementImpl implements Element {',
-  //               stripped: 'abstract class ElementImpl implements Element {',
-  //                 strippedOffset: 0,
-  //                   originalIndex: 0,
-  //                     startOffset: 0,
-  //                       endOffset: 47,
-  //                         entityType: 0,
-  // 				},
-  //           {
-  //             line: '  /// An Unicode right arrow.',
-  //               stripped: '',
-  //                 strippedOffset: 2,
-  //                   classLevelTextOffsets: []int{ },
-  //             originalIndex: 1,
-  //               startOffset: 48,
-  //                 endOffset: 77,
-  //                   entityType: SingleLineComment,
-  // 				},
-  //           {
-  //             line: '  @deprecated',
-  //               stripped: '@deprecated',
-  //                 strippedOffset: 2,
-  //                   classLevelText: '@deprecated',
-  //                     classLevelTextOffsets: []int{ 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90 },
-  //             originalIndex: 2,
-  //               startOffset: 78,
-  //                 endOffset: 91,
-  //                   entityType: 0,
-  // 				},
-  //           {
-  //             line: `  static final String RIGHT_ARROW = " \u2192 ";`,
-  //               stripped: `static final String RIGHT_ARROW = " \u2192 ";`,
-  //                 strippedOffset: 2,
-  //                   classLevelText: `static final String RIGHT_ARROW = "";`,
-  //                     classLevelTextOffsets: []int{ 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 137, 138 },
-  //             originalIndex: 3,
-  //               startOffset: 92,
-  //                 endOffset: 139,
-  //                   entityType: 0,
-  // 				},
-  //           {
-  //             line: '}',
-  //               stripped: '}',
-  //                 strippedOffset: 0,
-  //                   classLevelTextOffsets: []int{ },
-  //             originalIndex: 4,
-  //               startOffset: 140,
-  //                 endOffset: 141,
-  //                   entityType: 0,
-  // 				},
-  //         },
-  //       },
-  //     }
-
-  //     for _, tt := range tests {
-  //       t.Run(tt.name, func(t * testing.T) {
-  //         e, err:= NewEditor(tt.buf, false)
-  // 			if err !== nil {
-  //         t.Fatalf('NewEditor: %v', err)
-  //       }
-
-  // 			if len(e.lines) !== len(tt.want) {
-  //         t.Fatalf('NewEditor got %v lines, want %v', len(e.lines), len(tt.want))
-  //       }
-
-  //       for i := 0; i < len(e.lines); i++ {
-  //         if !reflect.DeepEqual(e.lines[i], tt.want[i]) {
-  //           t.Errorf('line[%v] =\n%#v\nwant\n%#v', i, e.lines[i], tt.want[i])
-  //         }
-  //       }
-  //     })
-  // }
+    for (let tt of tests) {
+      const editor = new Editor(tt.buf, false)
+      assert.strictEqual(editor.lines.length, tt.want.length)
+      editor.lines.forEach((line, i) => {
+        assert.strictEqual(line.line, tt.want[i].line, `name=${tt.name}, i=${i}, field='line'`)
+        assert.strictEqual(line.stripped, tt.want[i].stripped, `name=${tt.name}, i=${i}, field='stripped'`)
+        assert.strictEqual(line.strippedOffset, tt.want[i].strippedOffset, `name=${tt.name}, i=${i}, field='strippedOffset'`)
+        assert.strictEqual(line.originalIndex, tt.want[i].originalIndex, `name=${tt.name}, i=${i}, field='originalIndex'`)
+        assert.strictEqual(line.startOffset, tt.want[i].startOffset, `name=${tt.name}, i=${i}, field='startOffset'`)
+        assert.strictEqual(line.endOffset, tt.want[i].endOffset, `name=${tt.name}, i=${i}, field='endOffset'`)
+        assert.strictEqual(line.entityType, tt.want[i].entityType, `name=${tt.name}, i=${i}, field='entityType'`)
+        assert.strictEqual(line.classLevelText, tt.want[i].classLevelText, `name=${tt.name}, i=${i}, field='classLevelText'`)
+        assert.strictEqual(line.classLevelTextOffsets.length, tt.want[i].classLevelTextOffsets.length, `name=${tt.name}, i=${i}, field='classLevelTextOffsets.length'`)
+        const want = tt.want[i].classLevelTextOffsets
+        line.classLevelTextOffsets.forEach((offset, j) => {
+          assert.strictEqual(offset, want[j], `name=${tt.name}, i=${i}, field='classLevelTextOffsets[${j}]'`)
+        })
+        assert.strictEqual(line.isCommentOrString, tt.want[i].isCommentOrString, `name=${tt.name}, i=${i}, field='isCommentOrString'`)
+        // assert.deepStrictEqual<Line>(line, tt.want[i])  // Doesn't give useful information in output.  :-(
+        // t.Errorf('line[%v] =\n%#v\nwant\n%#v', i, e.lines[i], tt.want[i])
+      })
+    }
+  })
 })
