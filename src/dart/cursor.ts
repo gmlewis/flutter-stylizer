@@ -102,7 +102,6 @@ export class Cursor {
     matchingPairs[absOffset] = pair
 
     matchingPairStack.push(pair)
-    return matchingPairStack
   }
 
   // closeMatchingPair closes the last open matching pair on the stack.
@@ -120,7 +119,6 @@ export class Cursor {
     }
 
     matchingPairStack.splice(matchingPairStack.length - 1)
-    return matchingPairStack
   }
 
   // parse parses the Dart source, identifies line entity types in the source,
@@ -163,7 +161,7 @@ export class Cursor {
           // this.editor.logf("STRIPPED MODIFIED! singleLineComment=true: stripped='${}'(${}), beforeLen=${}, afterLen=${}, cursor=${}", this.editor.lines[this.lineIndex].stripped, len(this.editor.lines[this.lineIndex].stripped), beforeLen, afterLen, c)
           break
         case '/*':
-          if this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble {
+          if (this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble) {
             continue
           }
           this.inMultiLineComment++
@@ -172,251 +170,251 @@ export class Cursor {
             this.editor.logf(`advanceUntil: marking line #${this.lineIndex + 1} as type MultiLineComment`)
             this.editor.lines[this.lineIndex].entityType = EntityType.MultiLineComment
           }
-          this.editor.logf(`inMultiLineComment=${this.inMultiLineComment}: cursor=${c}`)
-          matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+          this.editor.logf(`inMultiLineComment=${this.inMultiLineComment}: cursor=${this}`)
+          this.newMatchingPair(nf, matchingPairs, matchingPairStack)
           break
         case '*/':
-          if this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble {
+          if (this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble) {
             continue
           }
-          if this.inMultiLineComment === 0 {
-            return fmt.Errorf('ERROR: Found */ before /*: cursor=${}`, c)
+          if (this.inMultiLineComment === 0) {
+            return Error(`ERROR: Found */ before /*: cursor=${this}`)
           }
           // do NOT mark an entire line as MultiLineCommand unless there is not other top-level text on the line.
-          if strings.TrimSpace(this.editor.lines[this.lineIndex].classLevelText) === '' {
-            this.editor.logf(`advanceUntil: marking line ${} as type MultiLineComment`, this.lineIndex + 1)
-            this.editor.lines[this.lineIndex].entityType = MultiLineComment
+          if (this.editor.lines[this.lineIndex].classLevelText === '') {
+            this.editor.logf(`advanceUntil: marking line ${this.lineIndex + 1} as type MultiLineComment`)
+            this.editor.lines[this.lineIndex].entityType = EntityType.MultiLineComment
           }
           this.inMultiLineComment--
-          this.editor.logf(`inMultiLineComment=${}: cursor=${}`, this.inMultiLineComment, c)
-          matchingPairStack = this.closeMatchingPair(nf, matchingPairStack)
+          this.editor.logf(`inMultiLineComment=${this.inMultiLineComment}: cursor=${this}`)
+          this.closeMatchingPair(nf, matchingPairStack)
           break
-        case '\'\'\'':
-          if this.inMultiLineComment > 0 {
+        case `'''`:
+          if (this.inMultiLineComment > 0) {
             continue
           }
-          if this.inSingleQuote {
-            return fmt.Errorf('ERROR: Found \'\'\' after \': cursor=${}', c)
+          if (this.inSingleQuote) {
+            return Error(`ERROR: Found ''' after ': cursor=${this}`)
           }
-          if this.inDoubleQuote || this.inTripleDouble {
+          if (this.inDoubleQuote || this.inTripleDouble) {
             continue
           }
           this.inTripleSingle = !this.inTripleSingle
           this.stringIsRaw = this.inTripleSingle && lastFeature === 'r'
-          this.editor.logf(`inTripleSingle: cursor = ${}', c)
-          if this.inTripleSingle {
-        if this.stringIsRaw {
-          matchingPairStack = this.newMatchingPair('r\'\'\'', matchingPairs, matchingPairStack)
-        } else {
-          matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
-        }
-      } else {
-        matchingPairStack = this.closeMatchingPair(nf, matchingPairStack)
-      }
-      if this.parenLevels === 0 && len(this.braceLevels) === 1 {
-        this.editor.lines[this.lineIndex].classLevelText += nf
-        this.editor.lines[this.lineIndex].classLevelTextOffsets = append(this.editor.lines[this.lineIndex].classLevelTextOffsets, this.absOffset - 1, this.absOffset, this.absOffset + 1)
-      }
-      break
-        case `"""`:
-      if this.inMultiLineComment > 0 {
+          this.editor.logf(`inTripleSingle: cursor = ${this}`)
+          if (this.inTripleSingle) {
+            if (this.stringIsRaw) {
+              this.newMatchingPair(`r'''`, matchingPairs, matchingPairStack)
+            } else {
+              this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+            }
+          } else {
+            this.closeMatchingPair(nf, matchingPairStack)
+          }
+          if (this.parenLevels === 0 && this.braceLevels.length === 1) {
+            this.editor.lines[this.lineIndex].classLevelText += nf
+            this.editor.lines[this.lineIndex].classLevelTextOffsets.push(this.absOffset - 1, this.absOffset, this.absOffset + 1)
+          }
+          break
+        case '"""':
+          if (this.inMultiLineComment > 0) {
             continue
           }
-          if this.inDoubleQuote {
-            return fmt.Errorf(`ERROR: Found """ after ": cursor=${}`, c)
+          if (this.inDoubleQuote) {
+            return Error(`ERROR: Found """ after ": cursor=${this}`)
           }
-          if this.inSingleQuote || this.inTripleSingle {
+          if (this.inSingleQuote || this.inTripleSingle) {
             continue
           }
           this.inTripleDouble = !this.inTripleDouble
           this.stringIsRaw = this.inTripleDouble && lastFeature === 'r'
-          this.editor.logf(`inTripleDouble: cursor=${}', c)
-          if this.inTripleDouble {
-            if this.stringIsRaw {
-              matchingPairStack = this.newMatchingPair(`r"""`, matchingPairs, matchingPairStack)
+          this.editor.logf(`inTripleDouble: cursor=${this}`)
+          if (this.inTripleDouble) {
+            if (this.stringIsRaw) {
+              this.newMatchingPair(`r"""`, matchingPairs, matchingPairStack)
             } else {
-        matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
-      }
-    } else {
-      matchingPairStack = this.closeMatchingPair(nf, matchingPairStack)
-    }
-    if this.parenLevels === 0 && len(this.braceLevels) === 1 {
-      this.editor.lines[this.lineIndex].classLevelText += nf
-      this.editor.lines[this.lineIndex].classLevelTextOffsets = append(this.editor.lines[this.lineIndex].classLevelTextOffsets, this.absOffset - 1, this.absOffset, this.absOffset + 1)
-    }
-    break
+              this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+            }
+          } else {
+            this.closeMatchingPair(nf, matchingPairStack)
+          }
+          if (this.parenLevels === 0 && this.braceLevels.length === 1) {
+            this.editor.lines[this.lineIndex].classLevelText += nf
+            this.editor.lines[this.lineIndex].classLevelTextOffsets.push(this.absOffset - 1, this.absOffset, this.absOffset + 1)
+          }
+          break
         case '${':
-    switch {
-      break
+          switch (true) {
             case this.inMultiLineComment > 0:
-      break
+              break
             case this.inSingleQuote:
-      if this.stringIsRaw {
-					continue
+              if (this.stringIsRaw) {
+                continue
+              }
+              this.inSingleQuote = false
+              this.braceLevels.push(BraceLevel.BraceSingle)
+              this.editor.logf(`\${: inSingleQuote: cursor = ${this}`)
+              this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+              break
+            case this.inDoubleQuote:
+              if (this.stringIsRaw) {
+                continue
+              }
+              this.inDoubleQuote = false
+              this.braceLevels.push(BraceLevel.BraceDouble)
+              this.editor.logf(`\${: inDoubleQuote: cursor = ${this}`)
+              this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+              break
+            case this.inTripleSingle:
+              if (this.stringIsRaw) {
+                continue
+              }
+              this.inTripleSingle = false
+              this.braceLevels.push(BraceLevel.BraceTripleSingle)
+              this.editor.logf(`\${: inTripleSingle: cursor = ${this}`)
+              this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+              break
+            case this.inTripleDouble:
+              if (this.stringIsRaw) {
+                continue
+              }
+              this.inTripleDouble = false
+              this.braceLevels.push(BraceLevel.BraceTripleDouble)
+              this.editor.logf(`\${: inTripleDouble: cursor = ${this}`)
+              this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+              break
+            default:
+              return Error(`ERROR: Found \${ outside of a string: cursor=${this}`)
+          }
+          break
+        case '\'':
+          if (this.inDoubleQuote || this.inTripleDouble || this.inTripleSingle || this.inMultiLineComment > 0) {
+            continue
+          }
+          this.inSingleQuote = !this.inSingleQuote
+          this.stringIsRaw = this.inSingleQuote && lastFeature === 'r'
+          this.editor.logf(`inSingleQuote: lastFeature='${lastFeature}', cursor=${this}`)
+          if (this.inSingleQuote) {
+            if (this.stringIsRaw) {
+              this.newMatchingPair('r\'', matchingPairs, matchingPairStack)
+            } else {
+              this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+            }
+          } else {
+            this.closeMatchingPair(nf, matchingPairStack)
+          }
+          if (this.parenLevels === 0 && this.braceLevels.length === 1) {
+            this.editor.lines[this.lineIndex].classLevelText += nf
+            this.editor.lines[this.lineIndex].classLevelTextOffsets.push(this.absOffset - 1)
+          }
+          break
+        case `"`:
+          if (this.inSingleQuote || this.inTripleDouble || this.inTripleSingle || this.inMultiLineComment > 0) {
+            continue
+          }
+          this.inDoubleQuote = !this.inDoubleQuote
+          this.stringIsRaw = this.inDoubleQuote && lastFeature === 'r'
+          this.editor.logf(`inDoubleQuote: cursor=${this}`)
+          if (this.inDoubleQuote) {
+            if (this.stringIsRaw) {
+              this.newMatchingPair(`r"`, matchingPairs, matchingPairStack)
+            } else {
+              this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+            }
+          } else {
+            this.closeMatchingPair(nf, matchingPairStack)
+          }
+          if (this.parenLevels === 0 && this.braceLevels.length === 1) {
+            this.editor.lines[this.lineIndex].classLevelText += nf
+            this.editor.lines[this.lineIndex].classLevelTextOffsets.push(this.absOffset - 1)
+          }
+          break
+        case '(':
+          if (this.inSingleQuote || this.inDoubleQuote || this.inTripleDouble || this.inTripleSingle || this.inMultiLineComment > 0) {
+            continue
+          }
+          if (this.parenLevels === 0 && this.braceLevels.length === 1) {
+            this.editor.lines[this.lineIndex].classLevelText += nf
+            this.editor.lines[this.lineIndex].classLevelTextOffsets.push(this.absOffset - 1)
+          }
+          this.parenLevels++
+          this.editor.logf(`parenLevels++: cursor=${this}`)
+          this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+          break
+        case ')':
+          if (this.inSingleQuote || this.inDoubleQuote || this.inTripleDouble || this.inTripleSingle || this.inMultiLineComment > 0) {
+            continue
+          }
+          this.parenLevels--
+          this.editor.logf(`parenLevels--: cursor = ${}`)
+          this.closeMatchingPair(nf, matchingPairStack)
+          if (this.parenLevels === 0 && this.braceLevels.length === 1) {
+            this.editor.lines[this.lineIndex].classLevelText += nf
+            this.editor.lines[this.lineIndex].classLevelTextOffsets.push(this.absOffset - 1)
+          }
+          break
+        case '{':
+          if (this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble || this.inMultiLineComment > 0) {
+            continue
+          }
+          if (this.parenLevels === 0 && this.braceLevels.length === 1) {
+            this.editor.lines[this.lineIndex].classLevelText += nf
+            this.editor.lines[this.lineIndex].classLevelTextOffsets.push(this.absOffset - 1)
+          }
+          this.braceLevels.push(BraceLevel.BraceNormal)
+          this.editor.logf(`{: cursor=${this}`)
+          this.newMatchingPair(nf, matchingPairs, matchingPairStack)
+          break
+        case '}':
+          if (this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble || this.inMultiLineComment > 0) {
+            continue
+          }
+          if (this.braceLevels.length === 0) {
+            return Error(`ERROR: Found } before {: cursor=${this}`)
+          }
+          const braceLevel = this.braceLevels[this.braceLevels.length - 1]
+          this.braceLevels.splice(this.braceLevels.length - 1)
+          switch (braceLevel) {
+            case BraceLevel.BraceNormal:
+              if (this.parenLevels === 0 && this.braceLevels.length === 1) {
+                this.editor.lines[this.lineIndex].classLevelText += nf
+                this.editor.lines[this.lineIndex].classLevelTextOffsets.push(this.absOffset - 1)
+              }
+              break
+            case BraceLevel.BraceSingle:
+              this.inSingleQuote = true
+              break
+            case BraceLevel.BraceDouble:
+              this.inDoubleQuote = true
+              break
+            case BraceLevel.BraceTripleSingle:
+              this.inTripleSingle = true
+              break
+            case BraceLevel.BraceTripleDouble:
+              this.inTripleDouble = true
+              break
+            default:
+              return Error(`ERROR: Unknown braceLevel ${braceLevel}: cursor=${this}`)
+          }
+          this.editor.logf(`}: cursor = ${this}`)
+          this.closeMatchingPair(nf, matchingPairStack)
+        default:
+          if (this.atTopOfBraceLevel(1)) {
+            this.editor.lines[this.lineIndex].classLevelText += nf
+            this.editor.lines[this.lineIndex].classLevelTextOffsets.push(this.absOffset - 1)
+          }
+      }
+    }
   }
-this.inSingleQuote = false
-this.braceLevels = append(this.braceLevels, BraceSingle)
-this.editor.logf(`${: inSingleQuote: cursor = ${}', c)
-      matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
-      break
-      case this.inDoubleQuote:
-if this.stringIsRaw {
-  continue
-}
-this.inDoubleQuote = false
-this.braceLevels = append(this.braceLevels, BraceDouble)
-this.editor.logf(`${: inDoubleQuote: cursor = ${}', c)
-      matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
-      break
-      case this.inTripleSingle:
-if this.stringIsRaw {
-  continue
-}
-this.inTripleSingle = false
-this.braceLevels = append(this.braceLevels, BraceTripleSingle)
-this.editor.logf(`${: inTripleSingle: cursor = ${}', c)
-      matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
-      break
-      case this.inTripleDouble:
-if this.stringIsRaw {
-  continue
-}
-this.inTripleDouble = false
-this.braceLevels = append(this.braceLevels, BraceTripleDouble)
-this.editor.logf(`${: inTripleDouble: cursor = ${}', c)
-      matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
-			default:
-    return fmt.Errorf("ERROR: Found ${ outside of a string: cursor=${}", c)
-}
-break
-    case '\'':
-if this.inDoubleQuote || this.inTripleDouble || this.inTripleSingle || this.inMultiLineComment > 0 {
-  continue
-}
-this.inSingleQuote = !this.inSingleQuote
-this.stringIsRaw = this.inSingleQuote && lastFeature === 'r'
-this.editor.logf(`inSingleQuote: lastFeature=\'${}\', cursor=${}', lastFeature, c)
-if this.inSingleQuote {
-  if this.stringIsRaw {
-    matchingPairStack = this.newMatchingPair('r\'', matchingPairs, matchingPairStack)
-  } else {
-    matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
-  }
-} else {
-  matchingPairStack = this.closeMatchingPair(nf, matchingPairStack)
-}
-if this.parenLevels === 0 && len(this.braceLevels) === 1 {
-  this.editor.lines[this.lineIndex].classLevelText += nf
-  this.editor.lines[this.lineIndex].classLevelTextOffsets = append(this.editor.lines[this.lineIndex].classLevelTextOffsets, this.absOffset - 1)
-}
-break
-    case `"`:
-if this.inSingleQuote || this.inTripleDouble || this.inTripleSingle || this.inMultiLineComment > 0 {
-  continue
-}
-this.inDoubleQuote = !this.inDoubleQuote
-this.stringIsRaw = this.inDoubleQuote && lastFeature === 'r'
-this.editor.logf(`inDoubleQuote: cursor=${}', c)
-if this.inDoubleQuote {
-  if this.stringIsRaw {
-    matchingPairStack = this.newMatchingPair(`r"`, matchingPairs, matchingPairStack)
-  } else {
-    matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
-  }
-} else {
-    matchingPairStack = this.closeMatchingPair(nf, matchingPairStack)
-  }
-if this.parenLevels === 0 && len(this.braceLevels) === 1 {
-  this.editor.lines[this.lineIndex].classLevelText += nf
-  this.editor.lines[this.lineIndex].classLevelTextOffsets = append(this.editor.lines[this.lineIndex].classLevelTextOffsets, this.absOffset - 1)
-}
-break
-    case '(':
-if this.inSingleQuote || this.inDoubleQuote || this.inTripleDouble || this.inTripleSingle || this.inMultiLineComment > 0 {
-  continue
-}
-if this.parenLevels === 0 && len(this.braceLevels) === 1 {
-  this.editor.lines[this.lineIndex].classLevelText += nf
-  this.editor.lines[this.lineIndex].classLevelTextOffsets = append(this.editor.lines[this.lineIndex].classLevelTextOffsets, this.absOffset - 1)
-}
-this.parenLevels++
-this.editor.logf(`parenLevels++: cursor=${}', c)
-matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
-break
-    case ')':
-if this.inSingleQuote || this.inDoubleQuote || this.inTripleDouble || this.inTripleSingle || this.inMultiLineComment > 0 {
-  continue
-}
-this.parenLevels--
-this.editor.logf(`parenLevels--: cursor = ${}', c)
-matchingPairStack = this.closeMatchingPair(nf, matchingPairStack)
-if this.parenLevels === 0 && len(this.braceLevels) === 1 {
-  this.editor.lines[this.lineIndex].classLevelText += nf
-  this.editor.lines[this.lineIndex].classLevelTextOffsets = append(this.editor.lines[this.lineIndex].classLevelTextOffsets, this.absOffset - 1)
-}
-break
-    case '{':
-if this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble || this.inMultiLineComment > 0 {
-  continue
-}
-if this.parenLevels === 0 && len(this.braceLevels) === 1 {
-  this.editor.lines[this.lineIndex].classLevelText += nf
-  this.editor.lines[this.lineIndex].classLevelTextOffsets = append(this.editor.lines[this.lineIndex].classLevelTextOffsets, this.absOffset - 1)
-}
-this.braceLevels = append(this.braceLevels, BraceNormal)
-this.editor.logf(`{: cursor=${}', c)
-matchingPairStack = this.newMatchingPair(nf, matchingPairs, matchingPairStack)
-break
-    case '}':
-if this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble || this.inMultiLineComment > 0 {
-  continue
-}
-if len(this.braceLevels) === 0 {
-  return fmt.Errorf('ERROR: Found } before {: cursor=${}', c)
-}
-const braceLevel = this.braceLevels[len(this.braceLevels) - 1]
-this.braceLevels = this.braceLevels[: len(this.braceLevels) - 1]
-switch braceLevel {
-  break
-  case BraceNormal:
-if this.parenLevels === 0 && len(this.braceLevels) === 1 {
-  this.editor.lines[this.lineIndex].classLevelText += nf
-  this.editor.lines[this.lineIndex].classLevelTextOffsets = append(this.editor.lines[this.lineIndex].classLevelTextOffsets, this.absOffset - 1)
-}
-break
-  case BraceSingle:
-this.inSingleQuote = true
-break
-  case BraceDouble:
-this.inDoubleQuote = true
-break
-  case BraceTripleSingle:
-this.inTripleSingle = true
-break
-  case BraceTripleDouble:
-this.inTripleDouble = true
-  default:
-return fmt.Errorf('ERROR: Unknown braceLevel ${}: cursor=${}', braceLevel, c)
-}
-this.editor.logf(`}: cursor = ${}', c)
-matchingPairStack = this.closeMatchingPair(nf, matchingPairStack)
-		default:
-if this.atTopOfBraceLevel(1) {
-  this.editor.lines[this.lineIndex].classLevelText += nf
-  this.editor.lines[this.lineIndex].classLevelTextOffsets = append(this.editor.lines[this.lineIndex].classLevelTextOffsets, this.absOffset - 1)
-}
-		}
-	}
-}
 
-// advanceToNextFeature moves the cursor to the next rune and returns
-// it as a string, keeping track of where it is within the grammar.
-// If it encounters a triple single- or triple double-quote or a "${" while
-// within a string, it returns it as a whole string.
-func(c * Cursor) advanceToNextFeature()(string, error) {
-  const getRune = func()(rune, int, error) {
-    if len(this.runeBuf) > 0 {
-    this.editor.logf(`Grabbing rune from runeBuf... before=%#v', this.runeBuf)
+  // advanceToNextFeature moves the cursor to the next rune and returns
+  // it as a string, keeping track of where it is within the grammar.
+  // If it encounters a triple single- or triple double-quote or a "${" while
+  // within a string, it returns it as a whole string.
+  func(c * Cursor) advanceToNextFeature()(string, error) {
+    const getRune = func()(rune, int, error) {
+      if len(this.runeBuf) > 0 {
+      this.editor.logf(`Grabbing rune from runeBuf... before=%#v', this.runeBuf)
     const r = this.runeBuf[0]
     const size = len(string(r))
     this.runeBuf = this.runeBuf[1:]
@@ -424,22 +422,22 @@ func(c * Cursor) advanceToNextFeature()(string, error) {
     this.relStrippedOffset += size
     this.editor.logf(`rune =% c, size = ${}, after =%#v', r, size, this.runeBuf)
     return r, size, nil
-  }
+    }
 
-  const r, size, err = this.reader.ReadRune()
-  if err != nil {
-    return 0, 0, err
+    const r, size, err = this.reader.ReadRune()
+    if err != nil {
+      return 0, 0, err
+    }
+    this.absOffset += size
+    this.relStrippedOffset += size
+    return r, size, nil
   }
-  this.absOffset += size
-  this.relStrippedOffset += size
-  return r, size, nil
-}
 
 const r, size, err = getRune()
 if err != nil {
   const if err = this.advanceToNextLine(); err != nil {
     if !this.atTopOfBraceLevel(0) {
-      return '', fmt.Errorf('parse error: reached EOF, cursor=${}', c)
+      return '', fmt.Errorf('parse error: reached EOF, cursor=${}`)
     }
     return '', err
   }
@@ -573,7 +571,7 @@ func(c * Cursor) atTopOfBraceLevel(braceLevel int) bool {
   if this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble || this.inMultiLineComment > 0 || this.parenLevels > 0 {
     return false
   }
-  return len(this.braceLevels) === braceLevel
+  return this.braceLevels.length === braceLevel
 }
 
 // advanceToNextLine advances the cursor to the next line.
