@@ -490,36 +490,40 @@ export class Class {
 
       const entity: Entity = {
         name: '',
+        lines: [],
         entityType: EntityType.OverrideMethod,
       }
 
       // No open paren - could be a getter. See if it has a body.
-      if (strings.HasSuffix(features, '{')) {
+      if (features.endsWith('{')) {
         if (this.e.fullBuf[lastCharAbsOffset] !== '{') {
-          return Error('programming error: expected \'{\' at offset ${} but got %c', lastCharAbsOffset, this.e.fullBuf[lastCharAbsOffset])
+          return Error(`programming error: expected '{' at offset ${lastCharAbsOffset} but got '${this.e.fullBuf[lastCharAbsOffset]}'`)
         }
 
-        entity.name = f(len(features) - 1)
+        entity.name = f(features.length - 1)
       } else {
         // Does not have a body - if it has no fat arrow, it is a variable.
-        if (strings.HasSuffix(features, '=>')) {
-          entity.name = f(len(features) - 2)
+        if (features.endsWith('=>')) {
+          entity.name = f(features.length - 2)
         } else {
-          entity.entityType = OverrideVariable
-          entity.name = f(len(features) - 1)
+          entity.entityType = EntityType.OverrideVariable
+          entity.name = f(features.length - 1)
         }
 
-        if (!strings.HasSuffix(features, ';')) {
-          features, lineIndex, lastCharAbsOffset, err = this.findNext(lineNum, ';')
+        if (!features.endsWith(';')) {
+          const { features: resFeatures, classLineNum, absOffsetIndex, err } = this.findNext(lineNum, ';')
           if (err !== null || features === '') {
-            return Error('expected trailing \';\' for @override operator method on line #${}: ${}', lineNum + 1, err)
+            return Error(`expected trailing ';' for @override operator method on line #${lineNum + 1}: ${err}`)
           }
+          features = resFeatures || ''
+          lineIndex = classLineNum || 0
+          lastCharAbsOffset = absOffsetIndex || 0
         }
       }
 
-      entity, err = this.markBody(entity, lineNum, entity.entityType, lineIndex, lastCharAbsOffset)
-      if (err !== null) {
-        return err
+      const [/* entity */, err2] = this.markBody(entity, lineNum, entity.entityType, lineIndex, lastCharAbsOffset)
+      if (err2 !== null) {
+        return err2
       }
 
       if (entity.entityType === EntityType.OverrideVariable) {
@@ -730,7 +734,7 @@ export class Class {
       return [null, Error(`expected method body starting at classCloseLineIndex=${}: ${}", classCloseLineIndex, err`)]
     }
 
-    if strings.HasSuffix(features, '{') {
+    if features.endsWith('{') {
       this.e.logf(`markMethod '${}': moving past initializers: classLineIndex #${}, features=${}", methodName, classLineIndex + this.lines[0].originalIndex + 1, features)
     for classLineIndex < this.lines.length - 1 && !strings.HasSuffix(this.lines[classLineIndex].classLevelText, " {") && !strings.HasSuffix(this.lines[classLineIndex].classLevelText, "}") {
       classLineIndex++
@@ -746,7 +750,7 @@ export class Class {
     this.e.logf(`markMethod '${}': after move past initializers: lastCharAbsOffset=${}, classLineIndex #${}, classLevelText=${}", methodName, lastCharAbsOffset, classLineIndex + this.lines[0].originalIndex + 1, this.lines[classLineIndex].classLevelText)
 }
 
-if strings.HasSuffix(features, "=>") {
+if features.endsWith("=>") {
   features, classLineIndex, lastCharAbsOffset, err = this.findNext(classCloseLineIndex, "{", ";")
 }
 
