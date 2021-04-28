@@ -17,6 +17,7 @@ limitations under the License.
 import { Editor } from './editor'
 import { Entity, EntityType } from './entity'
 import { isComment, Line } from './line'
+import { MatchingPair } from './pairs'
 
 // FindNextResult represents the return value of findNext.
 interface FindNextResult {
@@ -424,7 +425,7 @@ export class Class {
       if (err2 !== null) {
         return err2
       }
-      this.namedConstructors.push(entity)
+      this.namedConstructors.push(entity!)
     }
 
     return null
@@ -483,7 +484,7 @@ export class Class {
         if (name === 'build') {
           this.buildMethod = entity
         } else {
-          this.overrideMethods.push(entity)
+          this.overrideMethods.push(entity!)
         }
         continue
       }
@@ -764,8 +765,8 @@ export class Class {
       this.e.logf(`markMethod '${methodName}': after move past initializers: lastCharAbsOffset=${lastCharAbsOffset}, classLineIndex #${classLineIndex + this.lines[0].originalIndex + 1}, classLevelText=${this.lines[classLineIndex].classLevelText}`)
     }
 
-    if (features.endsWith("=>")) {
-      const { classLineNum: resClassLineNum, absOffsetIndex, err } = this.findNext(classCloseLineIndex, "{", ";")
+    if (features.endsWith('=>')) {
+      const { classLineNum: resClassLineNum, absOffsetIndex, err } = this.findNext(classCloseLineIndex, '{', ';')
       if (err !== null) {
         return [null, Error(`expected fat arrow method body starting at classCloseLineIndex=${classCloseLineIndex}: ${err.message}`)]
       }
@@ -776,7 +777,7 @@ export class Class {
     return this.markBody(entity, classLineNum, entityType, classLineIndex, lastCharAbsOffset)
   }
 
-  func(c * Class) classCloseLineIndex(pair * MatchingPair): number {
+  classCloseLineIndex(pair: MatchingPair): number {
     return pair.closeLineIndex - this.lines[0].originalIndex
   }
 
@@ -784,13 +785,13 @@ export class Class {
   // startClassLineNum is the starting class line index of the body.
   // endClassLineNum is the ending class line index of the body (if ";" was used).
   // lastCharAbsOffset must either point to the body's opening "{" or to its ending ";".
-  markBody(entity: Entity, startClassLineNum: number, entityType: EntityType, endClassLineNum: number, lastCharAbsOffset: number): [Entity, Error | null] {
+  markBody(entity: Entity, startClassLineNum: number, entityType: EntityType, endClassLineNum: number, lastCharAbsOffset: number): [Entity | null, Error | null] {
     if (this.e.fullBuf[lastCharAbsOffset] === '{') {
       const pair = this.e.matchingPairs[lastCharAbsOffset]
       if (!pair) {
         return [null, Error(`expected matching '}' pair at lastCharAbsOffset = ${lastCharAbsOffset}`)]
       }
-      if (pair.open !== "{" || pair.close !== "}") {
+      if (pair.open !== '{' || pair.close !== '}') {
         return [null, Error(`programming error: expected '{' but got pair =% ${pair}`)]
       }
       endClassLineNum = this.classCloseLineIndex(pair)
@@ -802,21 +803,21 @@ export class Class {
         break
       }
 
-      if (this.lines[i].entityType >= MainConstructor && this.lines[i].entityType !== entityType) {
+      if (this.lines[i].entityType >= EntityType.MainConstructor && this.lines[i].entityType !== entityType) {
         const err = this.repairIncorrectlyLabeledLine(i)
         if (err !== null) {
-          return null, err
+          return [null, err]
         }
       }
 
       this.e.logf(`markMethod: marking line #${i + 1} as type ${entityType}`)
       this.lines[i].entityType = entityType
-      entity.lines = append(entity.lines, this.lines[i])
+      entity.lines.push(this.lines[i])
     }
 
     // Preserve the comment lines leading up to the method.
     for (startClassLineNum--; startClassLineNum > 0; startClassLineNum--) {
-      if (isComment(this.lines[startClassLineNum]) || strings.HasPrefix(this.lines[startClassLineNum].stripped, "@")) {
+      if (isComment(this.lines[startClassLineNum]) || this.lines[startClassLineNum].stripped.startsWith('@')) {
         this.e.logf(`markMethod: marking comment line #${startClassLineNum + 1} as type ${entityType}`)
         this.lines[startClassLineNum].entityType = entityType
         entity.lines.unshift(this.lines[startClassLineNum])
@@ -825,5 +826,6 @@ export class Class {
       break
     }
 
-    return entity, null
+    return [entity, null]
   }
+}
