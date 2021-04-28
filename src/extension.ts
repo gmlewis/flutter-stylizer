@@ -50,7 +50,7 @@ class DartLine {
 class DartEntity {
   entityType: EntityType = EntityType.Unknown
   lines: DartLine[] = []
-  name: string = ""  // Used for sorting, but could be "".
+  name: string = ''  // Used for sorting, but could be "".
 }
 
 class DartClass {
@@ -60,7 +60,7 @@ class DartClass {
   openCurlyOffset: number
   closeCurlyOffset: number
   groupAndSortGetterMethods: boolean
-  classBody: string = ""
+  classBody: string = ''
   lines: DartLine[] = []  // Line 0 is always the open curly brace.
 
   theConstructor?: DartEntity = undefined
@@ -446,7 +446,7 @@ class DartClass {
   private findSequence(buf: string): [string, number, string] {
     const result: string[] = []
 
-    let leadingText = ""
+    let leadingText = ''
     let lineCount = 0
     let openParenCount = 0
     let openBraceCount = 0
@@ -818,7 +818,7 @@ export function activate(context: vscode.ExtensionContext) {
     const sortOtherMethods = config.get<boolean>('sortOtherMethods') || false
 
     const classes = await getClasses(editor, groupAndSortGetterMethods)
-    console.log("Found " + classes.length.toString() + " classes.")
+    console.log('Found ' + classes.length.toString() + ' classes.')
 
     // Rewrite the classes.
     for (let i = classes.length - 1; i >= 0; i--) {
