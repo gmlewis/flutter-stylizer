@@ -18,6 +18,14 @@ import { Editor } from './editor'
 import { Entity, EntityType } from './entity'
 import { isComment, Line } from './line'
 
+// FindNextResult represents the return value of findNext.
+interface FindNextResult {
+  features?: string,
+  classLineNum?: number,
+  absOffsetIndex?: number,
+  err: Error | null,
+}
+
 // Class represents a Dart class.
 export class Class {
   // editor is the editor used to parse the class.
@@ -174,94 +182,91 @@ export class Class {
   // of the last character returned.
   //
   // If no search terms can be found, the error io.EOF is returned.
-  func(c * Class) findNext(lineNum int, searchFor ...string)(features string, classLineNum int, absOffsetIndex int, err error) {
-  classLineNum = lineNum
+  findNext(lineNum: number, ...searchFor: string[]): FindNextResult {
+    let features = ''
+    for (let classLineNum = lineNum; classLineNum < this.lines.length; classLineNum++) {
+      const line = this.lines[classLineNum]
+      features += line.classLevelText
+      let classLevelIndex = -1
+      let s = ''
+      for (let si = 0; si < searchFor.length; si++) {
+        const ss = searchFor[si]
+        const i = line.classLevelText.indexOf(ss)
+        if (i < 0) {
+          continue
+        }
+        if (si !== 0 && classLevelIndex >= 0 && i >= classLevelIndex) {
+          continue
+        }
 
-  for ; classLineNum < len(c.lines); classLineNum++ {
-    line:= c.lines[classLineNum]
-    features += line.classLevelText
-    classLevelIndex:= -1
-    var s string
-    for si, ss := range searchFor {
-      i:= strings.Index(line.classLevelText, ss)
-      if i < 0 {
-        continue
-      }
-      if si !== 0 && classLevelIndex >= 0 && i >= classLevelIndex {
-        continue
+        classLevelIndex = i
+        s = ss
       }
 
-      classLevelIndex = i
-      s = ss
+      if (classLevelIndex >= 0) {
+        const i = features.indexOf(s)
+        if (i > 0) {
+          features = features.slice(0, i + s.length)
+        }
+
+        if (classLevelIndex >= line.classLevelTextOffsets.length) {
+          return { err: Error(`programming error: classLevelIndex = ${classLevelIndex} but should be less than ${line.classLevelTextOffsets.length}, line=${line}`) }
+        }
+
+        const absOffsetIndex = line.classLevelTextOffsets[classLevelIndex]
+
+        return { features, classLineNum, absOffsetIndex, err: null }
+      }
+
+      features += " " // instead of newline.
     }
 
-    if classLevelIndex >= 0 {
-      if i := strings.Index(features, s); i > 0 {
-        features = features[0 : i + len(s)]
-      }
-
-      if classLevelIndex >= len(line.classLevelTextOffsets) {
-        return "", 0, 0, Error("programming error: classLevelIndex = %v but should be less than %v, line=%#v", classLevelIndex, len(line.classLevelTextOffsets), line)
-      }
-
-      absOffsetIndex:= line.classLevelTextOffsets[classLevelIndex]
-
-      return features, classLineNum, absOffsetIndex, null
-    }
-
-    features += " " // instead of newline.
+    return { err: Error('EOF') }
   }
 
-  return "", 0, 0, io.EOF
-}
+  identifyDecoratorsAsComments(): Error | null {
+    const override = "@override"
 
-func(c * Class) identifyDecoratorsAsComments() error {
-  const override = "@override"
-
-  for i := 1; i < len(c.lines); i++ {
-    line:= c.lines[i]
-    if line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === "" {
-      continue
-    }
-
-    lineText:= strings.TrimSpace(line.classLevelText)
-    if !strings.HasPrefix(lineText, "@") || strings.HasPrefix(lineText, override) {
-      continue
-    }
-
-    // Making the simplifying assumption here that if a decorator has arguments,
-    // they should start on the same line as the decorator.
-    lineIndex:= i
-    if strings.Contains(lineText, "(") {
-      var features string
-      var err error
-      features, lineIndex, _, err = c.findNext(i, " ", "=", ";", "{", "(")
-      if err !== null {
-        lineIndex = i // Not an error, just reached EOF.
+    for (let i = 1; i < this.lines.length; i++) {
+      const line = this.lines[i]
+      if (line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === "") {
+        continue
       }
 
-      p:= strings.Split(features, " ")
-      if strings.HasSuffix(features, "(") && (len(p) === 1 || p[1] === "(") { // decorator includes args after '('
-        var err error
-        _, lineIndex, _, err = c.findNext(i, ")")
-        if err !== null {
-          return Error("unable to find end of decorator ')' with args from line #%v", c.lines[0].originalIndex + i + 1)
+      const lineText = line.classLevelText.trim()
+      if (!lineText.startsWith("@") || lineText.startsWith(override)) {
+        continue
+      }
+
+      // Making the simplifying assumption here that if a decorator has arguments,
+      // they should start on the same line as the decorator.
+      let lineIndex = i
+      if (lineText.includes("(")) {
+        const { features, classLineNum } = this.findNext(i, " ", "=", ";", "{", "(")
+        lineIndex = classLineNum || i  // Not an error if undefined... just reached EOF.
+
+        const p = (features || '').split(" ")
+        if ((features || '').endsWith("(") && (p.length === 1 || p[1] === "(")) { // decorator includes args after '('
+          const { classLineNum, err } = this.findNext(i, ")")
+          if (err !== null) {
+            return Error(`unable to find end of decorator ')' with args from line #${this.lines[0].originalIndex + i + 1}`)
+          }
+          lineIndex = classLineNum || lineIndex
         }
       }
+
+      while (i <= lineIndex) {
+        this.e.logf(`identifyDecoratorsAsComments: marking decorator line #${i + 1} as type SingleLineComment`)
+        this.lines[i].entityType = EntityType.SingleLineComment
+        i++
+      }
+      i--
     }
 
-    for i <= lineIndex {
-      c.e.logf("identifyDecoratorsAsComments: marking decorator line #%v as type SingleLineComment", i + 1)
-			c.lines[i].entityType = SingleLineComment
-			i++
-		}
-  i--
-}
+    return null
+  }
 
-return null
-}
-
-func(c * Class) identifyMainConstructor() error {
+  func(c * Class) identifyMainConstructor() error {
   className:= c.className + "("
   for i := 1; i < len(c.lines); i++ {
     line:= c.lines[i]
@@ -428,7 +433,7 @@ func(c * Class) identifyOverrideMethodsAndVars() error {
       }
     }
 
-    f:= func(i int) string {
+    f:= func(i: number) string {
       v:= strings.TrimSpace(features[: i])
       nameOffset:= strings.LastIndex(v, " ")
       if nameOffset >= 0 {
@@ -550,7 +555,7 @@ func(c * Class) identifyOthers() error {
   return null
 }
 
-func(c * Class) scanMethod(lineNum int)(* Entity, error) {
+func(c * Class) scanMethod(lineNum: number)(* Entity, error) {
   entity:= & Entity{ }
 
   sequence, lineCount, leadingText, err := c.findSequence(lineNum)
@@ -629,7 +634,7 @@ func(c * Class) scanMethod(lineNum int)(* Entity, error) {
   return entity, null
 }
 
-func(c * Class) repairIncorrectlyLabeledLine(lineNum int) error {
+func(c * Class) repairIncorrectlyLabeledLine(lineNum: number) error {
   incorrectLabel:= c.lines[lineNum].entityType
   switch incorrectLabel {
     default:
@@ -637,7 +642,7 @@ func(c * Class) repairIncorrectlyLabeledLine(lineNum int) error {
   }
 }
 
-func(c * Class) findSequence(lineNum int)(string, int, string, error) {
+func(c * Class) findSequence(lineNum: number)(string, int, string, error) {
   var result string
 
   features, lineIndex, _, err := c.findNext(lineNum, ";", "}")
@@ -668,7 +673,7 @@ func(c * Class) findSequence(lineNum int)(string, int, string, error) {
 
 // markMethod marks an entire method with the same entityType.
 // methodName must end with "(" and absOpenParenOffset must point to that open paren.
-func(c * Class) markMethod(classLineNum int, methodName string, entityType EntityType, absOpenParenOffset int)(* Entity, error) {
+func(c * Class) markMethod(classLineNum: number, methodName string, entityType EntityType, absOpenParenOffset: number)(* Entity, error) {
   if !strings.HasSuffix(methodName, "(") {
     return null, Error("programming error: markMethod: %q must end with the open parenthesis '('", methodName)
   }
@@ -712,7 +717,7 @@ if strings.HasSuffix(features, "=>") {
 return c.markBody(entity, classLineNum, entityType, classLineIndex, lastCharAbsOffset)
 }
 
-func(c * Class) classCloseLineIndex(pair * MatchingPair) int {
+func(c * Class) classCloseLineIndex(pair * MatchingPair): number {
   return pair.closeLineIndex - c.lines[0].originalIndex
 }
 
@@ -720,7 +725,7 @@ func(c * Class) classCloseLineIndex(pair * MatchingPair) int {
 // startClassLineNum is the starting class line index of the body.
 // endClassLineNum is the ending class line index of the body (if ";" was used).
 // lastCharAbsOffset must either point to the body's opening "{" or to its ending ";".
-func(c * Class) markBody(entity * Entity, startClassLineNum int, entityType EntityType, endClassLineNum, lastCharAbsOffset int)(* Entity, error) {
+func(c * Class) markBody(entity * Entity, startClassLineNum: number, entityType EntityType, endClassLineNum, lastCharAbsOffset: number)(* Entity, error) {
   if c.e.fullBuf[lastCharAbsOffset] === '{' {
     pair, ok := c.e.matchingPairs[lastCharAbsOffset]
     if !ok {
