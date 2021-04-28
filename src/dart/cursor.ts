@@ -29,6 +29,13 @@ enum BraceLevel {
   BraceTripleDouble, // Most recent unmatched '{' was `"""...${`.
 }
 
+// NextRune is the return value from getRune.
+interface NextRune {
+  r: string,
+  size: number,
+  err: Error | null,
+}
+
 // Cursor represents an editor cursor and is used to advance through
 // the Dart source code.
 export class Cursor {
@@ -90,7 +97,7 @@ export class Cursor {
     }
 
     const got = this.editor.fullBuf.substring(pair.openAbsOffset, pair.openAbsOffset + open.length)
-    if (got != open) {
+    if (got !== open) {
       throw new Error(`programming error: openAbsOffset = '${got}', want '${open}`)
     }
 
@@ -114,11 +121,11 @@ export class Cursor {
     pair.closeRelStrippedOffset = this.relStrippedOffset
 
     const got = this.editor.fullBuf.substring(pair.closeAbsOffset, pair.closeAbsOffset + close.length)
-    if (got != close) {
+    if (got !== close) {
       throw new Error(`programming error: closeAbsOffset = '${got}', want '${close}'`)
     }
 
-    matchingPairStack.splice(matchingPairStack.length - 1)
+    matchingPairStack.splice(matchingPairStack.length - 1, 1)
   }
 
   // parse parses the Dart source, identifies line entity types in the source,
@@ -133,7 +140,7 @@ export class Cursor {
       let err: Error
       [nf, err] = this.advanceToNextFeature()
       if (err) {
-        if (err != Error('EOF')) {
+        if (err !== Error('EOF')) {
           return Error(`advanceToNextFeature: ${err}`)
         }
         return null
@@ -346,7 +353,7 @@ export class Cursor {
             continue
           }
           this.parenLevels--
-          this.editor.logf(`parenLevels--: cursor = ${}`)
+          this.editor.logf(`parenLevels--: cursor = ${this}`)
           this.closeMatchingPair(nf, matchingPairStack)
           if (this.parenLevels === 0 && this.braceLevels.length === 1) {
             this.editor.lines[this.lineIndex].classLevelText += nf
@@ -372,8 +379,7 @@ export class Cursor {
           if (this.braceLevels.length === 0) {
             return Error(`ERROR: Found } before {: cursor=${this}`)
           }
-          const braceLevel = this.braceLevels[this.braceLevels.length - 1]
-          this.braceLevels.splice(this.braceLevels.length - 1)
+          const braceLevel = this.braceLevels.splice(this.braceLevels.length - 1)[0]
           switch (braceLevel) {
             case BraceLevel.BraceNormal:
               if (this.parenLevels === 0 && this.braceLevels.length === 1) {
@@ -398,6 +404,7 @@ export class Cursor {
           }
           this.editor.logf(`}: cursor = ${this}`)
           this.closeMatchingPair(nf, matchingPairStack)
+          break
         default:
           if (this.atTopOfBraceLevel(1)) {
             this.editor.lines[this.lineIndex].classLevelText += nf
@@ -407,225 +414,231 @@ export class Cursor {
     }
   }
 
+  getRune(): NextRune {
+    let r: string
+    let size: number
+    if (this.runeBuf.length > 0) {
+      this.editor.logf(`Grabbing rune from runeBuf... before=${this.runeBuf}`)
+      r = this.runeBuf.splice(0, 1)[0]
+      size = r.length
+      this.absOffset += size
+      this.relStrippedOffset += size
+      this.editor.logf(`rune='${r}', size=${size}, after=${this.runeBuf}`)
+      return { r, size, err: null }
+    }
+
+    if (this.reader.length === 0) { return { r: '', size: 0, err: Error('EOF') } }
+    r = this.reader.shift() || ''  // Make TypeScript compiler happy.
+    size = r.length
+    this.absOffset += size
+    this.relStrippedOffset += size
+    return { r, size, err: null }
+  }
+
+  pushRune(r: string) {
+    this.runeBuf.push(r)
+    let size = r.length
+    this.absOffset -= size
+    this.relStrippedOffset -= size
+    this.editor.logf(`Pushing rune='${r}, size=${size} to runeBuf: after=${this.runeBuf}`)
+  }
+
   // advanceToNextFeature moves the cursor to the next rune and returns
   // it as a string, keeping track of where it is within the grammar.
   // If it encounters a triple single- or triple double-quote or a "${" while
   // within a string, it returns it as a whole string.
-  func(c * Cursor) advanceToNextFeature()(string, error) {
-    const getRune = func()(rune, int, error) {
-      if len(this.runeBuf) > 0 {
-      this.editor.logf(`Grabbing rune from runeBuf... before=%#v', this.runeBuf)
-    const r = this.runeBuf[0]
-    const size = len(string(r))
-    this.runeBuf = this.runeBuf[1:]
-    this.absOffset += size
-    this.relStrippedOffset += size
-    this.editor.logf(`rune =% c, size = ${}, after =%#v', r, size, this.runeBuf)
-    return r, size, nil
+  advanceToNextFeature() {
+    const firstRune = this.getRune()
+    let r = firstRune.r
+    let size = firstRune.size
+
+    if (firstRune.err !== null) {
+      const err = this.advanceToNextLine()
+      if (err !== null) {
+        if (!this.atTopOfBraceLevel(0)) {
+          return ['', Error(`parse error: reached EOF, cursor=${this}`)]
+        }
+        return ['', err]
+      }
+      r = ' ' // replace newline with single space
+      size = 1
+      firstRune.err = null
     }
 
-    const r, size, err = this.reader.ReadRune()
-    if err != nil {
-      return 0, 0, err
+    if (size > 1) { // a utf-8 rune of no interest; return it.
+      return [r, null]
     }
-    this.absOffset += size
-    this.relStrippedOffset += size
-    return r, size, nil
-  }
 
-const r, size, err = getRune()
-if err != nil {
-  const if err = this.advanceToNextLine(); err != nil {
-    if !this.atTopOfBraceLevel(0) {
-      return '', fmt.Errorf('parse error: reached EOF, cursor=${}`)
+    let nextRune: NextRune = { r: '', size: 0, err: null }
+    switch (r) {
+      case '\\':
+        if (this.stringIsRaw || this.inMultiLineComment > 0) {
+          return [r, null]
+        }
+        nextRune = this.getRune()
+        if (nextRune.err !== null) {
+          return ['\\', null]
+        }
+        return [`\\${nextRune.r}`, null]
+        break
+      case `'`:
+        if ((this.stringIsRaw || this.inDoubleQuote || this.inTripleDouble) && !this.inTripleSingle) {
+          return [r, null]
+        }
+        nextRune = this.getRune()
+        if (nextRune.err !== null) {
+          return [`'`, null]
+        }
+        if (nextRune.size !== 1 || nextRune.r !== '\'') {
+          this.pushRune(nextRune.r)
+          return [`'`, null]
+        }
+        // r === nextRune.r === `'` at this point.
+        nextRune = this.getRune()
+        if (nextRune.err !== null) {
+          this.pushRune(r)
+          return [`'`, null]
+        }
+        if (nextRune.size !== 1 || nextRune.r !== '\'') {
+          this.pushRune(r)
+          this.pushRune(nextRune.r)
+          return [`'`, null]
+        }
+        return [`'''`, null]
+        break
+      case '"':
+        if ((this.stringIsRaw || this.inSingleQuote || this.inTripleSingle) && !this.inTripleDouble) {
+          return [r, null]
+        }
+        nextRune = this.getRune()
+        if (nextRune.err !== null) {
+          return [`"`, null]
+        }
+        if (nextRune.size !== 1 || nextRune.r !== '"') {
+          this.pushRune(nextRune.r)
+          return [`"`, null]
+        }
+        // r === nextRune.r === '"' at this point.
+        nextRune = this.getRune()
+        if (nextRune.err !== null) {
+          this.pushRune(r)
+          return [`"`, null]
+        }
+        if (nextRune.size !== 1 || nextRune.r !== '"') {
+          this.pushRune(r)
+          this.pushRune(nextRune.r)
+          return [`"`, null]
+        }
+        return [`"""`, null]
+        break
+      case '$':
+        if (this.stringIsRaw) {
+          return [r, null]
+        }
+        nextRune = this.getRune()
+        if (nextRune.err !== null) {
+          return ['$', null]
+        }
+        if (nextRune.size !== 1 || nextRune.r !== '{') {
+          this.pushRune(nextRune.r)
+          return ['$', null]
+        }
+        return ['${', null]
+        break
+      case '/':
+        if (this.stringIsRaw) {
+          return [r, null]
+        }
+        nextRune = this.getRune()
+        if (nextRune.err !== null) {
+          return ['/', null]
+        }
+        if (nextRune.size !== 1 || (nextRune.r !== '*' && nextRune.r !== '/')) {
+          this.pushRune(nextRune.r)
+          return ['/', null]
+        }
+        if (nextRune.r === '/') {
+          return ['//', null]
+        }
+        return ['/*', null]
+        break
+      case '*':
+        if (this.stringIsRaw) {
+          return [r, null]
+        }
+        nextRune = this.getRune()
+        if (nextRune.err !== null) {
+          return ['*', null]
+        }
+        if (nextRune.size !== 1 || nextRune.r !== '/') {
+          this.pushRune(nextRune.r)
+          return ['*', null]
+        }
+        return ['*/', null]
     }
-    return '', err
-  }
-  r, size, err = ' ', 1, nil // replace newline with single space
-}
 
-if size > 1 { // a utf-8 rune of no interest; return it.
-  return string(r), nil
-}
-
-const pushRune = func(r rune) {
-  this.runeBuf = append(this.runeBuf, r)
-    const size = len(string(r))
-    this.absOffset -= size
-    this.relStrippedOffset -= size
-    this.editor.logf(`Pushing rune=%c, size=${} to runeBuf: after=%#v', r, len(string(r)), this.runeBuf)
+    return [r, null]
   }
 
-switch r {
-    break
-    case '\\':
-if this.stringIsRaw || this.inMultiLineComment > 0 {
-  return string(r), nil
-}
-const nr, _, err = getRune()
-if err != nil {
-  return `\`, nil
-		}
-		return fmt.Sprintf("\\%c", nr), nil
-	break
-  case '\'':
-		if (this.stringIsRaw || this.inDoubleQuote || this.inTripleDouble) && !this.inTripleSingle {
-			return string(r), nil
-		}
-		const nr, nsize, err = getRune()
-		if err != nil {
-			return "'", nil
-		}
-		if nsize != 1 || nr != '\'' {
-			pushRune(nr)
-			return "'", nil
-		}
-		// r === nr === '\' at this point.
-		nr, nsize, err = getRune()
-		if err != nil {
-			pushRune(r)
-			return "'", nil
-		}
-		if nsize != 1 || nr != '\'' {
-			pushRune(r)
-			pushRune(nr)
-			return "'", nil
-		}
-		return "'''", nil
-	break
-  case '"':
-		if (this.stringIsRaw || this.inSingleQuote || this.inTripleSingle) && !this.inTripleDouble {
-			return string(r), nil
-		}
-		const nr, nsize, err = getRune()
-		if err != nil {
-			return `"`, nil
-}
-if nsize != 1 || nr != '"' {
-  pushRune(nr)
-  return `"`, nil
-}
-// r === nr === '"' at this point.
-nr, nsize, err = getRune()
-if err != nil {
-  pushRune(r)
-  return `"`, nil
-}
-if nsize != 1 || nr != '"' {
-  pushRune(r)
-  pushRune(nr)
-  return `"`, nil
-}
-return `"""`, nil
-break
-    case '$':
-if this.stringIsRaw {
-  return string(r), nil
-}
-const nr, nsize, err = getRune()
-if err != nil {
-  return '$', nil
-}
-if nsize != 1 || nr != '{' {
-  pushRune(nr)
-  return '$', nil
-}
-return '${', nil
-break
-    case '/':
-if this.stringIsRaw {
-  return string(r), nil
-}
-const nr, nsize, err = getRune()
-if err != nil {
-  return '/', nil
-}
-if nsize != 1 || (nr != '*' && nr != '/') {
-  pushRune(nr)
-  return '/', nil
-}
-if nr === '/' {
-  return '//', nil
-}
-return '/*', nil
-break
-    case '*':
-if this.stringIsRaw {
-  return string(r), nil
-}
-const nr, nsize, err = getRune()
-if err != nil {
-  return '*', nil
-}
-if nsize != 1 || nr != '/' {
-  pushRune(nr)
-  return '*', nil
-}
-return '*/', nil
-}
-
-return string(r), nil
-}
-
-func(c * Cursor) atTopOfBraceLevel(braceLevel int) bool {
-  if this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble || this.inMultiLineComment > 0 || this.parenLevels > 0 {
-    return false
+  atTopOfBraceLevel(braceLevel: number) {
+    if (this.inSingleQuote || this.inDoubleQuote || this.inTripleSingle || this.inTripleDouble || this.inMultiLineComment > 0 || this.parenLevels > 0) {
+      return false
+    }
+    return this.braceLevels.length === braceLevel
   }
-  return this.braceLevels.length === braceLevel
-}
 
-// advanceToNextLine advances the cursor to the next line.
-// It returns io.EOF when it reaches the end of the file.
-//
-// It also detects the start of class lines.
-func(c * Cursor) advanceToNextLine() error {
-  if this.lineIndex === 0 && matchClassRE.FindStringSubmatch(this.editor.lines[this.lineIndex].line) != nil {
+  // advanceToNextLine advances the cursor to the next line.
+  // It returns io.EOF when it reaches the end of the file.
+  //
+  // It also detects the start of class lines.
+  func(c * Cursor) advanceToNextLine() error {
+  if (this.lineIndex === 0 && matchClassRE.FindStringSubmatch(this.editor.lines[this.lineIndex].line) !== null) {
     this.classLineIndices = append(this.classLineIndices, this.lineIndex)
   }
 
   // this.editor.lines[this.lineIndex].classLevelText = strings.TrimSpace(this.editor.lines[this.lineIndex].classLevelText)
   this.editor.lines[this.lineIndex].classLevelText = strings.TrimLeftFunc(this.editor.lines[this.lineIndex].classLevelText, func(r rune) bool {
-    if !unicode.IsSpace(r) {
+    if(!unicode.IsSpace(r) ){
     return false
   }
-		this.editor.lines[this.lineIndex].classLevelTextOffsets = this.editor.lines[this.lineIndex].classLevelTextOffsets[1:]
-		return true
+  this.editor.lines[this.lineIndex].classLevelTextOffsets = this.editor.lines[this.lineIndex].classLevelTextOffsets[1:]
+  return true
 })
 
 this.editor.lines[this.lineIndex].classLevelText = strings.TrimRightFunc(this.editor.lines[this.lineIndex].classLevelText, func(r rune) bool {
-  if !unicode.IsSpace(r) {
+  if(!unicode.IsSpace(r) ){
   return false
 }
-		this.editor.lines[this.lineIndex].classLevelTextOffsets = this.editor.lines[this.lineIndex].classLevelTextOffsets[: len(this.editor.lines[this.lineIndex].classLevelTextOffsets) - 1]
-		return true
+this.editor.lines[this.lineIndex].classLevelTextOffsets = this.editor.lines[this.lineIndex].classLevelTextOffsets[: len(this.editor.lines[this.lineIndex].classLevelTextOffsets) - 1]
+return true
 	})
 
-if len(this.editor.lines[this.lineIndex].classLevelText) != len(this.editor.lines[this.lineIndex].classLevelTextOffsets) {
-  return fmt.Errorf('programming error: line #${}: classLevelText=${} != classLevelTextOffsets=${}', this.lineIndex + 1, len(this.editor.lines[this.lineIndex].classLevelText), len(this.editor.lines[this.lineIndex].classLevelTextOffsets))
+if (len(this.editor.lines[this.lineIndex].classLevelText) !== len(this.editor.lines[this.lineIndex].classLevelTextOffsets)) {
+  return fmt.Errorf('programming error: line #${}: classLevelText=${} !== classLevelTextOffsets=${}', this.lineIndex + 1, len(this.editor.lines[this.lineIndex].classLevelText), len(this.editor.lines[this.lineIndex].classLevelTextOffsets))
 }
 
 this.lineIndex++
-if this.lineIndex >= len(this.editor.lines) {
+if (this.lineIndex >= len(this.editor.lines)) {
   return io.EOF
 }
 
-if this.atTopOfBraceLevel(0) && matchClassRE.FindStringSubmatch(this.editor.lines[this.lineIndex].line) != nil {
+if (this.atTopOfBraceLevel(0) && matchClassRE.FindStringSubmatch(this.editor.lines[this.lineIndex].line) !== null) {
   this.classLineIndices = append(this.classLineIndices, this.lineIndex)
 }
 
 this.absOffset = this.editor.lines[this.lineIndex].startOffset + this.editor.lines[this.lineIndex].strippedOffset
 this.relStrippedOffset = 0
 
-if this.editor.lines[this.lineIndex].stripped != '' && this.editor.fullBuf[this.absOffset] != this.editor.lines[this.lineIndex].stripped[0] {
+if (this.editor.lines[this.lineIndex].stripped !== '' && this.editor.fullBuf[this.absOffset] !== this.editor.lines[this.lineIndex].stripped[0]) {
   return fmt.Errorf('programming error: fullBuf[${}]=%c, want %c', this.absOffset, this.editor.fullBuf[this.absOffset], this.editor.lines[this.lineIndex].stripped[0])
 }
 
 this.reader = strings.NewReader(this.editor.lines[this.lineIndex].stripped)
-if this.inMultiLineComment > 0 {
+if (this.inMultiLineComment > 0) {
   this.editor.logf(`advanceToNextLine: marking line #${} as MultiLineComment', this.lineIndex + 1)
   this.editor.lines[this.lineIndex].entityType = MultiLineComment
 }
-if this.inTripleDouble || this.inTripleSingle || this.inMultiLineComment > 0 {
+if (this.inTripleDouble || this.inTripleSingle || this.inMultiLineComment > 0 ){
   this.editor.logf(`advanceToNextLine: marking line #${} as isCommentOrString', this.lineIndex + 1)
   this.editor.lines[this.lineIndex].isCommentOrString = true
 }
