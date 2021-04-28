@@ -681,7 +681,7 @@ export class Class {
   }
 
   repairIncorrectlyLabeledLine(lineNum: number): Error | null {
-    incorrectLabel:= this.lines[lineNum].entityType
+    const incorrectLabel = this.lines[lineNum].entityType
     switch (incorrectLabel) {
       default:
         return Error(`repairIncorrectlyLabeledLine: class '${this.className}', class line #${lineNum + 1}, file line #${this.lines[0].originalIndex + lineNum + 1}, unhandled case ${incorrectLabel}.Please report on GitHub Issue Tracker with example test case.`)
@@ -689,32 +689,34 @@ export class Class {
   }
 
   findSequence(lineNum: number): FindSequenceReturn {
-    var result string
+    let sequence = ''
 
-    features, lineIndex, _, err := this.findNext(lineNum, ';', '}')
-    if err !== null || features === '' {
-      return { err: Error(`findNext: ${err.message} `) }
+    const { features: resFeatures, classLineNum, err } = this.findNext(lineNum, ';', '}')
+    if (err !== null || resFeatures === '') {
+      return { err: Error(`findNext: ${err} `) }
     }
+    const features = resFeatures || ''
+    const lineIndex = classLineNum || 0
 
-    buildLeadingText:= true
-    var buildStr string
-    for i, f := range features {
-      if strings.ContainsAny(string(f), '()[]{}=;') {
+    let buildLeadingText = true
+    let buildStr = ''
+    Array.from(features).forEach((f, i) => {
+      if (/[\(\)\[\]\{\}\=\;]/g.test(f)) {
         buildLeadingText = false
-        if f === '=' && i < len(features) - 1 && features[i + 1] === '>' {
-          result += '=>'
-          continue
+        if (f === '=' && i < features.length - 1 && features[i + 1] === '>') {
+          sequence += '=>'
+          return
         }
-        result += string(f)
+        sequence += f
       }
-      if buildLeadingText {
-        buildStr += string(f)
+      if (buildLeadingText) {
+        buildStr += f
       }
-    }
-    leadingText:= strings.TrimSpace(buildStr)
-    lineCount:= lineIndex - lineNum + 1
+    })
+    const leadingText = buildStr.trim()
+    const lineCount = lineIndex - lineNum + 1
 
-    return result, lineCount, leadingText, null
+    return { sequence, lineCount, leadingText, err: null }
   }
 
   // markMethod marks an entire method with the same entityType.
