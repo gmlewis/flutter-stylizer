@@ -49,7 +49,7 @@ class DartLine {
 // DartEntity represents a single, independent feature of a DartClass.
 class DartEntity {
   entityType: EntityType = EntityType.Unknown
-  lines: Array<DartLine> = []
+  lines: DartLine[] = []
   name: string = ""  // Used for sorting, but could be "".
 }
 
@@ -61,19 +61,19 @@ class DartClass {
   closeCurlyOffset: number
   groupAndSortGetterMethods: boolean
   classBody: string = ""
-  lines: Array<DartLine> = []  // Line 0 is always the open curly brace.
+  lines: DartLine[] = []  // Line 0 is always the open curly brace.
 
   theConstructor?: DartEntity = undefined
-  namedConstructors: Array<DartEntity> = []
-  staticVariables: Array<DartEntity> = []
-  instanceVariables: Array<DartEntity> = []
-  overrideVariables: Array<DartEntity> = []
-  staticPrivateVariables: Array<DartEntity> = []
-  privateVariables: Array<DartEntity> = []
-  overrideMethods: Array<DartEntity> = []
-  otherMethods: Array<DartEntity> = []
+  namedConstructors: DartEntity[] = []
+  staticVariables: DartEntity[] = []
+  instanceVariables: DartEntity[] = []
+  overrideVariables: DartEntity[] = []
+  staticPrivateVariables: DartEntity[] = []
+  privateVariables: DartEntity[] = []
+  overrideMethods: DartEntity[] = []
+  otherMethods: DartEntity[] = []
   buildMethod?: DartEntity = undefined
-  getterMethods: Array<DartEntity> = []
+  getterMethods: DartEntity[] = []
 
   constructor(editor: vscode.TextEditor, className: string, classOffset: number,
     openCurlyOffset: number, closeCurlyOffset: number, groupAndSortGetterMethods: boolean) {
@@ -116,7 +116,7 @@ class DartClass {
   }
 
   private genStripped(startLine: number): string {
-    const strippedLines = new Array<string>()
+    const strippedLines: string[] = []
     for (let i = startLine; i < this.lines.length; i++) {
       strippedLines.push(this.lines[i].stripped)
     }
@@ -444,7 +444,7 @@ class DartClass {
   }
 
   private findSequence(buf: string): [string, number, string] {
-    const result = new Array<string>()
+    const result: string[] = []
 
     let leadingText = ""
     let lineCount = 0
@@ -633,7 +633,7 @@ const findOpenCurlyOffset = (buf: string, startOffset: number) => {
 // export for testing only.
 export const getClasses = async (editor: vscode.TextEditor, groupAndSortGetterMethods: boolean) => {
   const document = editor.document
-  const classes = new Array<DartClass>()
+  const classes: DartClass[] = []
   const buf = document.getText()
   // Regular expressions are totally broken in VSCode on Windows!
   // This section was rewritten to manually split up the lines so that this plugin works on Windows.
@@ -662,7 +662,7 @@ export const getClasses = async (editor: vscode.TextEditor, groupAndSortGetterMe
   return classes
 }
 
-const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): Array<string> => {
+const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): string[] => {
   const defaultOrdering = [
     'public-constructor',
     'named-constructors',
@@ -675,7 +675,7 @@ const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): Array<st
     'public-other-methods',
     'build-method'
   ]
-  const memberOrdering = config.get<Array<string>>('memberOrdering')
+  const memberOrdering = config.get<string[]>('memberOrdering')
   if (memberOrdering === null || memberOrdering === undefined || memberOrdering.length !== defaultOrdering.length) {
     console.log(`flutterStylizer.memberOrdering must have ${defaultOrdering.length} values. Ignoring and using defaults.`)
     return defaultOrdering
@@ -700,8 +700,8 @@ const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): Array<st
 }
 
 // export for testing only.
-export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, groupAndSortGetterMethods: boolean, sortOtherMethods: boolean): Array<string> => {
-  const lines = new Array<string>()
+export const reorderClass = (memberOrdering: string[], dc: DartClass, groupAndSortGetterMethods: boolean, sortOtherMethods: boolean): string[] => {
+  const lines: string[] = []
   lines.push(dc.lines[0].line)  // Curly brace.
   const addEntity = (entity?: DartEntity, separateEntities?: boolean) => {  // separateEntities default is true.
     if (entity === undefined) { return }
@@ -710,7 +710,7 @@ export const reorderClass = (memberOrdering: Array<string>, dc: DartClass, group
       if (lines.length > 0 && lines[lines.length - 1] !== '\n') { lines.push('') }
     }
   }
-  const addEntities = (entities: Array<DartEntity>, separateEntities?: boolean) => {  // separateEntities default is true.
+  const addEntities = (entities: DartEntity[], separateEntities?: boolean) => {  // separateEntities default is true.
     if (entities.length === 0) { return }
     entities.forEach((e) => addEntity(e, separateEntities))
     if (separateEntities === false && lines.length > 0 && lines[lines.length - 1] !== '\n') {

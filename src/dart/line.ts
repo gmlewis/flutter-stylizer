@@ -17,45 +17,33 @@ limitations under the License.
 import { EntityType } from './entity'
 
 // Line represents a line of Dart code.
-export interface Line {
-  line: string, // original, unmodified line
-  stripped: string, // removes comments and surrounding whitespace
-  strippedOffset: number,    // offset to start of stripped line, compared to 'line'
-  classLevelText: string, // preserved text at braceLevel==1 - Note that this is untrimmed.
+export class Line {
+  constructor(line: string, startOffset: number, originalIndex: number) {
+    this.line = line
+    this.stripped = line.trim()
+    this.entityType = this.stripped ? EntityType.Unknown : EntityType.BlankLine
+    this.strippedOffset = line.indexOf(this.stripped)
 
-  classLevelTextOffsets: Array<number>, // absolute offsets for each character within classLevelText.
+    this.originalIndex = originalIndex
 
-  originalIndex: number,
-
-  startOffset: number,
-  endOffset: number,
-  entityType: EntityType,
-
-  isCommentOrString: boolean, // used when searching for new classes
-}
-
-// NewLine returns a new Line.
-export const NewLine = (line: string, startOffset: number, originalIndex: number): Line => {
-  const stripped = line.trim()
-  const entityType = stripped ? EntityType.Unknown : EntityType.BlankLine
-  const strippedOffset = line.indexOf(stripped)
-
-  return {
-    line: line,
-    stripped: stripped,
-    strippedOffset: strippedOffset,
-    classLevelText: '',
-
-    classLevelTextOffsets: [],
-
-    originalIndex: originalIndex,
-
-    startOffset: startOffset,
-    endOffset: startOffset + line.length,
-    entityType: entityType,
-
-    isCommentOrString: false,
+    this.startOffset = startOffset
+    this.endOffset = startOffset + line.length
   }
+
+  line: string // original, unmodified line
+  stripped: string // removes comments and surrounding whitespace
+  strippedOffset: number    // offset to start of stripped line, compared to 'line'
+  classLevelText = '' // preserved text at braceLevel==1 - Note that this is untrimmed.
+
+  classLevelTextOffsets: number[] = [] // absolute offsets for each character within classLevelText.
+
+  originalIndex: number
+
+  startOffset: number
+  endOffset: number
+  entityType: EntityType
+
+  isCommentOrString = false // used when searching for new classes
 }
 
 export const isComment = (line: Line): boolean =>

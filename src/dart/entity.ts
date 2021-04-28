@@ -19,7 +19,7 @@ import { Line } from './line'
 // Entity represents a single, independent feature of a Dart.Class.
 export interface Entity {
   entityType: EntityType,
-  lines: Array<Line>,
+  lines: Line[],
   name: string, // Used for sorting, but could be "".
 }
 
