@@ -11,7 +11,7 @@ const fs = require('fs')
 const path = require('path')
 
 // Defines a Mocha test suite to group tests of similar kind together
-suite("Extension Tests", function() {
+suite('Extension Tests', function() {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 
   const newDoc = async () => {
@@ -29,7 +29,7 @@ suite("Extension Tests", function() {
     return editor!
   }
 
-  test("Classes are found", async () => {
+  test('Classes are found', async () => {
     const source = `// test.dart
 class myClass extends Widget {
 
@@ -41,7 +41,7 @@ class myClass extends Widget {
     assert.strictEqual(got[0].lines.length, 3)
   })
 
-  test("Named constructors are kept intact", async () => {
+  test('Named constructors are kept intact', async () => {
     const source = `class AnimationController extends Animation<double>
 with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalStatusListenersMixin {
     AnimationController.unbounded({
@@ -94,7 +94,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
     }
   })
 
-  test("Private constructors are kept intact", async () => {
+  test('Private constructors are kept intact', async () => {
     const source = `class _InterpolationSimulation extends Simulation {
   _InterpolationSimulation(this._begin, this._end, Duration duration, this._curve, double scale)
     : assert(_begin != null),
@@ -128,7 +128,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
     }
   })
 
-  test("Handle overridden getters with bodies", async () => {
+  test('Handle overridden getters with bodies', async () => {
     const source = `class CurvedAnimation extends Animation<double>
     with AnimationWithParentMixin<double> {
   @override
@@ -214,7 +214,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
     }
   })
 
-  test("Issue#9: constructor false positive", async () => {
+  test('Issue#9: constructor false positive', async () => {
     const source = `class PGDateTime {
 // value xor isInfinity
 PGDateTime({
@@ -289,7 +289,7 @@ static PGDateTime parse(String formattedString) =>
     }
   })
 
-  test("Issue#11: run on basic_classes.dart with default memberOrdering", async () => {
+  test('Issue#11: run on basic_classes.dart with default memberOrdering', async () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.txt'), 'utf8')
     const wantSource = fs.readFileSync(path.join(testfilesDir, 'basic_classes_default_order.txt'), 'utf8')
 
@@ -385,7 +385,7 @@ static PGDateTime parse(String formattedString) =>
     }
   })
 
-  test("Issue#11: run on basic_classes.dart with custom memberOrdering", async () => {
+  test('Issue#11: run on basic_classes.dart with custom memberOrdering', async () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.txt'), 'utf8')
     const wantSource = fs.readFileSync(path.join(testfilesDir, 'basic_classes_custom_order.txt'), 'utf8')
 
@@ -466,7 +466,7 @@ static PGDateTime parse(String formattedString) =>
     }
   })
 
-  test("Issue#16: support new public-override-variables feature", async () => {
+  test('Issue#16: support new public-override-variables feature', async () => {
     const source = `
 class Chat extends Equatable implements SubscriptionObject {
   final String displayName;
@@ -535,7 +535,7 @@ class Chat extends Equatable implements SubscriptionObject {
     }
   })
 
-  test("Issue#17: function-type variable is not a function", async () => {
+  test('Issue#17: function-type variable is not a function', async () => {
     const source = `
 class Test {
   final String Function() functionName;
@@ -580,7 +580,7 @@ class Test {
     }
   })
 
-  test("Issue#18: case 1: groupAndSortGetterMethods=false, sortOtherMethods=false", async () => {
+  test('Issue#18: case 1: groupAndSortGetterMethods=false, sortOtherMethods=false', async () => {
     const groupAndSortGetterMethods = false
     const sortOtherMethods = false
 
@@ -654,7 +654,7 @@ class Test {
     }
   })
 
-  test("Issue#18: case 2: groupAndSortGetterMethods=false, sortOtherMethods=true", async () => {
+  test('Issue#18: case 2: groupAndSortGetterMethods=false, sortOtherMethods=true', async () => {
     const groupAndSortGetterMethods = false
     const sortOtherMethods = true
 
@@ -728,7 +728,7 @@ class Test {
     }
   })
 
-  test("Issue#18: case 3: groupAndSortGetterMethods=true, sortOtherMethods=false", async () => {
+  test('Issue#18: case 3: groupAndSortGetterMethods=true, sortOtherMethods=false', async () => {
     const groupAndSortGetterMethods = true
     const sortOtherMethods = false
 
@@ -802,7 +802,7 @@ class Test {
     }
   })
 
-  test("Issue#18: case 4: groupAndSortGetterMethods=true, sortOtherMethods=true", async () => {
+  test('Issue#18: case 4: groupAndSortGetterMethods=true, sortOtherMethods=true', async () => {
     const groupAndSortGetterMethods = true
     const sortOtherMethods = true
 
@@ -876,7 +876,7 @@ class Test {
     }
   })
 
-  test("Issue#19: factory contructor should not be duplicated", async () => {
+  test('Issue#19: factory contructor should not be duplicated', async () => {
     const groupAndSortGetterMethods = false
     const sortOtherMethods = false
 

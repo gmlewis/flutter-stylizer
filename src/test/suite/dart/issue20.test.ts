@@ -6,12 +6,12 @@
 import * as assert from 'assert'
 
 import * as vscode from 'vscode'
-import * as stylizer from '../../extension'
+import * as stylizer from '../../../extension'
 const fs = require('fs')
 const path = require('path')
 
 // Defines a Mocha test suite to group tests of similar kind together
-suite("Issue#20 Tests", function() {
+suite('Issue#20 Tests', function() {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 
   const newDoc = async () => {
@@ -29,7 +29,7 @@ suite("Issue#20 Tests", function() {
     return editor!
   }
 
-  test("Issue#20: spurious lines should not be added", async () => {
+  test('Issue#20: spurious lines should not be added', async () => {
     const groupAndSortGetterMethods = false
     const sortOtherMethods = false
 
@@ -493,16 +493,16 @@ suite("Issue#20 Tests", function() {
     }
 
     const memberOrdering = [
-      "public-static-variables",
-      "public-instance-variables",
-      "public-override-variables",
-      "private-static-variables",
-      "private-instance-variables",
-      "public-constructor",
-      "named-constructors",
-      "public-override-methods",
-      "public-other-methods",
-      "build-method",
+      'public-static-variables',
+      'public-instance-variables',
+      'public-override-variables',
+      'private-static-variables',
+      'private-instance-variables',
+      'public-constructor',
+      'named-constructors',
+      'public-override-methods',
+      'public-other-methods',
+      'build-method',
     ]
 
     const lines = stylizer.reorderClass(memberOrdering, got[0], groupAndSortGetterMethods, sortOtherMethods)
