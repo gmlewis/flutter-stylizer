@@ -44,13 +44,13 @@ export class Class {
   constructor(editor: Editor, className: string,
     openCurlyOffset: number, closeCurlyOffset: number,
     groupAndSortGetterMethods: boolean) {
-    const lessThanOffset = className.indexOf("<")
+    const lessThanOffset = className.indexOf('<')
     if (lessThanOffset >= 0) { // Strip off <T>.
       className = className.substring(0, lessThanOffset)
     }
 
     const classBody = editor.fullBuf.substring(openCurlyOffset, closeCurlyOffset)
-    const p = classBody.split("\n")
+    const p = classBody.split('\n')
     const numClassLines = p.length
 
     const [lineIndex, /* _unused */] = editor.findLineIndexAtOffset(openCurlyOffset)
@@ -69,7 +69,7 @@ export class Class {
       classLevelText: '',
       classLevelTextOffsets: [],
     }
-    // c.e.logf(`p[${}]='${}'(${}), closeCurlyOffset=${}, len(classBody)=${}, last classLine=${}", len(p)-1, p[len(p)-1], len(p[len(p)-1]), closeCurlyOffset, len(classBody), classLines[classLines.length-1])
+    // this.e.logf(`p[${}]='${}'(${}), closeCurlyOffset=${}, len(classBody)=${}, last classLine=${}", len(p)-1, p[len(p)-1], len(p[len(p)-1]), closeCurlyOffset, len(classBody), classLines[classLines.length-1])
 
     // Replace last line for truncated classBody:
     const ll = classLines[classLines.length - 1]
@@ -123,11 +123,11 @@ export class Class {
     this.lines.forEach((line, i) => {
       // Change a blank line following a full-line comment to a SingleLineComment in
       // order to keep it with the following entity.
-      if (line.entityType === EntityType.Unknown && line.stripped === "") {
+      if (line.entityType === EntityType.Unknown && line.stripped === '') {
         this.e.logf(`findFeatures: marking line #${i + 1} as type BlankLine`)
         line.entityType = EntityType.BlankLine
       }
-      if (i > 1 && this.lines[i - 1].entityType === EntityType.BlankLine && isComment(this.lines[i - 2]) && this.lines[i - 2].stripped === "") {
+      if (i > 1 && this.lines[i - 1].entityType === EntityType.BlankLine && isComment(this.lines[i - 2]) && this.lines[i - 2].stripped === '') {
         this.e.logf(`findFeatures: marking line #${i + 1} as type SingleLineComment`)
         this.lines[i - 1].entityType = EntityType.SingleLineComment
       }
@@ -226,36 +226,36 @@ export class Class {
         return { features, classLineNum, absOffsetIndex, err: null }
       }
 
-      features += " " // instead of newline.
+      features += ' ' // instead of newline.
     }
 
     return { err: Error('EOF') }
   }
 
   identifyDecoratorsAsComments(): Error | null {
-    const override = "@override"
+    const override = '@override'
 
     for (let i = 1; i < this.lines.length; i++) {
       const line = this.lines[i]
-      if (line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === "") {
+      if (line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === '') {
         continue
       }
 
       const lineText = line.classLevelText.trim()
-      if (!lineText.startsWith("@") || lineText.startsWith(override)) {
+      if (!lineText.startsWith('@') || lineText.startsWith(override)) {
         continue
       }
 
       // Making the simplifying assumption here that if a decorator has arguments,
       // they should start on the same line as the decorator.
       let lineIndex = i
-      if (lineText.includes("(")) {
-        const { features, classLineNum } = this.findNext(i, " ", "=", ";", "{", "(")
+      if (lineText.includes('(')) {
+        const { features, classLineNum } = this.findNext(i, ' ', '=', ';', '{', '(')
         lineIndex = classLineNum || i  // Not an error if undefined... just reached EOF.
 
-        const p = (features || '').split(" ")
-        if ((features || '').endsWith("(") && (p.length === 1 || p[1] === "(")) { // decorator includes args after '('
-          const { classLineNum, err } = this.findNext(i, ")")
+        const p = (features || '').split(' ')
+        if ((features || '').endsWith('(') && (p.length === 1 || p[1] === '(')) { // decorator includes args after '('
+          const { classLineNum, err } = this.findNext(i, ')')
           if (err !== null) {
             return Error(`unable to find end of decorator ')' with args from line #${this.lines[0].originalIndex + i + 1}`)
           }
@@ -275,14 +275,14 @@ export class Class {
   }
 
   identifyMainConstructor(): Error | null {
-    const className = this.className + "("
+    const className = this.className + '('
     for (let i = 1; i < this.lines.length; i++) {
       const line = this.lines[i]
-      if (line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === "") {
+      if (line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === '') {
         continue
       }
 
-      const { features: retFeatures, classLineNum, absOffsetIndex, err } = this.findNext(i, "=", "{", ";", "(")
+      const { features: retFeatures, classLineNum, absOffsetIndex, err } = this.findNext(i, '=', '{', ';', '(')
       if (err !== null) {
         // An error here is OK... it just means we reached EOF.
         return null
@@ -292,8 +292,8 @@ export class Class {
       let lastCharAbsOffset = absOffsetIndex || 0
 
       const advanceToNextLineIndex = () => {
-        if (!features.endsWith("}") && !features.endsWith(";")) {
-          const { features: retFeatures, classLineNum, absOffsetIndex, err } = this.findNext(i, "}", ";")
+        if (!features.endsWith('}') && !features.endsWith(';')) {
+          const { features: retFeatures, classLineNum, absOffsetIndex, err } = this.findNext(i, '}', ';')
           if (err !== null) {
             // An error here is OK... it just means we reached EOF.
             return
@@ -307,7 +307,7 @@ export class Class {
         }
       }
 
-      if (!features.endsWith("(")) {
+      if (!features.endsWith('(')) {
         advanceToNextLineIndex()
         continue
       }
@@ -352,16 +352,16 @@ export class Class {
   }
 
   identifyNamedConstructors(): Error | null {
-    const className = this.className + "."
+    const className = this.className + '.'
     for (let i = 1; i < this.lines.length; i++) {
       const line = this.lines[i]
-      if (line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === "") {
+      if (line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === '') {
         continue
       }
 
       let lineNum = i
 
-      const { features: retFeatures, classLineNum, absOffsetIndex, err } = this.findNext(lineNum, "=", "{", ";", "(")
+      const { features: retFeatures, classLineNum, absOffsetIndex, err } = this.findNext(lineNum, '=', '{', ';', '(')
       if (err !== null) {
         // An error here is OK... it just means we reached EOF.
         return null
@@ -371,8 +371,8 @@ export class Class {
       let lastCharAbsOffset = absOffsetIndex || 0
 
       const advanceToNextLineIndex = () => {
-        if (!features.endsWith("}") && !features.endsWith(";")) {
-          const { features: retFeatures, classLineNum, absOffsetIndex, err } = this.findNext(i, "}", ";")
+        if (!features.endsWith('}') && !features.endsWith(';')) {
+          const { features: retFeatures, classLineNum, absOffsetIndex, err } = this.findNext(i, '}', ';')
           if (err !== null) {
             // An error here is OK... it just means we reached EOF.
             return
@@ -386,7 +386,7 @@ export class Class {
         }
       }
 
-      if (!features.endsWith("(")) {
+      if (!features.endsWith('(')) {
         advanceToNextLineIndex()
         continue
       }
@@ -432,97 +432,100 @@ export class Class {
 
   identifyOverrideMethodsAndVars(): Error | null {
     for (let i = 1; i < this.lines.length; i++) {
-      if c.lines[i].entityType !== EntityType.Unknown || c.lines[i].isCommentOrString || c.lines[i].classLevelText === "" {
+      if (this.lines[i].entityType !== EntityType.Unknown || this.lines[i].isCommentOrString || this.lines[i].classLevelText === '') {
         continue
       }
 
-      if !strings.HasPrefix(strings.TrimSpace(c.lines[i].classLevelText), "@override") || i >= this.lines.length - 1 {
+      if (!this.lines[i].classLevelText.startsWith('@override') || i >= this.lines.length - 1) {
         continue
       }
 
-      lineNum:= i
+      const lineNum = i
 
-      features, lineIndex, lastCharAbsOffset, err := c.findNext(lineNum, "=>", "=", "{", ";", "(")
-      if err !== null {
+      const { features: resFeatures, classLineNum, absOffsetIndex, err } = this.findNext(lineNum, '=>', '=', '{', ';', '(')
+      if (err !== null) {
         return Error(`expected valid @override method on line #${lineNum + 1}: ${err.message}`)
       }
+      let features = resFeatures || ''
+      let lineIndex = classLineNum || 0
+      let lastCharAbsOffset = absOffsetIndex || 0
 
-      if (strings.HasPrefix(features, "operator") || strings.Contains(features, " operator")) {
+      if (features?.startsWith('operator') || features?.includes(' operator')) {
         // redo the search, but don't include "=" since "operator" is
         // a reserved keyword and must be an OverrideMethod.
-        features, lineIndex, lastCharAbsOffset, err = c.findNext(lineNum, "{", "(", ";")
-        if (err !== null || features === "") {
-          return Error("expected valid @override operator method on line #${}: ${}", lineNum + 1, err)
+        const { features: resFeatures, classLineNum, absOffsetIndex, err } = this.findNext(lineNum, '{', '(', ';')
+        if (err !== null || features === '') {
+          return Error(`expected valid @override operator method on line #${lineNum + 1}: ${err}`)
         }
+        features = resFeatures || ''
+        lineIndex = classLineNum || 0
+        lastCharAbsOffset = absOffsetIndex || 0
       }
 
-      f:= func(i: number) string {
-        v:= strings.TrimSpace(features[: i])
-        nameOffset:= strings.LastIndex(v, " ")
-        if nameOffset >= 0 {
-          return v[nameOffset + 1:]
+      const f = (i: number): string => {
+        const v = features.substring(0, i).trim()
+        const nameOffset = v.lastIndexOf(' ')
+        if (nameOffset >= 0) {
+          return v.substring(nameOffset + 1)
         }
         return v
       }
 
-      if (strings.HasSuffix(features, "(")) {
-        name:= f(len(features) - 1)
-        entityType:= OverrideMethod
-        if name === "build" {
-          entityType = BuildMethod
-        }
+      if (features.endsWith('(')) {
+        const name = f(features.length - 1)
+        const entityType = name === 'build' ? EntityType.BuildMethod : EntityType.OverrideMethod
 
-        c.e.logf(`identifyOverrideMethodsAndVars: calling markMethod(line #${i + 1}, name = '${name}', ${entityType}), line = '${this.lines[i].line}'`)
-        entity, err := c.markMethod(lineNum, name + "(", entityType, lastCharAbsOffset)
-        if err !== null {
+        this.e.logf(`identifyOverrideMethodsAndVars: calling markMethod(line #${i + 1}, name = '${name}', ${entityType}), line = '${this.lines[i].line}'`)
+        const [entity, err] = this.markMethod(lineNum, name + '(', entityType, lastCharAbsOffset)
+        if (err !== null) {
           return err
         }
-        if name === "build" {
-          c.buildMethod = entity
+        if (name === 'build') {
+          this.buildMethod = entity
         } else {
-          c.overrideMethods.push(entity)
+          this.overrideMethods.push(entity)
         }
         continue
       }
 
       const entity: Entity = {
         name: '',
-        entityType: OverrideMethod,
+        entityType: EntityType.OverrideMethod,
       }
 
       // No open paren - could be a getter. See if it has a body.
-      if (strings.HasSuffix(features, "{")) {
-        if (c.e.fullBuf[lastCharAbsOffset] !== '{') {
-          return Error("programming error: expected '{' at offset ${} but got %c", lastCharAbsOffset, c.e.fullBuf[lastCharAbsOffset])
+      if (strings.HasSuffix(features, '{')) {
+        if (this.e.fullBuf[lastCharAbsOffset] !== '{') {
+          return Error('programming error: expected \'{\' at offset ${} but got %c', lastCharAbsOffset, this.e.fullBuf[lastCharAbsOffset])
         }
 
         entity.name = f(len(features) - 1)
       } else {
         // Does not have a body - if it has no fat arrow, it is a variable.
-        if (strings.HasSuffix(features, "=>")) {
+        if (strings.HasSuffix(features, '=>')) {
           entity.name = f(len(features) - 2)
         } else {
           entity.entityType = OverrideVariable
           entity.name = f(len(features) - 1)
         }
 
-        if (!strings.HasSuffix(features, ";")) {
-          features, lineIndex, lastCharAbsOffset, err = c.findNext(lineNum, ";")
-          if (err !== null || features === "") {
-            return Error("expected trailing ';' for @override operator method on line #${}: ${}", lineNum + 1, err)
+        if (!strings.HasSuffix(features, ';')) {
+          features, lineIndex, lastCharAbsOffset, err = this.findNext(lineNum, ';')
+          if (err !== null || features === '') {
+            return Error('expected trailing \';\' for @override operator method on line #${}: ${}', lineNum + 1, err)
           }
         }
       }
 
-      entity, err = c.markBody(entity, lineNum, entity.entityType, lineIndex, lastCharAbsOffset)
+      entity, err = this.markBody(entity, lineNum, entity.entityType, lineIndex, lastCharAbsOffset)
       if (err !== null) {
         return err
       }
 
       if (entity.entityType === EntityType.OverrideVariable) {
-        c.overrideVariables.push(entity)
+        this.overrideVariables.push(entity)
       } else {
-        c.overrideMethods.push(entity)
+        this.overrideMethods.push(entity)
       }
     }
 
@@ -531,12 +534,12 @@ export class Class {
 
   identifyOthers(): Error | null {
     for (let i = 1; i < this.lines.length; i++) {
-      line:= c.lines[i]
-      if line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === "" {
+      line:= this.lines[i]
+      if line.entityType !== EntityType.Unknown || line.isCommentOrString || line.classLevelText === '' {
         continue
       }
 
-      entity, err := c.scanMethod(i)
+      entity, err := this.scanMethod(i)
       if err !== null {
         return err
       }
@@ -547,10 +550,11 @@ export class Class {
 
       // Preserve the comment lines leading up to the entity.
       for (let lineNum = i - 1; lineNum > 0; lineNum--) {
-        if isComment(c.lines[lineNum]) {
-          c.e.logf(`identifyOthers: marking line #${lineNum + 1} as type ${entity.entityType}`)
-          c.lines[lineNum].entityType = entity.entityType
-          entity.lines = append([] * Line{ c.lines[lineNum] }, entity.lines...)
+        if isComment(this.lines[lineNum]) {
+          this.e.logf(`identifyOthers: marking line #${lineNum + 1} as type ${entity.entityType
+            } `)
+          this.lines[lineNum].entityType = entity.entityType
+          entity.lines = append([] * Line{ this.lines[lineNum] }, entity.lines...)
           continue
         }
         break
@@ -558,28 +562,28 @@ export class Class {
 
       switch (entity.entityType) {
         case EntityType.OtherMethod:
-          c.otherMethods.push(entity)
+          this.otherMethods.push(entity)
           break
         case EntityType.GetterMethod:
-          c.getterMethods.push(entity)
+          this.getterMethods.push(entity)
           break
         case EntityType.StaticVariable:
-          c.staticVariables.push(entity)
+          this.staticVariables.push(entity)
           break
         case EntityType.StaticPrivateVariable:
-          c.staticPrivateVariables.push(entity)
+          this.staticPrivateVariables.push(entity)
           break
         case EntityType.InstanceVariable:
-          c.instanceVariables.push(entity)
+          this.instanceVariables.push(entity)
           break
         case EntityType.OverrideVariable:
-          c.overrideVariables.push(entity)
+          this.overrideVariables.push(entity)
           break
         case EntityType.PrivateInstanceVariable:
-          c.privateVariables.push(entity)
+          this.privateVariables.push(entity)
           break
         default:
-          return Error("unexpected EntityType=${}", entity.entityType)
+          return Error('unexpected EntityType=${}', entity.entityType)
       }
     }
 
@@ -589,21 +593,21 @@ export class Class {
   scanMethod(lineNum: number): [Entity, Error | null] {
     const entity: Entity = {}
 
-    sequence, lineCount, leadingText, err := c.findSequence(lineNum)
+    sequence, lineCount, leadingText, err := this.findSequence(lineNum)
     if err !== null {
       return null, err
     }
-    c.e.logf(`scanMethod(line =#${lineNum + 1}), sequence = ${sequence}, lineCount = ${lineCount}, leadingText = '${leadingText}'`)
+    this.e.logf(`scanMethod(line =#${lineNum + 1}), sequence = ${sequence}, lineCount = ${lineCount}, leadingText = '${leadingText}'`)
 
-    nameParts:= strings.Split(leadingText, " ")
+    nameParts:= strings.Split(leadingText, ' ')
     var staticKeyword bool
     var privateVar bool
     if len(nameParts) > 0 {
       entity.name = nameParts[len(nameParts) - 1]
-      if strings.HasPrefix(entity.name, "_") {
+      if strings.HasPrefix(entity.name, '_') {
         privateVar = true
       }
-      if nameParts[0] === "static" {
+      if nameParts[0] === 'static' {
         staticKeyword = true
       }
     }
@@ -619,26 +623,26 @@ export class Class {
     }
 
     switch (sequence) {
-      case "(){}":
+      case '(){}':
         entity.entityType = OtherMethod
         break
-      case "();": // instance variable or abstract method.
-        if !strings.HasSuffix(leadingText, " Function") {
+      case '();': // instance variable or abstract method.
+        if !strings.HasSuffix(leadingText, ' Function') {
           entity.entityType = OtherMethod
         }
         break
-      case "=(){}":
+      case '=(){}':
         entity.entityType = OtherMethod
         break
       default:
-        if strings.Index(sequence, "=>") >= 0 {
+        if strings.Index(sequence, '=>') >= 0 {
           entity.entityType = OtherMethod
         }
     }
 
     // Force getters to be methods.
-    if (strings.Index(leadingText, " get ") >= 0) {
-      if c.groupAndSortGetterMethods {
+    if (strings.Index(leadingText, ' get ') >= 0) {
+      if this.groupAndSortGetterMethods {
         entity.entityType = GetterMethod
       } else {
         entity.entityType = OtherMethod
@@ -650,44 +654,45 @@ export class Class {
         break
       }
 
-      if c.lines[lineNum + i].entityType >= MainConstructor && c.lines[lineNum + i].entityType !== entity.entityType {
-        c.e.logf(`scanMethod: Changing line #${lineNum + i + 1} from type ${c.lines[lineNum + i].entityType} to type ${entity.entityType}`)
-        if err := c.repairIncorrectlyLabeledLine(lineNum + i); err !== null {
+      if this.lines[lineNum + i].entityType >= MainConstructor && this.lines[lineNum + i].entityType !== entity.entityType {
+        this.e.logf(`scanMethod: Changing line #${lineNum + i + 1} from type ${this.lines[lineNum + i].entityType
+          } to type ${entity.entityType}`)
+        if err := this.repairIncorrectlyLabeledLine(lineNum + i); err !== null {
           return null, err
         }
       }
 
-      c.e.logf(`scanMethod: marking line #${lineNum + i + 1} as type ${entity.entityType}`)
-      c.lines[lineNum + i].entityType = entity.entityType
-      entity.lines = append(entity.lines, c.lines[lineNum + i])
+      this.e.logf(`scanMethod: marking line #${lineNum + i + 1} as type ${entity.entityType}`)
+      this.lines[lineNum + i].entityType = entity.entityType
+      entity.lines = append(entity.lines, this.lines[lineNum + i])
     }
 
     return entity, null
   }
 
   repairIncorrectlyLabeledLine(lineNum: number): Error | null {
-    incorrectLabel:= c.lines[lineNum].entityType
+    incorrectLabel:= this.lines[lineNum].entityType
     switch (incorrectLabel) {
       default:
-        return Error(`repairIncorrectlyLabeledLine: class '${c.className}', class line #${lineNum + 1}, file line #${c.lines[0].originalIndex + lineNum + 1}, unhandled case ${incorrectLabel}. Please report on GitHub Issue Tracker with example test case.`)
+        return Error(`repairIncorrectlyLabeledLine: class '${this.className}', class line #${lineNum + 1}, file line #${this.lines[0].originalIndex + lineNum + 1}, unhandled case ${incorrectLabel}.Please report on GitHub Issue Tracker with example test case.`)
     }
   }
 
   findSequence(lineNum: number): FindSequenceReturn {
     var result string
 
-    features, lineIndex, _, err := c.findNext(lineNum, ";", "}")
-    if err !== null || features === "" {
-      return { err: Error(`findNext: ${err.message}`) }
+    features, lineIndex, _, err := this.findNext(lineNum, ';', '}')
+    if err !== null || features === '' {
+      return { err: Error(`findNext: ${err.message} `) }
     }
 
     buildLeadingText:= true
     var buildStr string
     for i, f := range features {
-      if strings.ContainsAny(string(f), "()[]{}=;") {
+      if strings.ContainsAny(string(f), '()[]{}=;') {
         buildLeadingText = false
         if f === '=' && i < len(features) - 1 && features[i + 1] === '>' {
-          result += "=>"
+          result += '=>'
           continue
         }
         result += string(f)
@@ -705,7 +710,7 @@ export class Class {
   // markMethod marks an entire method with the same entityType.
   // methodName must end with "(" and absOpenParenOffset must point to that open paren.
   markMethod(classLineNum: number, methodName: string, entityType: EntityType, absOpenParenOffset: number): [Entity, Error] {
-    if (!methodName.endsWith("(")) {
+    if (!methodName.endsWith('(')) {
       return [null, Error(`programming error: markMethod: '${methodName}' must end with the open parenthesis '('`)]
     }
 
@@ -714,42 +719,42 @@ export class Class {
       entityType: entityType,
     }
 
-    const pair = c.e.matchingPairs[absOpenParenOffset]
+    const pair = this.e.matchingPairs[absOpenParenOffset]
     if (!pair) {
-      return [null, Error(`programming error: expected '()' pair at absOpenParenOffset = ${ }, line = ${ } ", absOpenParenOffset, c.lines[classLineNum]`)]
+      return [null, Error(`programming error: expected '()' pair at absOpenParenOffset = ${ }, line = ${ } ", absOpenParenOffset, this.lines[classLineNum]`)]
     }
-    classCloseLineIndex:= c.classCloseLineIndex(pair)
+    classCloseLineIndex:= this.classCloseLineIndex(pair)
 
-    features, classLineIndex, lastCharAbsOffset, err := c.findNext(classCloseLineIndex, "=>", "{", ";")
+    features, classLineIndex, lastCharAbsOffset, err := this.findNext(classCloseLineIndex, '=>', '{', ';')
     if err !== null {
       return [null, Error(`expected method body starting at classCloseLineIndex=${}: ${}", classCloseLineIndex, err`)]
     }
 
-    if strings.HasSuffix(features, "{") {
-      c.e.logf(`markMethod '${}': moving past initializers: classLineIndex #${}, features=${}", methodName, classLineIndex + c.lines[0].originalIndex + 1, features)
-    for classLineIndex < this.lines.length - 1 && !strings.HasSuffix(c.lines[classLineIndex].classLevelText, " {") && !strings.HasSuffix(c.lines[classLineIndex].classLevelText, "}") {
+    if strings.HasSuffix(features, '{') {
+      this.e.logf(`markMethod '${}': moving past initializers: classLineIndex #${}, features=${}", methodName, classLineIndex + this.lines[0].originalIndex + 1, features)
+    for classLineIndex < this.lines.length - 1 && !strings.HasSuffix(this.lines[classLineIndex].classLevelText, " {") && !strings.HasSuffix(this.lines[classLineIndex].classLevelText, "}") {
       classLineIndex++
 		}
-  v:= len(c.lines[classLineIndex].classLevelTextOffsets)
-  if v !== len(c.lines[classLineIndex].classLevelText) {
-    return [null, Error(`programming error: line #${}: classLevelText = ${} !== classLevelTextOffsets=${}", classLineIndex + 1, len(c.e.lines[classLineIndex].classLevelText), len(c.e.lines[classLineIndex].classLevelTextOffsets)`)]
+  v:= len(this.lines[classLineIndex].classLevelTextOffsets)
+  if v !== len(this.lines[classLineIndex].classLevelText) {
+    return [null, Error(`programming error: line #${}: classLevelText = ${} !== classLevelTextOffsets=${}", classLineIndex + 1, len(this.e.lines[classLineIndex].classLevelText), len(this.e.lines[classLineIndex].classLevelTextOffsets)`)]
   }
     if v > 0 {
-      lastCharAbsOffset = c.lines[classLineIndex].classLevelTextOffsets[v - 1]
+      lastCharAbsOffset = this.lines[classLineIndex].classLevelTextOffsets[v - 1]
     }
 
-    c.e.logf(`markMethod '${}': after move past initializers: lastCharAbsOffset=${}, classLineIndex #${}, classLevelText=${}", methodName, lastCharAbsOffset, classLineIndex + c.lines[0].originalIndex + 1, c.lines[classLineIndex].classLevelText)
+    this.e.logf(`markMethod '${}': after move past initializers: lastCharAbsOffset=${}, classLineIndex #${}, classLevelText=${}", methodName, lastCharAbsOffset, classLineIndex + this.lines[0].originalIndex + 1, this.lines[classLineIndex].classLevelText)
 }
 
 if strings.HasSuffix(features, "=>") {
-  features, classLineIndex, lastCharAbsOffset, err = c.findNext(classCloseLineIndex, "{", ";")
+  features, classLineIndex, lastCharAbsOffset, err = this.findNext(classCloseLineIndex, "{", ";")
 }
 
-return c.markBody(entity, classLineNum, entityType, classLineIndex, lastCharAbsOffset)
+return this.markBody(entity, classLineNum, entityType, classLineIndex, lastCharAbsOffset)
 }
 
 func(c * Class) classCloseLineIndex(pair * MatchingPair): number {
-  return pair.closeLineIndex - c.lines[0].originalIndex
+  return pair.closeLineIndex - this.lines[0].originalIndex
 }
 
 // markBody marks an entire body with the same entityType.
