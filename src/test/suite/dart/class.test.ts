@@ -137,34 +137,34 @@ class ScannerErrorCode extends ErrorCode {
     runParsePhase(null, source, want)
   })
 
-  // func TestOverrideMethod(t * testing.T) {
-  //   const source = `// test.dart
-  // class C {
-  //   /// If this expression is both in a getter and setter context, the
-  //   /// [AuxiliaryElements] will be set to hold onto the static element from the
-  //   /// getter context.
-  //   @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
-  //       'CompoundAssignmentExpression.writeElement')
-  //   @override
-  //   AuxiliaryElements auxiliaryElements;
-  // }`
+  test('OverrideMethod', () => {
+    const source = `// test.dart
+class C {
+  /// If this expression is both in a getter and setter context, the
+  /// [AuxiliaryElements] will be set to hold onto the static element from the
+  /// getter context.
+  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
+      'CompoundAssignmentExpression.writeElement')
+  @override
+  AuxiliaryElements auxiliaryElements;
+}`
 
-  //   want:= []EntityType{
-  //     EntityType.Unknown,          // line #2: {
-  //       OverrideVariable, // line #3:   /// If this expression is both in a getter and setter context, the
-  //       OverrideVariable, // line #4:   /// [AuxiliaryElements] will be set to hold onto the static element from the
-  //       OverrideVariable, // line #5:   /// getter context.
-  //       OverrideVariable, // line #6:   @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
-  //       OverrideVariable, // line #7:       'CompoundAssignmentExpression.writeElement')
-  //       OverrideVariable, // line #8:   @override
-  //       OverrideVariable, // line #9:   AuxiliaryElements auxiliaryElements;
-  //       EntityType.BlankLine,        // line #10:
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,          // line #2: {
+      EntityType.OverrideVariable, // line #3:   /// If this expression is both in a getter and setter context, the
+      EntityType.OverrideVariable, // line #4:   /// [AuxiliaryElements] will be set to hold onto the static element from the
+      EntityType.OverrideVariable, // line #5:   /// getter context.
+      EntityType.OverrideVariable, // line #6:   @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
+      EntityType.OverrideVariable, // line #7:       'CompoundAssignmentExpression.writeElement')
+      EntityType.OverrideVariable, // line #8:   @override
+      EntityType.OverrideVariable, // line #9:   AuxiliaryElements auxiliaryElements;
+      EntityType.BlankLine,        // line #10:
+    ]
 
-  //   runParsePhase(t, nil, source, want)
-  // }
+    runParsePhase(null, source, want)
+  }
 
-  // func TestEntityType.NamedConstructor(t * testing.T) {
+  // test('EntityType.NamedConstructor', () => {
   //   const source = `// test.dart
   // class C {
   //   void method_if_then_else(int? x) {
@@ -192,7 +192,7 @@ class ScannerErrorCode extends ErrorCode {
   //   }
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,          // line #2: {
   //       EntityType.OtherMethod,      // line #3:   void method_if_then_else(int? x) {
   //       EntityType.OtherMethod,      // line #4:     if (x == null) {
@@ -220,10 +220,10 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,        // line #18:
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
-  // func TestEntityType.NamedConstructorsAreKeptIntact(t * testing.T) {
+  // test('EntityType.NamedConstructorsAreKeptIntact', () => {
   //   const source = `class AnimationController extends Animation<double>
   // with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalStatusListenersMixin {
   // 	AnimationController.unbounded({
@@ -242,7 +242,7 @@ class ScannerErrorCode extends ErrorCode {
   // 	}
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,          // line #1: {
   //       EntityType.NamedConstructor, // line #2: 	AnimationController.unbounded({
   //       EntityType.NamedConstructor, // line #3: 	double value = 0.0,
@@ -261,10 +261,10 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,        // line #16:
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
-  // func TestPrivateConstructorsAreKeptIntact(t * testing.T) {
+  // test('PrivateConstructorsAreKeptIntact', () => {
   //   const source = `class _InterpolationSimulation extends Simulation {
   // _InterpolationSimulation(this._begin, this._end, Duration duration, this._curve, double scale)
   // 	: assert(_begin != null),
@@ -273,7 +273,7 @@ class ScannerErrorCode extends ErrorCode {
   // 		_durationInSeconds = (duration.inMicroseconds * scale) / Duration.microsecondsPerSecond;
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.MainConstructor,
   //       EntityType.MainConstructor,
@@ -283,10 +283,10 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
-  // func TestHandleOverriddenGettersWithBodies(t * testing.T) {
+  // test('HandleOverriddenGettersWithBodies', () => {
   //   const source = `class CurvedAnimation extends Animation<double>
   //     with AnimationWithParentMixin<double> {
   //   @override
@@ -321,7 +321,7 @@ class ScannerErrorCode extends ErrorCode {
   //   }
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,        // line #1: {
   //       EntityType.OverrideMethod, // line #2:   @override
   //       EntityType.OverrideMethod, // line #3:   double get value {
@@ -356,10 +356,10 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,      // line #32: }`
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
-  // func TestIssue9_ConstructorFalsePositive(t * testing.T) {
+  // test('Issue9_ConstructorFalsePositive', () => {
   //   const source = `class PGDateTime {
   // // value xor isInfinity
   // PGDateTime({
@@ -388,7 +388,7 @@ class ScannerErrorCode extends ErrorCode {
   //         : PGDateTime(value: DateTime.parse(formattedString).toLocal());
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.MainConstructor,
   //       EntityType.MainConstructor,
@@ -418,10 +418,10 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
-  // func TestGetOnSeparateLine(t * testing.T) {
+  // test('GetOnSeparateLine', () => {
   //   source:= `class _LinkedNodeImpl extends Object
   //     with _LinkedNodeMixin
   //     implements idl.LinkedNode {
@@ -457,7 +457,7 @@ class ScannerErrorCode extends ErrorCode {
   //   }
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,                 // line #1: {
   //       EntityType.PrivateInstanceVariable, // line #2:   final fb.BufferContext _bc;
   //       EntityType.PrivateInstanceVariable, // line #3:   final int _bcOffset;
@@ -480,7 +480,7 @@ class ScannerErrorCode extends ErrorCode {
   //   runFullStylizer(t, nil, wantSource, wantSource, nil)
   // }
 
-  // func TestOperatorOverrides(t * testing.T) {
+  // test('OperatorOverrides', () => {
   //   source:= `class Op {
   //   @override
   //   dynamic operator [](int index) => nodes[index].value;
@@ -506,7 +506,7 @@ class ScannerErrorCode extends ErrorCode {
   //   }
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.OverrideMethod,
   //       EntityType.OverrideMethod,
@@ -533,10 +533,10 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
-  // func TestMarkMethodOffsetAlignment(t * testing.T) {
+  // test('MarkMethodOffsetAlignment', () => {
   //   source:= `class MarkMethod {
   //   @override
   //   // TODO(gmlewis) Implement this by looking in the BUILD file for 'deps'
@@ -545,7 +545,7 @@ class ScannerErrorCode extends ErrorCode {
   //       <String, List<Folder>>{};
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.OverrideMethod,
   //       EntityType.OverrideMethod,
@@ -555,10 +555,10 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
-  // func TestMultipleDecorators(t * testing.T) {
+  // test('MultipleDecorators', () => {
   //   source:= `class MultipleDecorators {
   //   @override
   //   @failingTest
@@ -583,7 +583,7 @@ class ScannerErrorCode extends ErrorCode {
   //   final String do_not_use;
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.OverrideMethod,
   //       EntityType.OverrideMethod,
@@ -609,33 +609,33 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
-  // func TestWhiteSpaceAfterFunctionNames(t * testing.T) {
+  // test('WhiteSpaceAfterFunctionNames', () => {
   //   source:= `class C {
   //   @override Widget build ( BuildContext context ) { }
   // 	myFunc                 () => null;
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.BuildMethod,
   //       EntityType.OtherMethod,
   //       EntityType.BlankLine,
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
-  // func TestEmbeddedEntityType.MultilineComments(t * testing.T) {
+  // test('EmbeddedEntityType.MultilineComments', () => {
   //   source:= `class C {
   //   dynamic /*member: C.x:assigned={a}*/ x = /*declared={a, b}*/ (int a, int b) {
   //     a = 0;
   //   };
   // }`
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.OtherMethod,
   //       EntityType.OtherMethod,
@@ -643,17 +643,17 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
   // //go:embed testfiles/basic_classes_default_order.txt
   // var basicClassesDefaultOrder string
 
-  // func TestIssue11_RunWithDefaultMemberOrdering(t * testing.T) {
+  // test('Issue11_RunWithDefaultMemberOrdering', () => {
   //   source:= basicClasses
   //   wantSource:= basicClassesDefaultOrder
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,                 // line #7: class Class1 {
   //       EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
   //       EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
@@ -710,11 +710,11 @@ class ScannerErrorCode extends ErrorCode {
   // //go:embed testfiles/basic_classes_custom_order.txt
   // var basicClassesCustomOrder string
 
-  // func TestIssue11_RunWithCustomMemberOrdering(t * testing.T) {
+  // test('Issue11_RunWithCustomMemberOrdering', () => {
   //   source:= basicClasses
   //   wantSource:= basicClassesCustomOrder
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,                 // line #1: {
   //       EntityType.PrivateInstanceVariable, // line #2:   // _pvi is a private instance variable.
   //       EntityType.PrivateInstanceVariable, // line #3:   List<String> _pvi = ['one', 'two'];
@@ -783,7 +783,7 @@ class ScannerErrorCode extends ErrorCode {
   //   runFullStylizer(t, opts, source, wantSource, want)
   // }
 
-  // func TestIssue16SupportNewPublicOverrideVariablesFeature(t * testing.T) {
+  // test('Issue16SupportNewPublicEntityType.OverrideVariablesFeature', () => {
   //   const source = `
   // class Chat extends Equatable implements SubscriptionObject {
   //   final String displayName;
@@ -810,7 +810,7 @@ class ScannerErrorCode extends ErrorCode {
   // }
   // `
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.InstanceVariable,
   //       EntityType.InstanceVariable,
@@ -823,8 +823,8 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.MainConstructor,
   //       EntityType.MainConstructor,
   //       EntityType.BlankLine,
-  //       OverrideVariable,
-  //       OverrideVariable,
+  //       EntityType.OverrideVariable,
+  //       EntityType.OverrideVariable,
   //       EntityType.BlankLine,
   //       EntityType.OverrideMethod,
   //       EntityType.OverrideMethod,
@@ -836,10 +836,10 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
-  // func TestIssue17FunctionTypeVariableIsNotAFunction(t * testing.T) {
+  // test('Issue17FunctionTypeVariableIsNotAFunction', () => {
   //   const source = `
   // class Test {
   //   final String Function() functionName;
@@ -853,7 +853,7 @@ class ScannerErrorCode extends ErrorCode {
   //   }
   // }
   // `
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.InstanceVariable,
   //       EntityType.BlankLine,
@@ -867,7 +867,7 @@ class ScannerErrorCode extends ErrorCode {
   //       EntityType.BlankLine,
   // 	}
 
-  //   runParsePhase(t, nil, source, want)
+  //   runParsePhase(null, source, want)
   // }
 
   // //go:embed testfiles/issue18.dart.txt
@@ -885,7 +885,7 @@ class ScannerErrorCode extends ErrorCode {
   // //go:embed testfiles/issue18_case4.txt
   // var issue18_case4_txt string
 
-  // func TestIssue18Case1(t * testing.T) {
+  // test('Issue18Case1', () => {
   //   const groupAndSortGetterMethods = false
   //   const sortOtherMethods = false
   //   source:= issue18_dart_txt
@@ -897,7 +897,7 @@ class ScannerErrorCode extends ErrorCode {
   //         SortOtherMethods: sortOtherMethods,
   // 	}
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.PrivateInstanceVariable,
   //       EntityType.BlankLine,
@@ -926,7 +926,7 @@ class ScannerErrorCode extends ErrorCode {
   //   runFullStylizer(t, opts, source, wantSource, want)
   // }
 
-  // func TestIssue18Case2(t * testing.T) {
+  // test('Issue18Case2', () => {
   //   const groupAndSortGetterMethods = false
   //   const sortOtherMethods = true
   //   source:= issue18_dart_txt
@@ -938,7 +938,7 @@ class ScannerErrorCode extends ErrorCode {
   //         SortOtherMethods: sortOtherMethods,
   // 	}
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.PrivateInstanceVariable,
   //       EntityType.BlankLine,
@@ -967,7 +967,7 @@ class ScannerErrorCode extends ErrorCode {
   //   runFullStylizer(t, opts, source, wantSource, want)
   // }
 
-  // func TestIssue18Case3(t * testing.T) {
+  // test('Issue18Case3', () => {
   //   const groupAndSortGetterMethods = true
   //   const sortOtherMethods = false
   //   source:= issue18_dart_txt
@@ -979,7 +979,7 @@ class ScannerErrorCode extends ErrorCode {
   //         SortOtherMethods: sortOtherMethods,
   // 	}
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.PrivateInstanceVariable,
   //       EntityType.BlankLine,
@@ -1008,7 +1008,7 @@ class ScannerErrorCode extends ErrorCode {
   //   runFullStylizer(t, opts, source, wantSource, want)
   // }
 
-  // func TestIssue18Case4(t * testing.T) {
+  // test('Issue18Case4', () => {
   //   const groupAndSortGetterMethods = true
   //   const sortOtherMethods = true
   //   source:= issue18_dart_txt
@@ -1020,7 +1020,7 @@ class ScannerErrorCode extends ErrorCode {
   //         SortOtherMethods: sortOtherMethods,
   // 	}
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.PrivateInstanceVariable,
   //       EntityType.BlankLine,
@@ -1055,7 +1055,7 @@ class ScannerErrorCode extends ErrorCode {
   // //go:embed testfiles/issue19_want.txt
   // var issue19_want_txt string
 
-  // func TestIssue19_FactoryConstructorShouldNotBeDuplicated(t * testing.T) {
+  // test('Issue19_FactoryConstructorShouldNotBeDuplicated', () => {
   //   const groupAndSortGetterMethods = true
   //   const sortOtherMethods = true
   //   source:= issue19_dart_txt
@@ -1067,7 +1067,7 @@ class ScannerErrorCode extends ErrorCode {
   //         SortOtherMethods: sortOtherMethods,
   // 	}
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.InstanceVariable,
   //       EntityType.InstanceVariable,
@@ -1111,12 +1111,12 @@ class ScannerErrorCode extends ErrorCode {
   //   runFullStylizer(t, opts, source, wantSource, want)
   // }
 
-  // func TestFindFeatures_linux_mac(t * testing.T) {
+  // test('FindFeatures_linux_mac', () => {
   //   bc, bcLineOffset, bcOCO, bcCCO := setupEditor(t, "class Class1 {", basicClasses)
 
   //   uc:= NewClass(bc, "Class1", bcOCO, bcCCO, false)
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,                 // line #7: class Class1 {
   //       EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
   //       EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
@@ -1185,12 +1185,12 @@ class ScannerErrorCode extends ErrorCode {
   // })
   // }
 
-  // func TestFindFeatures_windoze(t * testing.T) {
+  // test('FindFeatures_windoze', () => {
   //   wz, wzLineOffset, wzOCO, wzCCO := setupEditor(t, "class Class1 {", bcWindoze)
 
   //   wc:= NewClass(wz, "Class1", wzOCO, wzCCO, false)
 
-  //   want:= []EntityType{
+  // s conat want: EntityType[] = [
   //     EntityType.Unknown,                 // line #7: class Class1 {
   //       EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
   //       EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
