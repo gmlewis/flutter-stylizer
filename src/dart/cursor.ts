@@ -181,7 +181,7 @@ export class Cursor {
           }
           this.inMultiLineComment++
           // do NOT mark an entire line as MultiLineCommand unless there is not other top-level text on the line.
-          if (this.editor.lines[this.lineIndex].classLevelText === '') {
+          if (this.editor.lines[this.lineIndex].classLevelText.trim() === '') {
             this.editor.logf(`advanceUntil: marking line #${this.lineIndex + 1} as type MultiLineComment`)
             this.editor.lines[this.lineIndex].entityType = EntityType.MultiLineComment
           }
