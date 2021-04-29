@@ -20,32 +20,32 @@ import { defaultMemberOrdering, Client, Options } from '../../../dart/dart'
 import { Editor } from '../../../dart/editor'
 import { EntityType } from '../../../dart/entity'
 
-export const runParsePhase = (opts: Options, source: string, want: EntityType[]): [Client, Class[]] => {
+export const runParsePhase = (opts: Options | null, source: string, want: EntityType[]): [Client, Class[]] => {
   let verbose = false
   const testOpts: Options = {
     GroupAndSortGetterMethods: false,
     MemberOrdering: defaultMemberOrdering,
-    SortOtherMethods: false,
+    SortEntityType.OtherMethods: false,
     Verbose: false,
   }
   if (opts !== null) {
     testOpts.GroupAndSortGetterMethods = opts.GroupAndSortGetterMethods
     testOpts.MemberOrdering = opts.MemberOrdering
-    testOpts.SortOtherMethods = opts.SortOtherMethods
-    verbose = opts.Verbose
+    testOpts.SortEntityType.OtherMethods = opts.SortEntityType.OtherMethods
+    verbose = opts.Verbose || false
   }
 
   const e = new Editor(source, verbose)
 
   const c: Client = { opts: testOpts }
-  const [got, err] = e.getClasses(testOpts.GroupAndSortGetterMethods)
+  const [got, err] = e.getClasses(testOpts.GroupAndSortGetterMethods || false)
   if (err !== null) {
     throw Error(err.message)  // Make the compiler happy.
   }
 
   if (want.length > 0) {
-    assert.strictEqual(got.length, 1, "getClasses")
-    assert.strictEqual(got[0].lines.length, want.length, "getClasses lines")
+    assert.strictEqual(got.length, 1, 'getClasses')
+    assert.strictEqual(got[0].lines.length, want.length, 'getClasses lines')
 
     for (let i = 0; i < got[0].lines.length; i++) {
       const line = got[0].lines[i]
@@ -82,20 +82,23 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 //   return got
 // }
 
-// func TestClassesAreFound(t * testing.T) {
-//   const source = `// test.dart
-// class myClass extends Widget {
+suite('Class Tests', () => {
+  test('ClassesAreFound', () => {
+    const source = `// test.dart
+class myClass extends Widget {
 
-// }`
+}`
 
-//   want:= []EntityType{
-//     Unknown,
-//       BlankLine,
-//       BlankLine,
-// 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.BlankLine,
+      EntityType.BlankLine,
+    ]
 
-//   runParsePhase(t, nil, source, want)
-// }
+    debugger
+    runParsePhase({ Verbose: true }, source, want)
+  })
+})
 
 // func TestMainHandler_NoFalsePositives(t * testing.T) {
 //   const source = `// test.dart
@@ -116,27 +119,27 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,        // line #2: {
-//       StaticVariable, // line #3:   /**
-//       StaticVariable, // line #4:    * Parameters:
-//       StaticVariable, // line #5:    * 0: the token that was expected but not found
-//       StaticVariable, // line #6:    */
-//       StaticVariable, // line #7:   static const ScannerErrorCode EXPECTED_TOKEN =
-//       StaticVariable, // line #8:       const ScannerErrorCode('EXPECTED_TOKEN', "Expected to find '{0}'.");
-//       BlankLine,      // line #9:
-//       StaticVariable, // line #10:   /**
-//       StaticVariable, // line #11:    * Parameters:
-//       StaticVariable, // line #12:    * 0: the illegal character
-//       StaticVariable, // line #13:    */
-//       StaticVariable, // line #14:   static const ScannerErrorCode ILLEGAL_CHARACTER =
-//       StaticVariable, // line #15:       const ScannerErrorCode('ILLEGAL_CHARACTER', "Illegal character '{0}'.");
-//       BlankLine,      // line #16:
+//     EntityType.Unknown,        // line #2: {
+//       EntityType.StaticVariable, // line #3:   /**
+//       EntityType.StaticVariable, // line #4:    * Parameters:
+//       EntityType.StaticVariable, // line #5:    * 0: the token that was expected but not found
+//       EntityType.StaticVariable, // line #6:    */
+//       EntityType.StaticVariable, // line #7:   static const ScannerErrorCode EXPECTED_TOKEN =
+//       EntityType.StaticVariable, // line #8:       const ScannerErrorCode('EXPECTED_TOKEN', "Expected to find '{0}'.");
+//       EntityType.BlankLine,      // line #9:
+//       EntityType.StaticVariable, // line #10:   /**
+//       EntityType.StaticVariable, // line #11:    * Parameters:
+//       EntityType.StaticVariable, // line #12:    * 0: the illegal character
+//       EntityType.StaticVariable, // line #13:    */
+//       EntityType.StaticVariable, // line #14:   static const ScannerErrorCode ILLEGAL_CHARACTER =
+//       EntityType.StaticVariable, // line #15:       const ScannerErrorCode('ILLEGAL_CHARACTER', "Illegal character '{0}'.");
+//       EntityType.BlankLine,      // line #16:
 // 	}
 
 //   runParsePhase(t, nil, source, want)
 // }
 
-// func TestOverrideMethod(t * testing.T) {
+// func TestEntityType.OverrideMethod(t * testing.T) {
 //   const source = `// test.dart
 // class C {
 //   /// If this expression is both in a getter and setter context, the
@@ -149,7 +152,7 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,          // line #2: {
+//     EntityType.Unknown,          // line #2: {
 //       OverrideVariable, // line #3:   /// If this expression is both in a getter and setter context, the
 //       OverrideVariable, // line #4:   /// [AuxiliaryElements] will be set to hold onto the static element from the
 //       OverrideVariable, // line #5:   /// getter context.
@@ -157,13 +160,13 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 //       OverrideVariable, // line #7:       'CompoundAssignmentExpression.writeElement')
 //       OverrideVariable, // line #8:   @override
 //       OverrideVariable, // line #9:   AuxiliaryElements auxiliaryElements;
-//       BlankLine,        // line #10:
+//       EntityType.BlankLine,        // line #10:
 // 	}
 
 //   runParsePhase(t, nil, source, want)
 // }
 
-// func TestNamedConstructor(t * testing.T) {
+// func TestEntityType.NamedConstructor(t * testing.T) {
 //   const source = `// test.dart
 // class C {
 //   void method_if_then_else(int? x) {
@@ -192,37 +195,37 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,          // line #2: {
-//       OtherMethod,      // line #3:   void method_if_then_else(int? x) {
-//       OtherMethod,      // line #4:     if (x == null) {
-//       OtherMethod,      // line #5:       x;
-//       OtherMethod,      // line #6:     } else {
-//       OtherMethod,      // line #7:       /*nonNullable*/ x;
-//       OtherMethod,      // line #8:     }
-//       OtherMethod,      // line #9:   }
-//       BlankLine,        // line #10:
-//       NamedConstructor, // line #11:   C.constructor_if_then_else(int? x) {
-//       NamedConstructor, // line #12:     if (x == null) {
-//       NamedConstructor, // line #13:       x;
-//       NamedConstructor, // line #14:     } else {
-//       NamedConstructor, // line #15:       /*nonNullable*/ x;
-//       NamedConstructor, // line #16:     }
-//       NamedConstructor, // line #17:   }
-//       BlankLine,        // line #18:
-//       NamedConstructor, // line #11:   C.withDetails(this.callingMethod, this.code, this.message,
-//       NamedConstructor, // line #12:       {Object details})
-//       NamedConstructor, // line #13:       : data = details == null ? null : <String, dynamic>{} {
-//       NamedConstructor, // line #14:     if (details != null) {
-//       NamedConstructor, // line #15:       data['details'] = details;
-//       NamedConstructor, // line #16:     }
-//       NamedConstructor, // line #17:   }
-//       BlankLine,        // line #18:
+//     EntityType.Unknown,          // line #2: {
+//       EntityType.OtherMethod,      // line #3:   void method_if_then_else(int? x) {
+//       EntityType.OtherMethod,      // line #4:     if (x == null) {
+//       EntityType.OtherMethod,      // line #5:       x;
+//       EntityType.OtherMethod,      // line #6:     } else {
+//       EntityType.OtherMethod,      // line #7:       /*nonNullable*/ x;
+//       EntityType.OtherMethod,      // line #8:     }
+//       EntityType.OtherMethod,      // line #9:   }
+//       EntityType.BlankLine,        // line #10:
+//       EntityType.NamedConstructor, // line #11:   C.constructor_if_then_else(int? x) {
+//       EntityType.NamedConstructor, // line #12:     if (x == null) {
+//       EntityType.NamedConstructor, // line #13:       x;
+//       EntityType.NamedConstructor, // line #14:     } else {
+//       EntityType.NamedConstructor, // line #15:       /*nonNullable*/ x;
+//       EntityType.NamedConstructor, // line #16:     }
+//       EntityType.NamedConstructor, // line #17:   }
+//       EntityType.BlankLine,        // line #18:
+//       EntityType.NamedConstructor, // line #11:   C.withDetails(this.callingMethod, this.code, this.message,
+//       EntityType.NamedConstructor, // line #12:       {Object details})
+//       EntityType.NamedConstructor, // line #13:       : data = details == null ? null : <String, dynamic>{} {
+//       EntityType.NamedConstructor, // line #14:     if (details != null) {
+//       EntityType.NamedConstructor, // line #15:       data['details'] = details;
+//       EntityType.NamedConstructor, // line #16:     }
+//       EntityType.NamedConstructor, // line #17:   }
+//       EntityType.BlankLine,        // line #18:
 // 	}
 
 //   runParsePhase(t, nil, source, want)
 // }
 
-// func TestNamedConstructorsAreKeptIntact(t * testing.T) {
+// func TestEntityType.NamedConstructorsAreKeptIntact(t * testing.T) {
 //   const source = `class AnimationController extends Animation<double>
 // with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalStatusListenersMixin {
 // 	AnimationController.unbounded({
@@ -242,22 +245,22 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,          // line #1: {
-//       NamedConstructor, // line #2: 	AnimationController.unbounded({
-//       NamedConstructor, // line #3: 	double value = 0.0,
-//       NamedConstructor, // line #4: 	this.duration,
-//       NamedConstructor, // line #5: 	this.debugLabel,
-//       NamedConstructor, // line #6: 	@required TickerProvider vsync,
-//       NamedConstructor, // line #7: 	this.animationBehavior = AnimationBehavior.preserve,
-//       NamedConstructor, // line #8: 	}) : assert(value != null),
-//       NamedConstructor, // line #9: 			assert(vsync != null),
-//       NamedConstructor, // line #10: 			lowerBound = double.negativeInfinity,
-//       NamedConstructor, // line #11: 			upperBound = double.infinity,
-//       NamedConstructor, // line #12: 			_direction = _AnimationDirection.forward {
-//       NamedConstructor, // line #13: 	_ticker = vsync.createTicker(_tick);
-//       NamedConstructor, // line #14: 	_internalSetValue(value);
-//       NamedConstructor, // line #15: 	}
-//       BlankLine,        // line #16:
+//     EntityType.Unknown,          // line #1: {
+//       EntityType.NamedConstructor, // line #2: 	AnimationController.unbounded({
+//       EntityType.NamedConstructor, // line #3: 	double value = 0.0,
+//       EntityType.NamedConstructor, // line #4: 	this.duration,
+//       EntityType.NamedConstructor, // line #5: 	this.debugLabel,
+//       EntityType.NamedConstructor, // line #6: 	@required TickerProvider vsync,
+//       EntityType.NamedConstructor, // line #7: 	this.animationBehavior = AnimationBehavior.preserve,
+//       EntityType.NamedConstructor, // line #8: 	}) : assert(value != null),
+//       EntityType.NamedConstructor, // line #9: 			assert(vsync != null),
+//       EntityType.NamedConstructor, // line #10: 			lowerBound = double.negativeInfinity,
+//       EntityType.NamedConstructor, // line #11: 			upperBound = double.infinity,
+//       EntityType.NamedConstructor, // line #12: 			_direction = _AnimationDirection.forward {
+//       EntityType.NamedConstructor, // line #13: 	_ticker = vsync.createTicker(_tick);
+//       EntityType.NamedConstructor, // line #14: 	_internalSetValue(value);
+//       EntityType.NamedConstructor, // line #15: 	}
+//       EntityType.BlankLine,        // line #16:
 // 	}
 
 //   runParsePhase(t, nil, source, want)
@@ -273,13 +276,13 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.BlankLine,
 // 	}
 
 //   runParsePhase(t, nil, source, want)
@@ -321,38 +324,38 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,        // line #1: {
-//       OverrideMethod, // line #2:   @override
-//       OverrideMethod, // line #3:   double get value {
-//       OverrideMethod, // line #4:     final Curve activeCurve = _useForwardCurve ? curve : reverseCurve;
-//       OverrideMethod, // line #5:
-//       OverrideMethod, // line #6:     final double t = parent.value;
-//       OverrideMethod, // line #7:     if (activeCurve == null) return t;
-//       OverrideMethod, // line #8:     if (t == 0.0 || t == 1.0) {
-//       OverrideMethod, // line #9:       assert(() {
-//       OverrideMethod, // line #10:         final double transformedValue = activeCurve.transform(t);
-//       OverrideMethod, // line #11:         final double roundedTransformedValue =
-//       OverrideMethod, // line #12:             transformedValue.round().toDouble();
-//       OverrideMethod, // line #13:         if (roundedTransformedValue != t) {
-//       OverrideMethod, // line #14:           throw FlutterError('Invalid curve endpoint at $t.\n'
-//       OverrideMethod, // line #15:               'Curves must map 0.0 to near zero and 1.0 to near one but '
-//       OverrideMethod, // line #16:               'is near $roundedTransformedValue.');
-//       OverrideMethod, // line #17:         }
-//       OverrideMethod, // line #18:         return true;
-//       OverrideMethod, // line #19:       }());
-//       OverrideMethod, // line #20:       return t;
-//       OverrideMethod, // line #21:     }
-//       OverrideMethod, // line #22:     return activeCurve.transform(t);
-//       OverrideMethod, // line #23:   }
-//       BlankLine,      // line #24:
-//       OverrideMethod, // line #25:   @override
-//       OverrideMethod, // line #26:   String toString() {
-//       OverrideMethod, // line #27:     if (reverseCurve == null) return '$parent\u27A9$curve';
-//       OverrideMethod, // line #28:     if (_useForwardCurve)
-//       OverrideMethod, // line #29:       return '$parent\u27A9$curve\u2092\u2099/$reverseCurve';
-//       OverrideMethod, // line #30:     return '$parent\u27A9$curve/$reverseCurve\u2092\u2099';
-//       OverrideMethod, // line #31:   }
-//       BlankLine,      // line #32: }`
+//     EntityType.Unknown,        // line #1: {
+//       EntityType.OverrideMethod, // line #2:   @override
+//       EntityType.OverrideMethod, // line #3:   double get value {
+//       EntityType.OverrideMethod, // line #4:     final Curve activeCurve = _useForwardCurve ? curve : reverseCurve;
+//       EntityType.OverrideMethod, // line #5:
+//       EntityType.OverrideMethod, // line #6:     final double t = parent.value;
+//       EntityType.OverrideMethod, // line #7:     if (activeCurve == null) return t;
+//       EntityType.OverrideMethod, // line #8:     if (t == 0.0 || t == 1.0) {
+//       EntityType.OverrideMethod, // line #9:       assert(() {
+//       EntityType.OverrideMethod, // line #10:         final double transformedValue = activeCurve.transform(t);
+//       EntityType.OverrideMethod, // line #11:         final double roundedTransformedValue =
+//       EntityType.OverrideMethod, // line #12:             transformedValue.round().toDouble();
+//       EntityType.OverrideMethod, // line #13:         if (roundedTransformedValue != t) {
+//       EntityType.OverrideMethod, // line #14:           throw FlutterError('Invalid curve endpoint at $t.\n'
+//       EntityType.OverrideMethod, // line #15:               'Curves must map 0.0 to near zero and 1.0 to near one but '
+//       EntityType.OverrideMethod, // line #16:               'is near $roundedTransformedValue.');
+//       EntityType.OverrideMethod, // line #17:         }
+//       EntityType.OverrideMethod, // line #18:         return true;
+//       EntityType.OverrideMethod, // line #19:       }());
+//       EntityType.OverrideMethod, // line #20:       return t;
+//       EntityType.OverrideMethod, // line #21:     }
+//       EntityType.OverrideMethod, // line #22:     return activeCurve.transform(t);
+//       EntityType.OverrideMethod, // line #23:   }
+//       EntityType.BlankLine,      // line #24:
+//       EntityType.OverrideMethod, // line #25:   @override
+//       EntityType.OverrideMethod, // line #26:   String toString() {
+//       EntityType.OverrideMethod, // line #27:     if (reverseCurve == null) return '$parent\u27A9$curve';
+//       EntityType.OverrideMethod, // line #28:     if (_useForwardCurve)
+//       EntityType.OverrideMethod, // line #29:       return '$parent\u27A9$curve\u2092\u2099/$reverseCurve';
+//       EntityType.OverrideMethod, // line #30:     return '$parent\u27A9$curve/$reverseCurve\u2092\u2099';
+//       EntityType.OverrideMethod, // line #31:   }
+//       EntityType.BlankLine,      // line #32: }`
 // 	}
 
 //   runParsePhase(t, nil, source, want)
@@ -388,33 +391,33 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       BlankLine,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       BlankLine,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       BlankLine,
-//       NamedConstructor,
-//       BlankLine,
-//       InstanceVariable,
-//       InstanceVariable,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.BlankLine,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.BlankLine,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.BlankLine,
+//       EntityType.NamedConstructor,
+//       EntityType.BlankLine,
+//       EntityType.InstanceVariable,
+//       EntityType.InstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runParsePhase(t, nil, source, want)
@@ -457,21 +460,21 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,                 // line #1: {
-//       PrivateInstanceVariable, // line #2:   final fb.BufferContext _bc;
-//       PrivateInstanceVariable, // line #3:   final int _bcOffset;
-//       BlankLine,               // line #4:
-//       MainConstructor,         // line #5:   _LinkedNodeImpl(this._bc, this._bcOffset);
-//       BlankLine,               // line #6:
-//       OverrideMethod,          // line #7:   @override
-//       OverrideMethod,          // line #8:   idl.LinkedNodeTypeSubstitution
-//       OverrideMethod,          // line #9:       get redirectingConstructorInvocation_substitution {
-//       OverrideMethod,          // line #10:     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
-//       OverrideMethod,          // line #11:     _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-//       OverrideMethod,          // line #12:         .vTableGet(_bc, _bcOffset, 38, null);
-//       OverrideMethod,          // line #13:     return _variantField_38;
-//       OverrideMethod,          // line #14:   }
-//       BlankLine,               // line #15:
+//     EntityType.Unknown,                 // line #1: {
+//       EntityType.PrivateInstanceVariable, // line #2:   final fb.BufferContext _bc;
+//       EntityType.PrivateInstanceVariable, // line #3:   final int _bcOffset;
+//       EntityType.BlankLine,               // line #4:
+//       EntityType.MainConstructor,         // line #5:   _LinkedNodeImpl(this._bc, this._bcOffset);
+//       EntityType.BlankLine,               // line #6:
+//       EntityType.OverrideMethod,          // line #7:   @override
+//       EntityType.OverrideMethod,          // line #8:   idl.LinkedNodeTypeSubstitution
+//       EntityType.OverrideMethod,          // line #9:       get redirectingConstructorInvocation_substitution {
+//       EntityType.OverrideMethod,          // line #10:     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
+//       EntityType.OverrideMethod,          // line #11:     _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+//       EntityType.OverrideMethod,          // line #12:         .vTableGet(_bc, _bcOffset, 38, null);
+//       EntityType.OverrideMethod,          // line #13:     return _variantField_38;
+//       EntityType.OverrideMethod,          // line #14:   }
+//       EntityType.BlankLine,               // line #15:
 // 	}
 
 //   runFullStylizer(t, nil, source, wantSource, want)
@@ -506,30 +509,30 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,
-//       OverrideMethod,
-//       OverrideMethod,
-//       BlankLine,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       BlankLine,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       BlankLine,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       BlankLine,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.BlankLine,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.BlankLine,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.BlankLine,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.BlankLine,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runParsePhase(t, nil, source, want)
@@ -545,13 +548,13 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runParsePhase(t, nil, source, want)
@@ -583,29 +586,29 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       BlankLine,
-//       OverrideMethod,
-//       BlankLine,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       BlankLine,
-//       InstanceVariable,
-//       InstanceVariable,
-//       InstanceVariable,
-//       InstanceVariable,
-//       InstanceVariable,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.BlankLine,
+//       EntityType.OverrideMethod,
+//       EntityType.BlankLine,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.BlankLine,
+//       EntityType.InstanceVariable,
+//       EntityType.InstanceVariable,
+//       EntityType.InstanceVariable,
+//       EntityType.InstanceVariable,
+//       EntityType.InstanceVariable,
+//       EntityType.BlankLine,
 // 	}
 
 //   runParsePhase(t, nil, source, want)
@@ -618,16 +621,16 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,
-//       BuildMethod,
-//       OtherMethod,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.BuildMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runParsePhase(t, nil, source, want)
 // }
 
-// func TestEmbeddedMultilineComments(t * testing.T) {
+// func TestEmbeddedEntityType.MultilineComments(t * testing.T) {
 //   source:= `class C {
 //   dynamic /*member: C.x:assigned={a}*/ x = /*declared={a, b}*/ (int a, int b) {
 //     a = 0;
@@ -635,11 +638,11 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }`
 
 //   want:= []EntityType{
-//     Unknown,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runParsePhase(t, nil, source, want)
@@ -653,54 +656,54 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 //   wantSource:= basicClassesDefaultOrder
 
 //   want:= []EntityType{
-//     Unknown,                 // line #7: class Class1 {
-//       PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
-//       PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
-//       BuildMethod,             // line #10:   @override
-//       BuildMethod,             // line #11:   build() {} // build method
-//       BlankLine,               // line #12:
-//       StaticPrivateVariable,   // line #13:   // This is a random single-line comment somewhere in the class.
-//       StaticPrivateVariable,   // line #14:
-//       StaticPrivateVariable,   // line #15:   // _spv is a static private variable.
-//       StaticPrivateVariable,   // line #16:   static final String _spv = 'spv';
-//       BlankLine,               // line #17:
-//       MultiLineComment,        // line #18:   /* This is a
-//       MultiLineComment,        // line #19:    * random multi-
-//       MultiLineComment,        // line #20:    * line comment
-//       MultiLineComment,        // line #21:    * somewhere in the middle
-//       MultiLineComment,        // line #22:    * of the class */
-//       BlankLine,               // line #23:
-//       StaticPrivateVariable,   // line #24:   // _spvni is a static private variable with no initializer.
-//       StaticPrivateVariable,   // line #25:   static double _spvni = 0;
-//       PrivateInstanceVariable, // line #26:   int _pvini = 1;
-//       StaticVariable,          // line #27:   static int sv = 0;
-//       InstanceVariable,        // line #28:   int v = 2;
-//       InstanceVariable,        // line #29:   final double fv = 42.0;
-//       MainConstructor,         // line #30:   Class1();
-//       NamedConstructor,        // line #31:   Class1.fromNum();
-//       OtherMethod,             // line #32:   var myfunc = (int n) => n;
-//       OtherMethod,             // line #33:   get vv => v; // getter
-//       OverrideMethod,          // line #34:   @override
-//       OverrideMethod,          // line #35:   toString() {
-//       OverrideMethod,          // line #36:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
-//       OverrideMethod,          // line #37:     return '';
-//       OverrideMethod,          // line #38:   }
-//       BlankLine,               // line #39:
-//       StaticVariable,          // line #40:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
-//       StaticVariable,          // line #41:   /*
-//       StaticVariable,          // line #42:     '''
-//       StaticVariable,          // line #43:     """
-//       StaticVariable,          // line #44:     //
-//       StaticVariable,          // line #45:   */
-//       StaticVariable,          // line #46:   static const a = """;
-//       StaticVariable,          // line #47:    '${b};
-//       StaticVariable,          // line #48:    ''' ;
-//       StaticVariable,          // line #49:   """;
-//       StaticVariable,          // line #50:   static const b = ''';
-//       StaticVariable,          // line #51:     {  (  ))) """ {{{} ))));
-//       StaticVariable,          // line #52:   ''';
-//       StaticVariable,          // line #53:   static const c = {'{{{((... """ ${'((('};'};
-//       BlankLine,               // line #54: }
+//     EntityType.Unknown,                 // line #7: class Class1 {
+//       EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
+//       EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
+//       EntityType.BuildMethod,             // line #10:   @override
+//       EntityType.BuildMethod,             // line #11:   build() {} // build method
+//       EntityType.BlankLine,               // line #12:
+//       EntityType.StaticPrivateVariable,   // line #13:   // This is a random single-line comment somewhere in the class.
+//       EntityType.StaticPrivateVariable,   // line #14:
+//       EntityType.StaticPrivateVariable,   // line #15:   // _spv is a static private variable.
+//       EntityType.StaticPrivateVariable,   // line #16:   static final String _spv = 'spv';
+//       EntityType.BlankLine,               // line #17:
+//       EntityType.MultiLineComment,        // line #18:   /* This is a
+//       EntityType.MultiLineComment,        // line #19:    * random multi-
+//       EntityType.MultiLineComment,        // line #20:    * line comment
+//       EntityType.MultiLineComment,        // line #21:    * somewhere in the middle
+//       EntityType.MultiLineComment,        // line #22:    * of the class */
+//       EntityType.BlankLine,               // line #23:
+//       EntityType.StaticPrivateVariable,   // line #24:   // _spvni is a static private variable with no initializer.
+//       EntityType.StaticPrivateVariable,   // line #25:   static double _spvni = 0;
+//       EntityType.PrivateInstanceVariable, // line #26:   int _pvini = 1;
+//       EntityType.StaticVariable,          // line #27:   static int sv = 0;
+//       EntityType.InstanceVariable,        // line #28:   int v = 2;
+//       EntityType.InstanceVariable,        // line #29:   final double fv = 42.0;
+//       EntityType.MainConstructor,         // line #30:   Class1();
+//       EntityType.NamedConstructor,        // line #31:   Class1.fromNum();
+//       EntityType.OtherMethod,             // line #32:   var myfunc = (int n) => n;
+//       EntityType.OtherMethod,             // line #33:   get vv => v; // getter
+//       EntityType.OverrideMethod,          // line #34:   @override
+//       EntityType.OverrideMethod,          // line #35:   toString() {
+//       EntityType.OverrideMethod,          // line #36:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
+//       EntityType.OverrideMethod,          // line #37:     return '';
+//       EntityType.OverrideMethod,          // line #38:   }
+//       EntityType.BlankLine,               // line #39:
+//       EntityType.StaticVariable,          // line #40:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
+//       EntityType.StaticVariable,          // line #41:   /*
+//       EntityType.StaticVariable,          // line #42:     '''
+//       EntityType.StaticVariable,          // line #43:     """
+//       EntityType.StaticVariable,          // line #44:     //
+//       EntityType.StaticVariable,          // line #45:   */
+//       EntityType.StaticVariable,          // line #46:   static const a = """;
+//       EntityType.StaticVariable,          // line #47:    '${b};
+//       EntityType.StaticVariable,          // line #48:    ''' ;
+//       EntityType.StaticVariable,          // line #49:   """;
+//       EntityType.StaticVariable,          // line #50:   static const b = ''';
+//       EntityType.StaticVariable,          // line #51:     {  (  ))) """ {{{} ))));
+//       EntityType.StaticVariable,          // line #52:   ''';
+//       EntityType.StaticVariable,          // line #53:   static const c = {'{{{((... """ ${'((('};'};
+//       EntityType.BlankLine,               // line #54: }
 // 	}
 
 //   runFullStylizer(t, nil, source, wantSource, want)
@@ -714,54 +717,54 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 //   wantSource:= basicClassesCustomOrder
 
 //   want:= []EntityType{
-//     Unknown,                 // line #1: {
-//       PrivateInstanceVariable, // line #2:   // _pvi is a private instance variable.
-//       PrivateInstanceVariable, // line #3:   List<String> _pvi = ['one', 'two'];
-//       BuildMethod,             // line #4:   @override
-//       BuildMethod,             // line #5:   build() {} // build method
-//       BlankLine,               // line #6:
-//       StaticPrivateVariable,   // line #7:   // This is a random single-line comment somewhere in the class.
-//       StaticPrivateVariable,   // line #8:
-//       StaticPrivateVariable,   // line #9:   // _spv is a static private variable.
-//       StaticPrivateVariable,   // line #10:   static final String _spv = 'spv';
-//       BlankLine,               // line #11:
-//       MultiLineComment,        // line #12:   /* This is a
-//       MultiLineComment,        // line #13:    * random multi-
-//       MultiLineComment,        // line #14:    * line comment
-//       MultiLineComment,        // line #15:    * somewhere in the middle
-//       MultiLineComment,        // line #16:    * of the class */
-//       BlankLine,               // line #17:
-//       StaticPrivateVariable,   // line #18:   // _spvni is a static private variable with no initializer.
-//       StaticPrivateVariable,   // line #19:   static double _spvni = 0;
-//       PrivateInstanceVariable, // line #20:   int _pvini = 1;
-//       StaticVariable,          // line #21:   static int sv = 0;
-//       InstanceVariable,        // line #22:   int v = 2;
-//       InstanceVariable,        // line #23:   final double fv = 42.0;
-//       MainConstructor,         // line #24:   Class1();
-//       NamedConstructor,        // line #25:   Class1.fromNum();
-//       OtherMethod,             // line #26:   var myfunc = (int n) => n;
-//       OtherMethod,             // line #27:   get vv => v; // getter
-//       OverrideMethod,          // line #28:   @override
-//       OverrideMethod,          // line #29:   toString() {
-//       OverrideMethod,          // line #30:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
-//       OverrideMethod,          // line #31:     return '';
-//       OverrideMethod,          // line #32:   }
-//       BlankLine,               // line #33:
-//       StaticVariable,          // line #34:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
-//       StaticVariable,          // line #35:   /*
-//       StaticVariable,          // line #36:     '''
-//       StaticVariable,          // line #37:     """
-//       StaticVariable,          // line #38:     //
-//       StaticVariable,          // line #39:   */
-//       StaticVariable,          // line #40:   static const a = """;
-//       StaticVariable,          // line #41:    '${b};
-//       StaticVariable,          // line #42:    ''' ;
-//       StaticVariable,          // line #43:   """;
-//       StaticVariable,          // line #44:   static const b = ''';
-//       StaticVariable,          // line #45:     {  (  ))) """ {{{} ))));
-//       StaticVariable,          // line #46:   ''';
-//       StaticVariable,          // line #47:   static const c = {'{{{((... """ ${'((('};'};
-//       BlankLine,               // line #48:
+//     EntityType.Unknown,                 // line #1: {
+//       EntityType.PrivateInstanceVariable, // line #2:   // _pvi is a private instance variable.
+//       EntityType.PrivateInstanceVariable, // line #3:   List<String> _pvi = ['one', 'two'];
+//       EntityType.BuildMethod,             // line #4:   @override
+//       EntityType.BuildMethod,             // line #5:   build() {} // build method
+//       EntityType.BlankLine,               // line #6:
+//       EntityType.StaticPrivateVariable,   // line #7:   // This is a random single-line comment somewhere in the class.
+//       EntityType.StaticPrivateVariable,   // line #8:
+//       EntityType.StaticPrivateVariable,   // line #9:   // _spv is a static private variable.
+//       EntityType.StaticPrivateVariable,   // line #10:   static final String _spv = 'spv';
+//       EntityType.BlankLine,               // line #11:
+//       EntityType.MultiLineComment,        // line #12:   /* This is a
+//       EntityType.MultiLineComment,        // line #13:    * random multi-
+//       EntityType.MultiLineComment,        // line #14:    * line comment
+//       EntityType.MultiLineComment,        // line #15:    * somewhere in the middle
+//       EntityType.MultiLineComment,        // line #16:    * of the class */
+//       EntityType.BlankLine,               // line #17:
+//       EntityType.StaticPrivateVariable,   // line #18:   // _spvni is a static private variable with no initializer.
+//       EntityType.StaticPrivateVariable,   // line #19:   static double _spvni = 0;
+//       EntityType.PrivateInstanceVariable, // line #20:   int _pvini = 1;
+//       EntityType.StaticVariable,          // line #21:   static int sv = 0;
+//       EntityType.InstanceVariable,        // line #22:   int v = 2;
+//       EntityType.InstanceVariable,        // line #23:   final double fv = 42.0;
+//       EntityType.MainConstructor,         // line #24:   Class1();
+//       EntityType.NamedConstructor,        // line #25:   Class1.fromNum();
+//       EntityType.OtherMethod,             // line #26:   var myfunc = (int n) => n;
+//       EntityType.OtherMethod,             // line #27:   get vv => v; // getter
+//       EntityType.OverrideMethod,          // line #28:   @override
+//       EntityType.OverrideMethod,          // line #29:   toString() {
+//       EntityType.OverrideMethod,          // line #30:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
+//       EntityType.OverrideMethod,          // line #31:     return '';
+//       EntityType.OverrideMethod,          // line #32:   }
+//       EntityType.BlankLine,               // line #33:
+//       EntityType.StaticVariable,          // line #34:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
+//       EntityType.StaticVariable,          // line #35:   /*
+//       EntityType.StaticVariable,          // line #36:     '''
+//       EntityType.StaticVariable,          // line #37:     """
+//       EntityType.StaticVariable,          // line #38:     //
+//       EntityType.StaticVariable,          // line #39:   */
+//       EntityType.StaticVariable,          // line #40:   static const a = """;
+//       EntityType.StaticVariable,          // line #41:    '${b};
+//       EntityType.StaticVariable,          // line #42:    ''' ;
+//       EntityType.StaticVariable,          // line #43:   """;
+//       EntityType.StaticVariable,          // line #44:   static const b = ''';
+//       EntityType.StaticVariable,          // line #45:     {  (  ))) """ {{{} ))));
+//       EntityType.StaticVariable,          // line #46:   ''';
+//       EntityType.StaticVariable,          // line #47:   static const c = {'{{{((... """ ${'((('};'};
+//       EntityType.BlankLine,               // line #48:
 // 	}
 
 //   opts:= & Options{
@@ -810,29 +813,29 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // `
 
 //   want:= []EntityType{
-//     Unknown,
-//       InstanceVariable,
-//       InstanceVariable,
-//       InstanceVariable,
-//       BlankLine,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.InstanceVariable,
+//       EntityType.InstanceVariable,
+//       EntityType.InstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.BlankLine,
 //       OverrideVariable,
 //       OverrideVariable,
-//       BlankLine,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       OverrideMethod,
-//       BlankLine,
+//       EntityType.BlankLine,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.OverrideMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runParsePhase(t, nil, source, want)
@@ -853,17 +856,17 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 // }
 // `
 //   want:= []EntityType{
-//     Unknown,
-//       InstanceVariable,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.InstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runParsePhase(t, nil, source, want)
@@ -886,40 +889,40 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 
 // func TestIssue18Case1(t * testing.T) {
 //   const groupAndSortGetterMethods = false
-//   const sortOtherMethods = false
+//   const sortEntityType.OtherMethods = false
 //   source:= issue18_dart_txt
 //   wantSource:= issue18_case1_txt
 
 //   opts:= & Options{
 //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
 //       MemberOrdering: defaultMemberOrdering,
-//         SortOtherMethods: sortOtherMethods,
+//         SortEntityType.OtherMethods: sortEntityType.OtherMethods,
 // 	}
 
 //   want:= []EntityType{
-//     Unknown,
-//       PrivateInstanceVariable,
-//       BlankLine,
-//       MainConstructor,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       PrivateInstanceVariable,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.PrivateInstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.MainConstructor,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.PrivateInstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runFullStylizer(t, opts, source, wantSource, want)
@@ -927,40 +930,40 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 
 // func TestIssue18Case2(t * testing.T) {
 //   const groupAndSortGetterMethods = false
-//   const sortOtherMethods = true
+//   const sortEntityType.OtherMethods = true
 //   source:= issue18_dart_txt
 //   wantSource:= issue18_case2_txt
 
 //   opts:= & Options{
 //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
 //       MemberOrdering: defaultMemberOrdering,
-//         SortOtherMethods: sortOtherMethods,
+//         SortEntityType.OtherMethods: sortEntityType.OtherMethods,
 // 	}
 
 //   want:= []EntityType{
-//     Unknown,
-//       PrivateInstanceVariable,
-//       BlankLine,
-//       MainConstructor,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       PrivateInstanceVariable,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.PrivateInstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.MainConstructor,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.PrivateInstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runFullStylizer(t, opts, source, wantSource, want)
@@ -968,40 +971,40 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 
 // func TestIssue18Case3(t * testing.T) {
 //   const groupAndSortGetterMethods = true
-//   const sortOtherMethods = false
+//   const sortEntityType.OtherMethods = false
 //   source:= issue18_dart_txt
 //   wantSource:= issue18_case3_txt
 
 //   opts:= & Options{
 //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
 //       MemberOrdering: defaultMemberOrdering,
-//         SortOtherMethods: sortOtherMethods,
+//         SortEntityType.OtherMethods: sortEntityType.OtherMethods,
 // 	}
 
 //   want:= []EntityType{
-//     Unknown,
-//       PrivateInstanceVariable,
-//       BlankLine,
-//       MainConstructor,
-//       BlankLine,
-//       GetterMethod,
-//       BlankLine,
-//       PrivateInstanceVariable,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       GetterMethod,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.PrivateInstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.MainConstructor,
+//       EntityType.BlankLine,
+//       EntityType.GetterMethod,
+//       EntityType.BlankLine,
+//       EntityType.PrivateInstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.GetterMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runFullStylizer(t, opts, source, wantSource, want)
@@ -1009,40 +1012,40 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 
 // func TestIssue18Case4(t * testing.T) {
 //   const groupAndSortGetterMethods = true
-//   const sortOtherMethods = true
+//   const sortEntityType.OtherMethods = true
 //   source:= issue18_dart_txt
 //   wantSource:= issue18_case4_txt
 
 //   opts:= & Options{
 //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
 //       MemberOrdering: defaultMemberOrdering,
-//         SortOtherMethods: sortOtherMethods,
+//         SortEntityType.OtherMethods: sortEntityType.OtherMethods,
 // 	}
 
 //   want:= []EntityType{
-//     Unknown,
-//       PrivateInstanceVariable,
-//       BlankLine,
-//       MainConstructor,
-//       BlankLine,
-//       GetterMethod,
-//       BlankLine,
-//       PrivateInstanceVariable,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       GetterMethod,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       BlankLine,
-//       OtherMethod,
-//       OtherMethod,
-//       OtherMethod,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.PrivateInstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.MainConstructor,
+//       EntityType.BlankLine,
+//       EntityType.GetterMethod,
+//       EntityType.BlankLine,
+//       EntityType.PrivateInstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.GetterMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.OtherMethod,
+//       EntityType.BlankLine,
 // 	}
 
 //   runFullStylizer(t, opts, source, wantSource, want)
@@ -1056,55 +1059,55 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 
 // func TestIssue19_FactoryConstructorShouldNotBeDuplicated(t * testing.T) {
 //   const groupAndSortGetterMethods = true
-//   const sortOtherMethods = true
+//   const sortEntityType.OtherMethods = true
 //   source:= issue19_dart_txt
 //   wantSource:= issue19_want_txt
 
 //   opts:= & Options{
 //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
 //       MemberOrdering: defaultMemberOrdering,
-//         SortOtherMethods: sortOtherMethods,
+//         SortEntityType.OtherMethods: sortEntityType.OtherMethods,
 // 	}
 
 //   want:= []EntityType{
-//     Unknown,
-//       InstanceVariable,
-//       InstanceVariable,
-//       InstanceVariable,
-//       BlankLine,
-//       MainConstructor,
-//       MainConstructor,
-//       MainConstructor,
-//       BlankLine,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       NamedConstructor,
-//       BlankLine,
+//     EntityType.Unknown,
+//       EntityType.InstanceVariable,
+//       EntityType.InstanceVariable,
+//       EntityType.InstanceVariable,
+//       EntityType.BlankLine,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.MainConstructor,
+//       EntityType.BlankLine,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.NamedConstructor,
+//       EntityType.BlankLine,
 // 	}
 
 //   runFullStylizer(t, opts, source, wantSource, want)
@@ -1116,54 +1119,54 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 //   uc:= NewClass(bc, "Class1", bcOCO, bcCCO, false)
 
 //   want:= []EntityType{
-//     Unknown,                 // line #7: class Class1 {
-//       PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
-//       PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
-//       BuildMethod,             // line #10:   @override
-//       BuildMethod,             // line #11:   build() {} // build method
-//       BlankLine,               // line #12:
-//       StaticPrivateVariable,   // line #13:   // This is a random single-line comment somewhere in the class.
-//       StaticPrivateVariable,   // line #14:
-//       StaticPrivateVariable,   // line #15:   // _spv is a static private variable.
-//       StaticPrivateVariable,   // line #16:   static final String _spv = 'spv';
-//       BlankLine,               // line #17:
-//       MultiLineComment,        // line #18:   /* This is a
-//       MultiLineComment,        // line #19:    * random multi-
-//       MultiLineComment,        // line #20:    * line comment
-//       MultiLineComment,        // line #21:    * somewhere in the middle
-//       MultiLineComment,        // line #22:    * of the class */
-//       BlankLine,               // line #23:
-//       StaticPrivateVariable,   // line #24:   // _spvni is a static private variable with no initializer.
-//       StaticPrivateVariable,   // line #25:   static double _spvni = 0;
-//       PrivateInstanceVariable, // line #26:   int _pvini = 1;
-//       StaticVariable,          // line #27:   static int sv = 0;
-//       InstanceVariable,        // line #28:   int v = 2;
-//       InstanceVariable,        // line #29:   final double fv = 42.0;
-//       MainConstructor,         // line #30:   Class1();
-//       NamedConstructor,        // line #31:   Class1.fromNum();
-//       OtherMethod,             // line #32:   var myfunc = (int n) => n;
-//       OtherMethod,             // line #33:   get vv => v; // getter
-//       OverrideMethod,          // line #34:   @override
-//       OverrideMethod,          // line #35:   toString() {
-//       OverrideMethod,          // line #36:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
-//       OverrideMethod,          // line #37:     return '';
-//       OverrideMethod,          // line #38:   }
-//       BlankLine,               // line #39:
-//       StaticVariable,          // line #40:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
-//       StaticVariable,          // line #41:   /*
-//       StaticVariable,          // line #42:     '''
-//       StaticVariable,          // line #43:     """
-//       StaticVariable,          // line #44:     //
-//       StaticVariable,          // line #45:   */
-//       StaticVariable,          // line #46:   static const a = """;
-//       StaticVariable,          // line #47:    '${b};
-//       StaticVariable,          // line #48:    ''' ;
-//       StaticVariable,          // line #49:   """;
-//       StaticVariable,          // line #50:   static const b = ''';
-//       StaticVariable,          // line #51:     {  (  ))) """ {{{} ))));
-//       StaticVariable,          // line #52:   ''';
-//       StaticVariable,          // line #53:   static const c = { '{{{((... """ ${'((('};'};
-//       BlankLine,               // line #54: }
+//     EntityType.Unknown,                 // line #7: class Class1 {
+//       EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
+//       EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
+//       EntityType.BuildMethod,             // line #10:   @override
+//       EntityType.BuildMethod,             // line #11:   build() {} // build method
+//       EntityType.BlankLine,               // line #12:
+//       EntityType.StaticPrivateVariable,   // line #13:   // This is a random single-line comment somewhere in the class.
+//       EntityType.StaticPrivateVariable,   // line #14:
+//       EntityType.StaticPrivateVariable,   // line #15:   // _spv is a static private variable.
+//       EntityType.StaticPrivateVariable,   // line #16:   static final String _spv = 'spv';
+//       EntityType.BlankLine,               // line #17:
+//       EntityType.MultiLineComment,        // line #18:   /* This is a
+//       EntityType.MultiLineComment,        // line #19:    * random multi-
+//       EntityType.MultiLineComment,        // line #20:    * line comment
+//       EntityType.MultiLineComment,        // line #21:    * somewhere in the middle
+//       EntityType.MultiLineComment,        // line #22:    * of the class */
+//       EntityType.BlankLine,               // line #23:
+//       EntityType.StaticPrivateVariable,   // line #24:   // _spvni is a static private variable with no initializer.
+//       EntityType.StaticPrivateVariable,   // line #25:   static double _spvni = 0;
+//       EntityType.PrivateInstanceVariable, // line #26:   int _pvini = 1;
+//       EntityType.StaticVariable,          // line #27:   static int sv = 0;
+//       EntityType.InstanceVariable,        // line #28:   int v = 2;
+//       EntityType.InstanceVariable,        // line #29:   final double fv = 42.0;
+//       EntityType.MainConstructor,         // line #30:   Class1();
+//       EntityType.NamedConstructor,        // line #31:   Class1.fromNum();
+//       EntityType.OtherMethod,             // line #32:   var myfunc = (int n) => n;
+//       EntityType.OtherMethod,             // line #33:   get vv => v; // getter
+//       EntityType.OverrideMethod,          // line #34:   @override
+//       EntityType.OverrideMethod,          // line #35:   toString() {
+//       EntityType.OverrideMethod,          // line #36:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
+//       EntityType.OverrideMethod,          // line #37:     return '';
+//       EntityType.OverrideMethod,          // line #38:   }
+//       EntityType.BlankLine,               // line #39:
+//       EntityType.StaticVariable,          // line #40:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
+//       EntityType.StaticVariable,          // line #41:   /*
+//       EntityType.StaticVariable,          // line #42:     '''
+//       EntityType.StaticVariable,          // line #43:     """
+//       EntityType.StaticVariable,          // line #44:     //
+//       EntityType.StaticVariable,          // line #45:   */
+//       EntityType.StaticVariable,          // line #46:   static const a = """;
+//       EntityType.StaticVariable,          // line #47:    '${b};
+//       EntityType.StaticVariable,          // line #48:    ''' ;
+//       EntityType.StaticVariable,          // line #49:   """;
+//       EntityType.StaticVariable,          // line #50:   static const b = ''';
+//       EntityType.StaticVariable,          // line #51:     {  (  ))) """ {{{} ))));
+//       EntityType.StaticVariable,          // line #52:   ''';
+//       EntityType.StaticVariable,          // line #53:   static const c = { '{{{((... """ ${'((('};'};
+//       EntityType.BlankLine,               // line #54: }
 // 	}
 
 //   t.Run("*nix file", func(t * testing.T) {
@@ -1190,54 +1193,54 @@ export const runParsePhase = (opts: Options, source: string, want: EntityType[])
 //   wc:= NewClass(wz, "Class1", wzOCO, wzCCO, false)
 
 //   want:= []EntityType{
-//     Unknown,                 // line #7: class Class1 {
-//       PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
-//       PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
-//       BuildMethod,             // line #10:   @override
-//       BuildMethod,             // line #11:   build() {} // build method
-//       BlankLine,               // line #12:
-//       StaticPrivateVariable,   // line #13:   // This is a random single-line comment somewhere in the class.
-//       StaticPrivateVariable,   // line #14:
-//       StaticPrivateVariable,   // line #15:   // _spv is a static private variable.
-//       StaticPrivateVariable,   // line #16:   static final String _spv = 'spv';
-//       BlankLine,               // line #17:
-//       MultiLineComment,        // line #18:   /* This is a
-//       MultiLineComment,        // line #19:    * random multi-
-//       MultiLineComment,        // line #20:    * line comment
-//       MultiLineComment,        // line #21:    * somewhere in the middle
-//       MultiLineComment,        // line #22:    * of the class */
-//       BlankLine,               // line #23:
-//       StaticPrivateVariable,   // line #24:   // _spvni is a static private variable with no initializer.
-//       StaticPrivateVariable,   // line #25:   static double _spvni = 0;
-//       PrivateInstanceVariable, // line #26:   int _pvini = 1;
-//       StaticVariable,          // line #27:   static int sv = 0;
-//       InstanceVariable,        // line #28:   int v = 2;
-//       InstanceVariable,        // line #29:   final double fv = 42.0;
-//       MainConstructor,         // line #30:   Class1();
-//       NamedConstructor,        // line #31:   Class1.fromNum();
-//       OtherMethod,             // line #32:   var myfunc = (int n) => n;
-//       OtherMethod,             // line #33:   get vv => v; // getter
-//       OverrideMethod,          // line #34:   @override
-//       OverrideMethod,          // line #35:   toString() {
-//       OverrideMethod,          // line #36:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
-//       OverrideMethod,          // line #37:     return '';
-//       OverrideMethod,          // line #38:   }
-//       BlankLine,               // line #39:
-//       StaticVariable,          // line #40:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
-//       StaticVariable,          // line #41:   /*
-//       StaticVariable,          // line #42:     '''
-//       StaticVariable,          // line #43:     """
-//       StaticVariable,          // line #44:     //
-//       StaticVariable,          // line #45:   */
-//       StaticVariable,          // line #46:   static const a = """;
-//       StaticVariable,          // line #47:    '${b};
-//       StaticVariable,          // line #48:    ''' ;
-//       StaticVariable,          // line #49:   """;
-//       StaticVariable,          // line #50:   static const b = ''';
-//       StaticVariable,          // line #51:     {  (  ))) """ {{{} ))));
-//       StaticVariable,          // line #52:   ''';
-//       StaticVariable,          // line #53:   static const c = { '{{{((... """ ${'((('};'};
-//       BlankLine,               // line #54: }
+//     EntityType.Unknown,                 // line #7: class Class1 {
+//       EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
+//       EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
+//       EntityType.BuildMethod,             // line #10:   @override
+//       EntityType.BuildMethod,             // line #11:   build() {} // build method
+//       EntityType.BlankLine,               // line #12:
+//       EntityType.StaticPrivateVariable,   // line #13:   // This is a random single-line comment somewhere in the class.
+//       EntityType.StaticPrivateVariable,   // line #14:
+//       EntityType.StaticPrivateVariable,   // line #15:   // _spv is a static private variable.
+//       EntityType.StaticPrivateVariable,   // line #16:   static final String _spv = 'spv';
+//       EntityType.BlankLine,               // line #17:
+//       EntityType.MultiLineComment,        // line #18:   /* This is a
+//       EntityType.MultiLineComment,        // line #19:    * random multi-
+//       EntityType.MultiLineComment,        // line #20:    * line comment
+//       EntityType.MultiLineComment,        // line #21:    * somewhere in the middle
+//       EntityType.MultiLineComment,        // line #22:    * of the class */
+//       EntityType.BlankLine,               // line #23:
+//       EntityType.StaticPrivateVariable,   // line #24:   // _spvni is a static private variable with no initializer.
+//       EntityType.StaticPrivateVariable,   // line #25:   static double _spvni = 0;
+//       EntityType.PrivateInstanceVariable, // line #26:   int _pvini = 1;
+//       EntityType.StaticVariable,          // line #27:   static int sv = 0;
+//       EntityType.InstanceVariable,        // line #28:   int v = 2;
+//       EntityType.InstanceVariable,        // line #29:   final double fv = 42.0;
+//       EntityType.MainConstructor,         // line #30:   Class1();
+//       EntityType.NamedConstructor,        // line #31:   Class1.fromNum();
+//       EntityType.OtherMethod,             // line #32:   var myfunc = (int n) => n;
+//       EntityType.OtherMethod,             // line #33:   get vv => v; // getter
+//       EntityType.OverrideMethod,          // line #34:   @override
+//       EntityType.OverrideMethod,          // line #35:   toString() {
+//       EntityType.OverrideMethod,          // line #36:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
+//       EntityType.OverrideMethod,          // line #37:     return '';
+//       EntityType.OverrideMethod,          // line #38:   }
+//       EntityType.BlankLine,               // line #39:
+//       EntityType.StaticVariable,          // line #40:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
+//       EntityType.StaticVariable,          // line #41:   /*
+//       EntityType.StaticVariable,          // line #42:     '''
+//       EntityType.StaticVariable,          // line #43:     """
+//       EntityType.StaticVariable,          // line #44:     //
+//       EntityType.StaticVariable,          // line #45:   */
+//       EntityType.StaticVariable,          // line #46:   static const a = """;
+//       EntityType.StaticVariable,          // line #47:    '${b};
+//       EntityType.StaticVariable,          // line #48:    ''' ;
+//       EntityType.StaticVariable,          // line #49:   """;
+//       EntityType.StaticVariable,          // line #50:   static const b = ''';
+//       EntityType.StaticVariable,          // line #51:     {  (  ))) """ {{{} ))));
+//       EntityType.StaticVariable,          // line #52:   ''';
+//       EntityType.StaticVariable,          // line #53:   static const c = { '{{{((... """ ${'((('};'};
+//       EntityType.BlankLine,               // line #54: }
 // 	}
 
 //   t.Run("windoze file", func(t * testing.T) {

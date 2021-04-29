@@ -56,7 +56,8 @@ export class Editor {
   getClasses(groupAndSortGetterMethods: boolean): [Class[], Error | null] {
     const classes: Class[] = []
 
-    for (let lineIndex = 0; lineIndex < this.classLineIndices.length; lineIndex++) {
+    for (let i = 0; i < this.classLineIndices.length; i++) {
+      const lineIndex = this.classLineIndices[i]
       const line = this.lines[lineIndex]
       const mm = Class.matchClassRE.exec(line.line)
       if (!mm || mm.length !== 2) {

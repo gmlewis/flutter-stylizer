@@ -635,7 +635,8 @@ export class Cursor {
       return Error('EOF')
     }
 
-    if (this.atTopOfBraceLevel(0) && mm) {
+    const mm2 = Class.matchClassRE.exec(this.editor.lines[this.lineIndex].line)
+    if (this.atTopOfBraceLevel(0) && mm2) {
       this.classLineIndices.push(this.lineIndex)
     }
 

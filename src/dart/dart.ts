@@ -24,10 +24,10 @@ export class Client {
 }
 
 export interface Options {
-  GroupAndSortGetterMethods: boolean,
-  MemberOrdering: string[],
-  SortOtherMethods: boolean,
-  Verbose: boolean,
+  GroupAndSortGetterMethods?: boolean,
+  MemberOrdering?: string[],
+  SortOtherMethods?: boolean,
+  Verbose?: boolean,
 }
 
 export const defaultMemberOrdering = [
