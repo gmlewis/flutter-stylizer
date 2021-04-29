@@ -23,7 +23,7 @@ import { Editor } from '../../../dart/editor'
 suite('Flow Analysis Tests', function() {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 
-  test('Flow analysis get classes', async () => {
+  test('Flow analysis get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'flow_analysis.dart.txt'), 'utf8')
 
     const e = new Editor(source, false)

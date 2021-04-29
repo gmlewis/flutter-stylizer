@@ -25,7 +25,7 @@ import { runFullStylizer } from './class.test'
 suite('Pubspec Tests', function() {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 
-  test('Pubspec get classes', async () => {
+  test('Pubspec get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'pubspec.dart.txt'), 'utf8')
 
     const e = new Editor(source, false)
@@ -38,7 +38,7 @@ suite('Pubspec Tests', function() {
     assert.strictEqual(got.length, 1, 'classes')
   })
 
-  test('Pubspec class 1', async () => {
+  test('Pubspec class 1', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'pubspec.dart.txt'), 'utf8')
     const wantSource = fs.readFileSync(path.join(testfilesDir, 'pubspec_want.txt'), 'utf8')
 

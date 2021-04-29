@@ -112,7 +112,8 @@ export class Client {
       }
     }
 
-    const sortFunc = (a: Entity, b: Entity) => a.name.localeCompare(b.name)
+    // const sortFunc = (a: Entity, b: Entity) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    const sortFunc = (a: Entity, b: Entity) => a.name === b.name ? 0 : a.name < b.name ? -1 : 1
 
     const ordering = this.opts.MemberOrdering || defaultMemberOrdering
     ordering.forEach((el, order) => {

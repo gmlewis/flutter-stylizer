@@ -23,7 +23,7 @@ import { runFullStylizer } from './class.test'
 suite('Block Kind Tests', function() {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 
-  test('Block kind example', async () => {
+  test('Block kind example', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'block_kind.dart.txt'), 'utf8')
     const wantSource = fs.readFileSync(path.join(testfilesDir, 'block_kind_want.txt'), 'utf8')
 
@@ -71,7 +71,7 @@ suite('Block Kind Tests', function() {
     runFullStylizer(null, source, wantSource, want)
   })
 
-  test('Block kind example stays the same', async () => {
+  test('Block kind example stays the same', () => {
     const wantSource = fs.readFileSync(path.join(testfilesDir, 'block_kind_want.txt'), 'utf8')
 
     runFullStylizer(null, wantSource, wantSource, null)

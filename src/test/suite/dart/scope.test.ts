@@ -25,7 +25,7 @@ import { runFullStylizer, runParsePhase } from './class.test'
 suite('Scope Tests', function() {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 
-  test('Scope get classes', async () => {
+  test('Scope get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8')
 
     const e = new Editor(source, false)
@@ -38,7 +38,7 @@ suite('Scope Tests', function() {
     assert.strictEqual(got.length, 10, 'classes')
   })
 
-  test('Scope class 1', async () => {
+  test('Scope class 1', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8').substring(560, 769)
     // const wantSource = fs.readFileSync(path.join(testfilesDir, 'scope_want.txt'), 'utf8')
 
@@ -55,7 +55,7 @@ suite('Scope Tests', function() {
   })
 
 
-  test('Scope class 2', async () => {
+  test('Scope class 2', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8').substring(769, 1027)
     // wantSource := scope_want_txt[560:769]
 
@@ -72,7 +72,7 @@ suite('Scope Tests', function() {
     // runFullStylizer(null, source, wantSource, want)
   })
 
-  test('Scope class 3', async () => {
+  test('Scope class 3', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8').substring(1027, 2248)
     const wantSource = fs.readFileSync(path.join(testfilesDir, 'scope_want.txt'), 'utf8').substring(1027, 2248)
 
@@ -131,7 +131,7 @@ suite('Scope Tests', function() {
     runFullStylizer(null, source, wantSource, want)
   })
 
-  test('Scope class 4', async () => {
+  test('Scope class 4', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8').substring(2248, 2521)
     // wantSource := scope_want_txt[2248:]
 
@@ -151,7 +151,7 @@ suite('Scope Tests', function() {
     // runFullStylizer(null, source, wantSource, want)
   })
 
-  test('Scope class 5', async () => {
+  test('Scope class 5', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8').substring(2521, 2818)
     // wantSource := scope_want_txt[2248:]
 
@@ -174,7 +174,7 @@ suite('Scope Tests', function() {
     // runFullStylizer(null, source, wantSource, want)
   })
 
-  test('Scope class 6', async () => {
+  test('Scope class 6', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8').substring(2818, 5338)
     // wantSource := scope_want_txt[2248:]
 
@@ -266,7 +266,7 @@ suite('Scope Tests', function() {
     // runFullStylizer(null, source, wantSource, want)
   })
 
-  test('Scope class 7', async () => {
+  test('Scope class 7', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8').substring(5338, 5486)
     // wantSource := scope_want_txt[2248:]
 
@@ -284,7 +284,7 @@ suite('Scope Tests', function() {
     // runFullStylizer(null, source, wantSource, want)
   })
 
-  test('Scope class 8', async () => {
+  test('Scope class 8', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8').substring(5486, 8326)
     // wantSource := scope_want_txt[2248:]
 
@@ -402,7 +402,7 @@ suite('Scope Tests', function() {
     // runFullStylizer(null, source, wantSource, want)
   })
 
-  test('Scope class 9', async () => {
+  test('Scope class 9', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8').substring(8326, 8519)
     // wantSource := scope_want_txt[2248:]
 
@@ -421,7 +421,7 @@ suite('Scope Tests', function() {
     // runFullStylizer(null, source, wantSource, want)
   })
 
-  test('Scope class 10', async () => {
+  test('Scope class 10', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8').substring(8519, 9323)
     // wantSource := scope_want_txt[2248:]
 

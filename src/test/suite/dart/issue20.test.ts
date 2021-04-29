@@ -23,7 +23,7 @@ import { runFullStylizer } from './class.test'
 suite('Issue#20 Tests', function() {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 
-  test('Issue#20: spurious lines should not be added', async () => {
+  test('Issue#20: spurious lines should not be added', () => {
     const groupAndSortGetterMethods = false
     const sortOtherMethods = false
 

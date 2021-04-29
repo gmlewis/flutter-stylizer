@@ -20,12 +20,12 @@ const path = require('path')
 
 import { Editor } from '../../../dart/editor'
 import { EntityType } from '../../../dart/entity'
-import { runFullStylizer, runParsePhase } from './class.test'
+import { runParsePhase } from './class.test'
 
 suite('Strong Mode Tests', function() {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 
-  test('Scope get classes', async () => {
+  test('Scope get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'strong_mode.dart.txt'), 'utf8')
 
     const e = new Editor(source, false)
@@ -38,7 +38,7 @@ suite('Strong Mode Tests', function() {
     assert.strictEqual(got.length, 3, 'classes')
   })
 
-  test('Strong mode class 1', async () => {
+  test('Strong mode class 1', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'strong_mode.dart.txt'), 'utf8').substring(0, 91956)
     // const wantSource = fs.readFileSync(path.join(testfilesDir, 'strong_mode_want.txt'), 'utf8')
 
@@ -2582,7 +2582,7 @@ suite('Strong Mode Tests', function() {
   })
 
 
-  test('Strong mode class 2', async () => {
+  test('Strong mode class 2', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'strong_mode.dart.txt'), 'utf8').substring(91956, 129066) // extra utf8 bytes
     // wantSource := scope_want_txt[560:769]
 
@@ -3954,7 +3954,7 @@ suite('Strong Mode Tests', function() {
     // runFullStylizer(null, source, wantSource, want)
   })
 
-  test('Strong mode class 3', async () => {
+  test('Strong mode class 3', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'strong_mode.dart.txt'), 'utf8').substring(129066, 134946) // extra utf8 bytes
     // const wantSource = fs.readFileSync(path.join(testfilesDir, 'strong_mode_want.txt'), 'utf8').substring(1027, 2248)
 
