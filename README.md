@@ -3,6 +3,10 @@
 Flutter Stylizer is a VSCode extension that organizes your Flutter classes
 in an opinionated and consistent manner.
 
+Note that as of release `0.1.1`, there is now a standalone version of
+`flutter-stylizer` (with identical output to this plugin) that is available here:
+- https://github.com/gmlewis/go-flutter-stylizer
+
 ## Features
 
 Flutter Stylizer organizes the class(es) within a `*.dart` file
