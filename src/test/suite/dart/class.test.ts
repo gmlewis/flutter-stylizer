@@ -286,78 +286,78 @@ _InterpolationSimulation(this._begin, this._end, Duration duration, this._curve,
     runParsePhase(null, source, want)
   })
 
-  // test('HandleOverriddenGettersWithBodies', () => {
-  //   const source = `class CurvedAnimation extends Animation<double>
-  //     with AnimationWithParentMixin<double> {
-  //   @override
-  //   double get value {
-  //     final Curve activeCurve = _useForwardCurve ? curve : reverseCurve;
+  test('Handle overridden getters with bodies', () => {
+    const source = String.raw`class CurvedAnimation extends Animation<double>
+    with AnimationWithParentMixin<double> {
+  @override
+  double get value {
+    final Curve activeCurve = _useForwardCurve ? curve : reverseCurve;
 
-  //     final double t = parent.value;
-  //     if (activeCurve == null) return t;
-  //     if (t == 0.0 || t == 1.0) {
-  //       assert(() {
-  //         final double transformedValue = activeCurve.transform(t);
-  //         final double roundedTransformedValue =
-  //             transformedValue.round().toDouble();
-  //         if (roundedTransformedValue != t) {
-  //           throw FlutterError('Invalid curve endpoint at $t.\n'
-  //               'Curves must map 0.0 to near zero and 1.0 to near one but '
-  //               'is near $roundedTransformedValue.');
-  //         }
-  //         return true;
-  //       }());
-  //       return t;
-  //     }
-  //     return activeCurve.transform(t);
-  //   }
+    final double t = parent.value;
+    if (activeCurve == null) return t;
+    if (t == 0.0 || t == 1.0) {
+      assert(() {
+        final double transformedValue = activeCurve.transform(t);
+        final double roundedTransformedValue =
+            transformedValue.round().toDouble();
+        if (roundedTransformedValue != t) {
+          throw FlutterError('Invalid curve endpoint at $t.\n'
+              'Curves must map 0.0 to near zero and 1.0 to near one but '
+              'is near $roundedTransformedValue.');
+        }
+        return true;
+      }());
+      return t;
+    }
+    return activeCurve.transform(t);
+  }
 
-  //   @override
-  //   String toString() {
-  //     if (reverseCurve == null) return '$parent\u27A9$curve';
-  //     if (_useForwardCurve)
-  //       return '$parent\u27A9$curve\u2092\u2099/$reverseCurve';
-  //     return '$parent\u27A9$curve/$reverseCurve\u2092\u2099';
-  //   }
-  // }`
+  @override
+  String toString() {
+    if (reverseCurve == null) return '$parent\u27A9$curve';
+    if (_useForwardCurve)
+      return '$parent\u27A9$curve\u2092\u2099/$reverseCurve';
+    return '$parent\u27A9$curve/$reverseCurve\u2092\u2099';
+  }
+}`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,        // line #1: {
-  //       EntityType.OverrideMethod, // line #2:   @override
-  //       EntityType.OverrideMethod, // line #3:   double get value {
-  //       EntityType.OverrideMethod, // line #4:     final Curve activeCurve = _useForwardCurve ? curve : reverseCurve;
-  //       EntityType.OverrideMethod, // line #5:
-  //       EntityType.OverrideMethod, // line #6:     final double t = parent.value;
-  //       EntityType.OverrideMethod, // line #7:     if (activeCurve == null) return t;
-  //       EntityType.OverrideMethod, // line #8:     if (t == 0.0 || t == 1.0) {
-  //       EntityType.OverrideMethod, // line #9:       assert(() {
-  //       EntityType.OverrideMethod, // line #10:         final double transformedValue = activeCurve.transform(t);
-  //       EntityType.OverrideMethod, // line #11:         final double roundedTransformedValue =
-  //       EntityType.OverrideMethod, // line #12:             transformedValue.round().toDouble();
-  //       EntityType.OverrideMethod, // line #13:         if (roundedTransformedValue != t) {
-  //       EntityType.OverrideMethod, // line #14:           throw FlutterError('Invalid curve endpoint at $t.\n'
-  //       EntityType.OverrideMethod, // line #15:               'Curves must map 0.0 to near zero and 1.0 to near one but '
-  //       EntityType.OverrideMethod, // line #16:               'is near $roundedTransformedValue.');
-  //       EntityType.OverrideMethod, // line #17:         }
-  //       EntityType.OverrideMethod, // line #18:         return true;
-  //       EntityType.OverrideMethod, // line #19:       }());
-  //       EntityType.OverrideMethod, // line #20:       return t;
-  //       EntityType.OverrideMethod, // line #21:     }
-  //       EntityType.OverrideMethod, // line #22:     return activeCurve.transform(t);
-  //       EntityType.OverrideMethod, // line #23:   }
-  //       EntityType.BlankLine,      // line #24:
-  //       EntityType.OverrideMethod, // line #25:   @override
-  //       EntityType.OverrideMethod, // line #26:   String toString() {
-  //       EntityType.OverrideMethod, // line #27:     if (reverseCurve == null) return '$parent\u27A9$curve';
-  //       EntityType.OverrideMethod, // line #28:     if (_useForwardCurve)
-  //       EntityType.OverrideMethod, // line #29:       return '$parent\u27A9$curve\u2092\u2099/$reverseCurve';
-  //       EntityType.OverrideMethod, // line #30:     return '$parent\u27A9$curve/$reverseCurve\u2092\u2099';
-  //       EntityType.OverrideMethod, // line #31:   }
-  //       EntityType.BlankLine,      // line #32: }`
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,        // line #1: {
+      EntityType.OverrideMethod, // line #2:   @override
+      EntityType.OverrideMethod, // line #3:   double get value {
+      EntityType.OverrideMethod, // line #4:     final Curve activeCurve = _useForwardCurve ? curve : reverseCurve;
+      EntityType.OverrideMethod, // line #5:
+      EntityType.OverrideMethod, // line #6:     final double t = parent.value;
+      EntityType.OverrideMethod, // line #7:     if (activeCurve == null) return t;
+      EntityType.OverrideMethod, // line #8:     if (t == 0.0 || t == 1.0) {
+      EntityType.OverrideMethod, // line #9:       assert(() {
+      EntityType.OverrideMethod, // line #10:         final double transformedValue = activeCurve.transform(t);
+      EntityType.OverrideMethod, // line #11:         final double roundedTransformedValue =
+      EntityType.OverrideMethod, // line #12:             transformedValue.round().toDouble();
+      EntityType.OverrideMethod, // line #13:         if (roundedTransformedValue != t) {
+      EntityType.OverrideMethod, // line #14:           throw FlutterError('Invalid curve endpoint at $t.\n'
+      EntityType.OverrideMethod, // line #15:               'Curves must map 0.0 to near zero and 1.0 to near one but '
+      EntityType.OverrideMethod, // line #16:               'is near $roundedTransformedValue.');
+      EntityType.OverrideMethod, // line #17:         }
+      EntityType.OverrideMethod, // line #18:         return true;
+      EntityType.OverrideMethod, // line #19:       }());
+      EntityType.OverrideMethod, // line #20:       return t;
+      EntityType.OverrideMethod, // line #21:     }
+      EntityType.OverrideMethod, // line #22:     return activeCurve.transform(t);
+      EntityType.OverrideMethod, // line #23:   }
+      EntityType.BlankLine,      // line #24:
+      EntityType.OverrideMethod, // line #25:   @override
+      EntityType.OverrideMethod, // line #26:   String toString() {
+      EntityType.OverrideMethod, // line #27:     if (reverseCurve == null) return '$parent\u27A9$curve';
+      EntityType.OverrideMethod, // line #28:     if (_useForwardCurve)
+      EntityType.OverrideMethod, // line #29:       return '$parent\u27A9$curve\u2092\u2099/$reverseCurve';
+      EntityType.OverrideMethod, // line #30:     return '$parent\u27A9$curve/$reverseCurve\u2092\u2099';
+      EntityType.OverrideMethod, // line #31:   }
+      EntityType.BlankLine,      // line #32: }`
+    ]
 
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
   // test('Issue9_ConstructorFalsePositive', () => {
   //   const source = `class PGDateTime {
