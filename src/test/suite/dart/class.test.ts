@@ -37,7 +37,7 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
 
   const e = new Editor(source, verbose)
 
-  const c: Client = { opts: testOpts }
+  const c = new Client(testOpts)
   const [got, err] = e.getClasses(testOpts.GroupAndSortGetterMethods || false)
   if (err !== null) {
     throw Error(err.message)  // Make the compiler happy.
@@ -71,11 +71,11 @@ export const runFullStylizer = (opts: Options | null, source: string, wantSource
   assert.strictEqual(gotLines.length, wantLines.length, `rewriteClasses: newBuf=${newBuf}`)
 
   for (let i = 0; i < gotLines.length; i++) {
-    const line = gotLines[i].replaceAll(/\r/, '')
+    const line = gotLines[i].replace(/\r/g, '')
     if (i < wantLines.length) {
-      assert.strictEqual(line, wantLines[i], `line #${i + 1}: ${line.line}`)
+      assert.strictEqual(line, wantLines[i], `line #${i + 1}: ${line}`)
     } else if (i >= wantLines.length) {
-      assert.strictEqual(line, null, `line #${i + 1}: ${line.line}`)
+      assert.strictEqual(line, null, `line #${i + 1}: ${line}`)
     }
   }
 
@@ -421,7 +421,7 @@ static PGDateTime parse(String formattedString) =>
     runParsePhase(null, source, want)
   })
 
-  test('GetOnSeparateLine', () => {
+  test('Get on separate line', () => {
     const source = `class _LinkedNodeImpl extends Object
     with _LinkedNodeMixin
     implements idl.LinkedNode {
