@@ -780,63 +780,63 @@ static PGDateTime parse(String formattedString) =>
     }
 
     runFullStylizer(opts, source, wantSource, want)
-  }
+  })
 
-  // test('Issue16SupportNewPublicEntityType.OverrideVariablesFeature', () => {
-  //   const source = `
-  // class Chat extends Equatable implements SubscriptionObject {
-  //   final String displayName;
-  //   final ChatText? lastText;
-  //   final List<User> users;
+  test('Issue#16 - Support new public override variables feature', () => {
+    const source = `
+class Chat extends Equatable implements SubscriptionObject {
+  final String displayName;
+  final ChatText? lastText;
+  final List<User> users;
 
-  //   Chat({
-  //     required this.id,
-  //     required this.users,
-  //     required this.lastText,
-  //     required this.displayName,
-  //   });
+  Chat({
+    required this.id,
+    required this.users,
+    required this.lastText,
+    required this.displayName,
+  });
 
-  //   @override
-  //   final String id;
+  @override
+  final String id;
 
-  //   @override
-  //   List<Object?> get props => [
-  //         id,
-  //         users,
-  //         lastText,
-  //         displayName,
-  //       ];
-  // }
-  // `
+  @override
+  List<Object?> get props => [
+        id,
+        users,
+        lastText,
+        displayName,
+      ];
+}
+`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.InstanceVariable,
-  //       EntityType.InstanceVariable,
-  //       EntityType.InstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.BlankLine,
-  //       EntityType.OverrideVariable,
-  //       EntityType.OverrideVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.BlankLine,
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.InstanceVariable,
+      EntityType.InstanceVariable,
+      EntityType.InstanceVariable,
+      EntityType.BlankLine,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.BlankLine,
+      EntityType.OverrideVariable,
+      EntityType.OverrideVariable,
+      EntityType.BlankLine,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.BlankLine,
+    ]
 
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
   // test('Issue17FunctionTypeVariableIsNotAFunction', () => {
   //   const source = `
