@@ -1,4 +1,4 @@
-{
+class Global {
   Global(this._balance, this._aBalance) {}
 
   double _aBalance;
@@ -19,3 +19,4 @@
   bool isNotValid() {
     return false;
   }
+}

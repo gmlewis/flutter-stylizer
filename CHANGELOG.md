@@ -6,6 +6,13 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.1.1] - 2021-04-29
+
+- Complete rewrite of Dart parser to identically match output from
+  standalone [Go flutter-stylizer](https://github.com/gmlewis/go-flutter-stylizer).
+  This VSCode plugin can now be used in the same CI/CD projects with
+  the standalone `flutter-stylizer`.
+
 ## [0.0.21] - 2021-04-17
 
 - Fix incorrectly identified NamedConstructor bug reported in #20.

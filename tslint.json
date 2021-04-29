@@ -9,7 +9,11 @@
       true,
       "never"
     ],
-    "triple-equals": true
+    "triple-equals": true,
+    "quotemark": [
+      true,
+      "single"
+    ]
   },
   "defaultSeverity": "warning"
 }

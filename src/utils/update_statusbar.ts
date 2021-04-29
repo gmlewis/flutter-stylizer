@@ -1,25 +1,25 @@
-import * as vscode from 'vscode';
+import * as vscode from 'vscode'
 
 const updateStatusbar = (editor: vscode.TextEditor | undefined, buttons: vscode.StatusBarItem[]): void => {
-  let showButtons: boolean = false;
+  let showButtons: boolean = false
 
   if (editor !== undefined) {
     const {
       document: { languageId },
-    } = editor;
+    } = editor
 
     if (languageId.indexOf('dart') === 0) {
-      showButtons = true;
+      showButtons = true
     }
   }
 
   buttons.forEach((btn: vscode.StatusBarItem) => {
     if (showButtons) {
-      btn.show();
+      btn.show()
     } else {
-      btn.hide();
+      btn.hide()
     }
-  });
-};
+  })
+}
 
-export default updateStatusbar;
+export default updateStatusbar

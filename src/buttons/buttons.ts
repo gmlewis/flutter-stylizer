@@ -1,4 +1,4 @@
-import { Button } from './buttons.interface';
+import { Button } from './buttons.interface'
 
 const buttons: Button[] = [
   {
@@ -6,6 +6,6 @@ const buttons: Button[] = [
     text: 'Flutter Stylizer',
     tooltip: 'Run Flutter Stylizer on the current file',
   },
-];
+]
 
-export default buttons;
+export default buttons

@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   "env": {
     "es6": true,
     "node": true
@@ -33,17 +33,17 @@ export default {
       "warn",
       {
         "multiline": {
-          "delimiter": "semi",
-          "requireLast": false
+          "delimiter": "comma",
+          "requireLast": true
         },
         "singleline": {
-          "delimiter": "semi",
-          "requireLast": false
+          "delimiter": "comma",
+          "requireLast": true
         }
       }
     ],
     "no-redeclare": "warn",
-    "no-unused-expressions": "warn"
+    "no-unused-expressions": "warn",
   },
   "settings": {}
 }
