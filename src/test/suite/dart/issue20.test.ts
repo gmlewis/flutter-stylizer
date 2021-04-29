@@ -14,18 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//
-// Note: This example test is leveraging the Mocha test framework.
-// Please refer to their documentation on https://mochajs.org/ for help.
-//
-
 const fs = require('fs')
 const path = require('path')
 
 import { EntityType } from '../../../dart/entity'
 import { runFullStylizer } from './class.test'
 
-// Defines a Mocha test suite to group tests of similar kind together
 suite('Issue#20 Tests', function() {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 
