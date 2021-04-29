@@ -870,61 +870,47 @@ class Test {
     runParsePhase(null, source, want)
   })
 
-  // //go:embed testfiles/issue18.dart.txt
-  // var issue18_dart_txt string
+  test('Issue#18 - Case 1', () => {
+    const groupAndSortGetterMethods = false
+    const sortOtherMethods = false
+    const source = fs.readFileSync(path.join(testfilesDir, 'issue18.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue18_case1.txt'), 'utf8')
 
-  // //go:embed testfiles/issue18_case1.txt
-  // var issue18_case1_txt string
 
-  // //go:embed testfiles/issue18_case2.txt
-  // var issue18_case2_txt string
+    const opts = {
+      GroupAndSortGetterMethods: groupAndSortGetterMethods,
+      MemberOrdering: defaultMemberOrdering,
+      SortOtherMethods: sortOtherMethods,
+    }
 
-  // //go:embed testfiles/issue18_case3.txt
-  // var issue18_case3_txt string
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.PrivateInstanceVariable,
+      EntityType.BlankLine,
+      EntityType.MainConstructor,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.PrivateInstanceVariable,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+    ]
 
-  // //go:embed testfiles/issue18_case4.txt
-  // var issue18_case4_txt string
-
-  // test('Issue18Case1', () => {
-  //   const groupAndSortGetterMethods = false
-  //   const sortOtherMethods = false
-  //   source:= issue18_dart_txt
-  //   wantSource:= issue18_case1_txt
-
-  //   opts:= & Options{
-  //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
-  //       MemberOrdering: defaultMemberOrdering,
-  //         SortOtherMethods: sortOtherMethods,
-  // 	}
-
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.PrivateInstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.MainConstructor,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.PrivateInstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  // 	}
-
-  //   runFullStylizer(t, opts, source, wantSource, want)
-  // }
+    runFullStylizer(opts, source, wantSource, want)
+  })
 
   // test('Issue18Case2', () => {
   //   const groupAndSortGetterMethods = false
