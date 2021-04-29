@@ -1034,67 +1034,61 @@ class Test {
     runFullStylizer(opts, source, wantSource, want)
   })
 
-  // //go:embed testfiles/issue19.dart.txt
-  // var issue19_dart_txt string
+  test('Issue#19 - Factory constructor should not be duplicated', () => {
+    const groupAndSortGetterMethods = true
+    const sortOtherMethods = true
+    const source = fs.readFileSync(path.join(testfilesDir, 'issue19.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue19_want.txt'), 'utf8')
 
-  // //go:embed testfiles/issue19_want.txt
-  // var issue19_want_txt string
+    const opts = {
+      GroupAndSortGetterMethods: groupAndSortGetterMethods,
+      MemberOrdering: defaultMemberOrdering,
+      SortOtherMethods: sortOtherMethods,
+    }
 
-  // test('Issue19_FactoryConstructorShouldNotBeDuplicated', () => {
-  //   const groupAndSortGetterMethods = true
-  //   const sortOtherMethods = true
-  //   source:= issue19_dart_txt
-  //   wantSource:= issue19_want_txt
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.InstanceVariable,
+      EntityType.InstanceVariable,
+      EntityType.InstanceVariable,
+      EntityType.BlankLine,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.BlankLine,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.BlankLine,
+    ]
 
-  //   opts:= & Options{
-  //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
-  //       MemberOrdering: defaultMemberOrdering,
-  //         SortOtherMethods: sortOtherMethods,
-  // 	}
-
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.InstanceVariable,
-  //       EntityType.InstanceVariable,
-  //       EntityType.InstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.BlankLine,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.BlankLine,
-  // 	}
-
-  //   runFullStylizer(t, opts, source, wantSource, want)
-  // }
+    runFullStylizer(opts, source, wantSource, want)
+  })
 
   // test('FindFeatures_linux_mac', () => {
   //   bc, bcLineOffset, bcOCO, bcCCO := setupEditor(t, "class Class1 {", basicClasses)
