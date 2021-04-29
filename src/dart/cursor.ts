@@ -616,12 +616,12 @@ export class Cursor {
     const arr = Array.from(this.editor.lines[this.lineIndex].classLevelText)
     while (arr.length > 0 && /\s/.test(arr[0])) {
       arr.shift()
-      this.editor.lines[this.lineIndex].classLevelTextOffsets.splice(0, 1)
+      this.editor.lines[this.lineIndex].classLevelTextOffsets.shift()
     }
 
     while (arr.length > 0 && /\s/.test(arr[arr.length - 1])) {
       arr.pop()
-      this.editor.lines[this.lineIndex].classLevelTextOffsets.splice(0, 1)
+      this.editor.lines[this.lineIndex].classLevelTextOffsets.pop()
     }
 
     this.editor.lines[this.lineIndex].classLevelText = arr.join('')

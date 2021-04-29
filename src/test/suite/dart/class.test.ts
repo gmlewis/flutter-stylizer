@@ -15,6 +15,9 @@ limitations under the License.
 */
 
 import * as assert from 'assert'
+const fs = require('fs')
+const path = require('path')
+
 import { Class } from '../../../dart/class'
 import { defaultMemberOrdering, Client, Options } from '../../../dart/dart'
 import { Editor } from '../../../dart/editor'
@@ -83,6 +86,8 @@ export const runFullStylizer = (opts: Options | null, source: string, wantSource
 }
 
 suite('Class Tests', () => {
+  const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
+
   test('Classes are found', () => {
     const source = `// test.dart
 class myClass extends Widget {
@@ -628,84 +633,81 @@ static PGDateTime parse(String formattedString) =>
     runParsePhase(null, source, want)
   })
 
-  // test('EmbeddedEntityType.MultilineComments', () => {
-  //   const source= `class C {
-  //   dynamic /*member: C.x:assigned={a}*/ x = /*declared={a, b}*/ (int a, int b) {
-  //     a = 0;
-  //   };
-  // }`
+  test('Embedded multiline comments', () => {
+    const source = `class C {
+  dynamic /*member: C.x:assigned={a}*/ x = /*declared={a, b}*/ (int a, int b) {
+    a = 0;
+  };
+}`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+    ]
 
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
-  // //go:embed testfiles/basic_classes_default_order.txt
-  // var basicClassesDefaultOrder string
+  test('Issue#11 - Run with default member ordering', () => {
+    const source = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'basic_classes_default_order.txt'), 'utf8')
 
-  // test('Issue11_RunWithDefaultMemberOrdering', () => {
-  //   source:= basicClasses
-  //   wantSource:= basicClassesDefaultOrder
+    const want: EntityType[] = [
+      EntityType.Unknown,                 // line #7: class Class1 {
+      EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
+      EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
+      EntityType.BuildMethod,             // line #10:   @override
+      EntityType.BuildMethod,             // line #11:   build() {} // build method
+      EntityType.BlankLine,               // line #12:
+      EntityType.StaticPrivateVariable,   // line #13:   // This is a random single-line comment somewhere in the class.
+      EntityType.StaticPrivateVariable,   // line #14:
+      EntityType.StaticPrivateVariable,   // line #15:   // _spv is a static private variable.
+      EntityType.StaticPrivateVariable,   // line #16:   static final String _spv = 'spv';
+      EntityType.BlankLine,               // line #17:
+      EntityType.MultiLineComment,        // line #18:   /* This is a
+      EntityType.MultiLineComment,        // line #19:    * random multi-
+      EntityType.MultiLineComment,        // line #20:    * line comment
+      EntityType.MultiLineComment,        // line #21:    * somewhere in the middle
+      EntityType.MultiLineComment,        // line #22:    * of the class */
+      EntityType.BlankLine,               // line #23:
+      EntityType.StaticPrivateVariable,   // line #24:   // _spvni is a static private variable with no initializer.
+      EntityType.StaticPrivateVariable,   // line #25:   static double _spvni = 0;
+      EntityType.PrivateInstanceVariable, // line #26:   int _pvini = 1;
+      EntityType.StaticVariable,          // line #27:   static int sv = 0;
+      EntityType.InstanceVariable,        // line #28:   int v = 2;
+      EntityType.InstanceVariable,        // line #29:   final double fv = 42.0;
+      EntityType.MainConstructor,         // line #30:   Class1();
+      EntityType.NamedConstructor,        // line #31:   Class1.fromNum();
+      EntityType.OtherMethod,             // line #32:   var myfunc = (int n) => n;
+      EntityType.OtherMethod,             // line #33:   get vv => v; // getter
+      EntityType.OverrideMethod,          // line #34:   @override
+      EntityType.OverrideMethod,          // line #35:   toString() {
+      EntityType.OverrideMethod,          // line #36:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
+      EntityType.OverrideMethod,          // line #37:     return '';
+      EntityType.OverrideMethod,          // line #38:   }
+      EntityType.BlankLine,               // line #39:
+      EntityType.StaticVariable,          // line #40:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
+      EntityType.StaticVariable,          // line #41:   /*
+      EntityType.StaticVariable,          // line #42:     '''
+      EntityType.StaticVariable,          // line #43:     """
+      EntityType.StaticVariable,          // line #44:     //
+      EntityType.StaticVariable,          // line #45:   */
+      EntityType.StaticVariable,          // line #46:   static const a = """;
+      EntityType.StaticVariable,          // line #47:    '${b};
+      EntityType.StaticVariable,          // line #48:    ''' ;
+      EntityType.StaticVariable,          // line #49:   """;
+      EntityType.StaticVariable,          // line #50:   static const b = ''';
+      EntityType.StaticVariable,          // line #51:     {  (  ))) """ {{{} ))));
+      EntityType.StaticVariable,          // line #52:   ''';
+      EntityType.StaticVariable,          // line #53:   static const c = {'{{{((... """ ${'((('};'};
+      EntityType.BlankLine,               // line #54: }
+    ]
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,                 // line #7: class Class1 {
-  //       EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
-  //       EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
-  //       EntityType.BuildMethod,             // line #10:   @override
-  //       EntityType.BuildMethod,             // line #11:   build() {} // build method
-  //       EntityType.BlankLine,               // line #12:
-  //       EntityType.StaticPrivateVariable,   // line #13:   // This is a random single-line comment somewhere in the class.
-  //       EntityType.StaticPrivateVariable,   // line #14:
-  //       EntityType.StaticPrivateVariable,   // line #15:   // _spv is a static private variable.
-  //       EntityType.StaticPrivateVariable,   // line #16:   static final String _spv = 'spv';
-  //       EntityType.BlankLine,               // line #17:
-  //       EntityType.MultiLineComment,        // line #18:   /* This is a
-  //       EntityType.MultiLineComment,        // line #19:    * random multi-
-  //       EntityType.MultiLineComment,        // line #20:    * line comment
-  //       EntityType.MultiLineComment,        // line #21:    * somewhere in the middle
-  //       EntityType.MultiLineComment,        // line #22:    * of the class */
-  //       EntityType.BlankLine,               // line #23:
-  //       EntityType.StaticPrivateVariable,   // line #24:   // _spvni is a static private variable with no initializer.
-  //       EntityType.StaticPrivateVariable,   // line #25:   static double _spvni = 0;
-  //       EntityType.PrivateInstanceVariable, // line #26:   int _pvini = 1;
-  //       EntityType.StaticVariable,          // line #27:   static int sv = 0;
-  //       EntityType.InstanceVariable,        // line #28:   int v = 2;
-  //       EntityType.InstanceVariable,        // line #29:   final double fv = 42.0;
-  //       EntityType.MainConstructor,         // line #30:   Class1();
-  //       EntityType.NamedConstructor,        // line #31:   Class1.fromNum();
-  //       EntityType.OtherMethod,             // line #32:   var myfunc = (int n) => n;
-  //       EntityType.OtherMethod,             // line #33:   get vv => v; // getter
-  //       EntityType.OverrideMethod,          // line #34:   @override
-  //       EntityType.OverrideMethod,          // line #35:   toString() {
-  //       EntityType.OverrideMethod,          // line #36:     print('$_pvi, $_spv, $_spvni, $_pvini, ${sqrt(2)}');
-  //       EntityType.OverrideMethod,          // line #37:     return '';
-  //       EntityType.OverrideMethod,          // line #38:   }
-  //       EntityType.BlankLine,               // line #39:
-  //       EntityType.StaticVariable,          // line #40:   // "Here is 'where we add ${ text to "trip 'up' ''' the ${dart parser}.
-  //       EntityType.StaticVariable,          // line #41:   /*
-  //       EntityType.StaticVariable,          // line #42:     '''
-  //       EntityType.StaticVariable,          // line #43:     """
-  //       EntityType.StaticVariable,          // line #44:     //
-  //       EntityType.StaticVariable,          // line #45:   */
-  //       EntityType.StaticVariable,          // line #46:   static const a = """;
-  //       EntityType.StaticVariable,          // line #47:    '${b};
-  //       EntityType.StaticVariable,          // line #48:    ''' ;
-  //       EntityType.StaticVariable,          // line #49:   """;
-  //       EntityType.StaticVariable,          // line #50:   static const b = ''';
-  //       EntityType.StaticVariable,          // line #51:     {  (  ))) """ {{{} ))));
-  //       EntityType.StaticVariable,          // line #52:   ''';
-  //       EntityType.StaticVariable,          // line #53:   static const c = {'{{{((... """ ${'((('};'};
-  //       EntityType.BlankLine,               // line #54: }
-  // 	}
-
-  //   runFullStylizer(null, source, wantSource, want)
-  // }
+    runFullStylizer(null, source, wantSource, want)
+  })
 
   // //go:embed testfiles/basic_classes_custom_order.txt
   // var basicClassesCustomOrder string
