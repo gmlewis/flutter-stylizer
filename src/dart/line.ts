@@ -20,6 +20,9 @@ import { EntityType } from './entity'
 export class Line {
   constructor(line: string, startOffset: number, originalIndex: number) {
     this.line = line
+    if (/\r$/.test(this.line)) {  // Process all lines in unix-style.
+      this.line = this.line.substring(0, this.line.length - 1)
+    }
     this.stripped = line.trim()
     this.entityType = this.stripped ? EntityType.Unknown : EntityType.BlankLine
     this.strippedOffset = line.indexOf(this.stripped)

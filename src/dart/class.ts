@@ -118,7 +118,7 @@ export class Class {
   buildMethod: Entity | null = null
   getterMethods: Entity[] = []
 
-  static matchClassRE = /^(?:abstract\s+)?class\s+(\S+).*$/
+  static matchClassRE = /^(?:abstract\s+)?class\s+(\S+).*\r?$/
 
   findFeatures(): Error | null {
     this.lines.forEach((line, i) => {
