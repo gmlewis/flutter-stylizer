@@ -74,22 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
       editBuilder.replace(editor.selection, newBuf)
     })
 
-    // const classes = await getClasses(editor, groupAndSortGetterMethods)
-    // console.log('Found ' + classes.length.toString() + ' classes.')
-
-    // // Rewrite the classes.
-    // for (let i = classes.length - 1; i >= 0; i--) {
-    //   const dc = classes[i]
-    //   const startPos = editor.document.positionAt(dc.openCurlyOffset)
-    //   const endPos = editor.document.positionAt(dc.closeCurlyOffset)
-    //   editor.selection = new vscode.Selection(startPos, endPos)
-
-    //   const lines = reorderClass(memberOrdering, dc, groupAndSortGetterMethods, sortOtherMethods)
-
-    //   await editor.edit((editBuilder: vscode.TextEditorEdit) => {
-    //     editBuilder.replace(editor.selection, lines.join('\n'))
-    //   })
-    // }
+    console.log(`Found ${got.length} classes and stylized ${edits.length}.`)
 
     editor.selection = saveSelection
   })
