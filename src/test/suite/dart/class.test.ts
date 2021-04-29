@@ -264,27 +264,27 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
     runParsePhase(null, source, want)
   })
 
-  // test('PrivateConstructorsAreKeptIntact', () => {
-  //   const source = `class _InterpolationSimulation extends Simulation {
-  // _InterpolationSimulation(this._begin, this._end, Duration duration, this._curve, double scale)
-  // 	: assert(_begin != null),
-  // 		assert(_end != null),
-  // 		assert(duration != null && duration.inMicroseconds > 0),
-  // 		_durationInSeconds = (duration.inMicroseconds * scale) / Duration.microsecondsPerSecond;
-  // }`
+  test('PrivateConstructors are kept intact', () => {
+    const source = `class _InterpolationSimulation extends Simulation {
+_InterpolationSimulation(this._begin, this._end, Duration duration, this._curve, double scale)
+  : assert(_begin != null),
+    assert(_end != null),
+    assert(duration != null && duration.inMicroseconds > 0),
+    _durationInSeconds = (duration.inMicroseconds * scale) / Duration.microsecondsPerSecond;
+}`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.BlankLine,
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.BlankLine,
+    ]
 
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
   // test('HandleOverriddenGettersWithBodies', () => {
   //   const source = `class CurvedAnimation extends Animation<double>
