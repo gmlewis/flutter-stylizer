@@ -359,67 +359,67 @@ _InterpolationSimulation(this._begin, this._end, Duration duration, this._curve,
     runParsePhase(null, source, want)
   })
 
-  // test('Issue9_ConstructorFalsePositive', () => {
-  //   const source = `class PGDateTime {
-  // // value xor isInfinity
-  // PGDateTime({
-  //     this.value,
-  //     this.isInfinity = false,
-  // }) : assert((value != null || isInfinity == true) &&
-  //             !(value != null && isInfinity == true));
+  test('Issue#9: Constructor false positive', () => {
+    const source = `class PGDateTime {
+// value xor isInfinity
+PGDateTime({
+    this.value,
+    this.isInfinity = false,
+}) : assert((value != null || isInfinity == true) &&
+            !(value != null && isInfinity == true));
 
-  // PGDateTime.infinity() {
-  //     isInfinity = true;
-  // }
+PGDateTime.infinity() {
+    isInfinity = true;
+}
 
-  // PGDateTime.now() {
-  //     value = DateTime.now();
-  //     isInfinity = false;
-  // }
+PGDateTime.now() {
+    value = DateTime.now();
+    isInfinity = false;
+}
 
-  // PGDateTime.fromDateTime(this.value) : isInfinity = false;
+PGDateTime.fromDateTime(this.value) : isInfinity = false;
 
-  // bool isInfinity = false;
-  // DateTime value;
+bool isInfinity = false;
+DateTime value;
 
-  // static PGDateTime parse(String formattedString) =>
-  //     formattedString == 'infinity'
-  //         ? PGDateTime.infinity()
-  //         : PGDateTime(value: DateTime.parse(formattedString).toLocal());
-  // }`
+static PGDateTime parse(String formattedString) =>
+    formattedString == 'infinity'
+        ? PGDateTime.infinity()
+        : PGDateTime(value: DateTime.parse(formattedString).toLocal());
+}`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.MainConstructor,
-  //       EntityType.BlankLine,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.BlankLine,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.NamedConstructor,
-  //       EntityType.BlankLine,
-  //       EntityType.NamedConstructor,
-  //       EntityType.BlankLine,
-  //       EntityType.InstanceVariable,
-  //       EntityType.InstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.MainConstructor,
+      EntityType.BlankLine,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.BlankLine,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.NamedConstructor,
+      EntityType.BlankLine,
+      EntityType.NamedConstructor,
+      EntityType.BlankLine,
+      EntityType.InstanceVariable,
+      EntityType.InstanceVariable,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+    ]
 
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
   // test('GetOnSeparateLine', () => {
   //   source:= `class _LinkedNodeImpl extends Object
