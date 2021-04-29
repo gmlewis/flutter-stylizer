@@ -57,30 +57,30 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
   return [c, got]
 }
 
-// export const runFullStylizer = (opts: Options, source: string, wantSource: string, want: EntityType[]): Class[] {
-//   const [c, got] = runParsePhase(opts, source, want)
+export const runFullStylizer = (opts: Options | null, source: string, wantSource: string, want: EntityType[]): Class[] => {
+  const [c, got] = runParsePhase(opts, source, want)
 
-//   const edits = c.generateEdits(got)
-//   if (want.length > 0) {
-//     assert.strictEqual(edits.length, 1, "edits")
-//   }
+  const edits = c.generateEdits(got)
+  if (want.length > 0) {
+    assert.strictEqual(edits.length, 1, 'edits')
+  }
 
-//   const newBuf = c.rewriteClasses(source, edits)
-//   const gotLines = newBuf.split("\n")
-//   const wantLines = wantSource.split("\n")
-//   assert.strictEqual(gotLines.length, wantLines.length, `rewriteClasses: newBuf=${newBuf}`)
+  const newBuf = c.rewriteClasses(source, edits)
+  const gotLines = newBuf.split('\n')
+  const wantLines = wantSource.split('\n')
+  assert.strictEqual(gotLines.length, wantLines.length, `rewriteClasses: newBuf=${newBuf}`)
 
-//   for (let i = 0; i < gotLines.length; i++) {
-//     const line = gotLines[i].replaceAll(/\r/, "")
-//     if (i < wantLines.length && line != wantLines[i]) {
-//       t.Errorf("line #%v: got:\n%v\nwant:\n%v", i + 1, line, wantLines[i])
-//     } else if i >= len(wantLines) {
-//       t.Errorf("line #%v: got:\n%v", i + 1, line)
-//     }
-//   }
+  for (let i = 0; i < gotLines.length; i++) {
+    const line = gotLines[i].replaceAll(/\r/, '')
+    if (i < wantLines.length) {
+      assert.strictEqual(line, wantLines[i], `line #${i + 1}: ${line.line}`)
+    } else if (i >= wantLines.length) {
+      assert.strictEqual(line, null, `line #${i + 1}: ${line.line}`)
+    }
+  }
 
-//   return got
-// }
+  return got
+}
 
 suite('Class Tests', () => {
   test('Classes are found', () => {
@@ -421,64 +421,64 @@ static PGDateTime parse(String formattedString) =>
     runParsePhase(null, source, want)
   })
 
-  // test('GetOnSeparateLine', () => {
-  //   source:= `class _LinkedNodeImpl extends Object
-  //     with _LinkedNodeMixin
-  //     implements idl.LinkedNode {
-  //   final fb.BufferContext _bc;
-  //   final int _bcOffset;
+  test('GetOnSeparateLine', () => {
+    const source = `class _LinkedNodeImpl extends Object
+    with _LinkedNodeMixin
+    implements idl.LinkedNode {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  //   _LinkedNodeImpl(this._bc, this._bcOffset);
+  _LinkedNodeImpl(this._bc, this._bcOffset);
 
-  //   @override
-  //   idl.LinkedNodeTypeSubstitution
-  //       get redirectingConstructorInvocation_substitution {
-  //     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
-  //     _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-  //         .vTableGet(_bc, _bcOffset, 38, null);
-  //     return _variantField_38;
-  //   }
-  // }`
-  //   wantSource:= `class _LinkedNodeImpl extends Object
-  //     with _LinkedNodeMixin
-  //     implements idl.LinkedNode {
-  //   _LinkedNodeImpl(this._bc, this._bcOffset);
+  @override
+  idl.LinkedNodeTypeSubstitution
+      get redirectingConstructorInvocation_substitution {
+    assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+}`
+    const wantSource = `class _LinkedNodeImpl extends Object
+    with _LinkedNodeMixin
+    implements idl.LinkedNode {
+  _LinkedNodeImpl(this._bc, this._bcOffset);
 
-  //   final fb.BufferContext _bc;
-  //   final int _bcOffset;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  //   @override
-  //   idl.LinkedNodeTypeSubstitution
-  //       get redirectingConstructorInvocation_substitution {
-  //     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
-  //     _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-  //         .vTableGet(_bc, _bcOffset, 38, null);
-  //     return _variantField_38;
-  //   }
-  // }`
+  @override
+  idl.LinkedNodeTypeSubstitution
+      get redirectingConstructorInvocation_substitution {
+    assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+}`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,                 // line #1: {
-  //       EntityType.PrivateInstanceVariable, // line #2:   final fb.BufferContext _bc;
-  //       EntityType.PrivateInstanceVariable, // line #3:   final int _bcOffset;
-  //       EntityType.BlankLine,               // line #4:
-  //       EntityType.MainConstructor,         // line #5:   _LinkedNodeImpl(this._bc, this._bcOffset);
-  //       EntityType.BlankLine,               // line #6:
-  //       EntityType.OverrideMethod,          // line #7:   @override
-  //       EntityType.OverrideMethod,          // line #8:   idl.LinkedNodeTypeSubstitution
-  //       EntityType.OverrideMethod,          // line #9:       get redirectingConstructorInvocation_substitution {
-  //       EntityType.OverrideMethod,          // line #10:     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
-  //       EntityType.OverrideMethod,          // line #11:     _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-  //       EntityType.OverrideMethod,          // line #12:         .vTableGet(_bc, _bcOffset, 38, null);
-  //       EntityType.OverrideMethod,          // line #13:     return _variantField_38;
-  //       EntityType.OverrideMethod,          // line #14:   }
-  //       EntityType.BlankLine,               // line #15:
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,                 // line #1: {
+      EntityType.PrivateInstanceVariable, // line #2:   final fb.BufferContext _bc;
+      EntityType.PrivateInstanceVariable, // line #3:   final int _bcOffset;
+      EntityType.BlankLine,               // line #4:
+      EntityType.MainConstructor,         // line #5:   _LinkedNodeImpl(this._bc, this._bcOffset);
+      EntityType.BlankLine,               // line #6:
+      EntityType.OverrideMethod,          // line #7:   @override
+      EntityType.OverrideMethod,          // line #8:   idl.LinkedNodeTypeSubstitution
+      EntityType.OverrideMethod,          // line #9:       get redirectingConstructorInvocation_substitution {
+      EntityType.OverrideMethod,          // line #10:     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
+      EntityType.OverrideMethod,          // line #11:     _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+      EntityType.OverrideMethod,          // line #12:         .vTableGet(_bc, _bcOffset, 38, null);
+      EntityType.OverrideMethod,          // line #13:     return _variantField_38;
+      EntityType.OverrideMethod,          // line #14:   }
+      EntityType.BlankLine,               // line #15:
+    ]
 
-  //   runFullStylizer(t, nil, source, wantSource, want)
-  //   // Run again to make sure no extra blank lines are added.
-  //   runFullStylizer(t, nil, wantSource, wantSource, nil)
-  // }
+    runFullStylizer(null, source, wantSource, want)
+    // Run again to make sure no extra blank lines are added.
+    runFullStylizer(null, wantSource, wantSource, [])
+  })
 
   // test('OperatorOverrides', () => {
   //   source:= `class Op {
@@ -704,7 +704,7 @@ static PGDateTime parse(String formattedString) =>
   //       EntityType.BlankLine,               // line #54: }
   // 	}
 
-  //   runFullStylizer(t, nil, source, wantSource, want)
+  //   runFullStylizer(null, source, wantSource, want)
   // }
 
   // //go:embed testfiles/basic_classes_custom_order.txt
