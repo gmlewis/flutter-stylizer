@@ -223,46 +223,46 @@ class C {
     runParsePhase(null, source, want)
   })
 
-  // test('EntityType.NamedConstructorsAreKeptIntact', () => {
-  //   const source = `class AnimationController extends Animation<double>
-  // with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalStatusListenersMixin {
-  // 	AnimationController.unbounded({
-  // 	double value = 0.0,
-  // 	this.duration,
-  // 	this.debugLabel,
-  // 	@required TickerProvider vsync,
-  // 	this.animationBehavior = AnimationBehavior.preserve,
-  // 	}) : assert(value != null),
-  // 			assert(vsync != null),
-  // 			lowerBound = double.negativeInfinity,
-  // 			upperBound = double.infinity,
-  // 			_direction = _AnimationDirection.forward {
-  // 	_ticker = vsync.createTicker(_tick);
-  // 	_internalSetValue(value);
-  // 	}
-  // }`
+  test('NamedConstructors are kept intact', () => {
+    const source = `class AnimationController extends Animation<double>
+with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalStatusListenersMixin {
+  AnimationController.unbounded({
+  double value = 0.0,
+  this.duration,
+  this.debugLabel,
+  @required TickerProvider vsync,
+  this.animationBehavior = AnimationBehavior.preserve,
+  }) : assert(value != null),
+      assert(vsync != null),
+      lowerBound = double.negativeInfinity,
+      upperBound = double.infinity,
+      _direction = _AnimationDirection.forward {
+  _ticker = vsync.createTicker(_tick);
+  _internalSetValue(value);
+  }
+}`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,          // line #1: {
-  //       EntityType.NamedConstructor, // line #2: 	AnimationController.unbounded({
-  //       EntityType.NamedConstructor, // line #3: 	double value = 0.0,
-  //       EntityType.NamedConstructor, // line #4: 	this.duration,
-  //       EntityType.NamedConstructor, // line #5: 	this.debugLabel,
-  //       EntityType.NamedConstructor, // line #6: 	@required TickerProvider vsync,
-  //       EntityType.NamedConstructor, // line #7: 	this.animationBehavior = AnimationBehavior.preserve,
-  //       EntityType.NamedConstructor, // line #8: 	}) : assert(value != null),
-  //       EntityType.NamedConstructor, // line #9: 			assert(vsync != null),
-  //       EntityType.NamedConstructor, // line #10: 			lowerBound = double.negativeInfinity,
-  //       EntityType.NamedConstructor, // line #11: 			upperBound = double.infinity,
-  //       EntityType.NamedConstructor, // line #12: 			_direction = _AnimationDirection.forward {
-  //       EntityType.NamedConstructor, // line #13: 	_ticker = vsync.createTicker(_tick);
-  //       EntityType.NamedConstructor, // line #14: 	_internalSetValue(value);
-  //       EntityType.NamedConstructor, // line #15: 	}
-  //       EntityType.BlankLine,        // line #16:
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,          // line #1: {
+      EntityType.NamedConstructor, // line #2: 	AnimationController.unbounded({
+      EntityType.NamedConstructor, // line #3: 	double value = 0.0,
+      EntityType.NamedConstructor, // line #4: 	this.duration,
+      EntityType.NamedConstructor, // line #5: 	this.debugLabel,
+      EntityType.NamedConstructor, // line #6: 	@required TickerProvider vsync,
+      EntityType.NamedConstructor, // line #7: 	this.animationBehavior = AnimationBehavior.preserve,
+      EntityType.NamedConstructor, // line #8: 	}) : assert(value != null),
+      EntityType.NamedConstructor, // line #9: 			assert(vsync != null),
+      EntityType.NamedConstructor, // line #10: 			lowerBound = double.negativeInfinity,
+      EntityType.NamedConstructor, // line #11: 			upperBound = double.infinity,
+      EntityType.NamedConstructor, // line #12: 			_direction = _AnimationDirection.forward {
+      EntityType.NamedConstructor, // line #13: 	_ticker = vsync.createTicker(_tick);
+      EntityType.NamedConstructor, // line #14: 	_internalSetValue(value);
+      EntityType.NamedConstructor, // line #15: 	}
+      EntityType.BlankLine,        // line #16:
+    ]
 
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
   // test('PrivateConstructorsAreKeptIntact', () => {
   //   const source = `class _InterpolationSimulation extends Simulation {
