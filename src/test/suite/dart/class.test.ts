@@ -162,66 +162,66 @@ class C {
     ]
 
     runParsePhase(null, source, want)
+  })
+
+  test('NamedConstructor', () => {
+    const source = `// test.dart
+class C {
+  void method_if_then_else(int? x) {
+    if (x == null) {
+      x;
+    } else {
+      /*nonNullable*/ x;
+    }
   }
 
-  // test('EntityType.NamedConstructor', () => {
-  //   const source = `// test.dart
-  // class C {
-  //   void method_if_then_else(int? x) {
-  //     if (x == null) {
-  //       x;
-  //     } else {
-  //       /*nonNullable*/ x;
-  //     }
-  //   }
+  C.constructor_if_then_else(int? x) {
+    if (x == null) {
+      x;
+    } else {
+      /*nonNullable*/ x;
+    }
+  }
 
-  //   C.constructor_if_then_else(int? x) {
-  //     if (x == null) {
-  //       x;
-  //     } else {
-  //       /*nonNullable*/ x;
-  //     }
-  //   }
+  C.withDetails(this.callingMethod, this.code, this.message,
+      {Object details})
+      : data = details == null ? null : <String, dynamic>{} {
+    if (details != null) {
+      data['details'] = details;
+    }
+  }
+}`
 
-  //   C.withDetails(this.callingMethod, this.code, this.message,
-  //       {Object details})
-  //       : data = details == null ? null : <String, dynamic>{} {
-  //     if (details != null) {
-  //       data['details'] = details;
-  //     }
-  //   }
-  // }`
+    const want: EntityType[] = [
+      EntityType.Unknown,          // line #2: {
+      EntityType.OtherMethod,      // line #3:   void method_if_then_else(int? x) {
+      EntityType.OtherMethod,      // line #4:     if (x == null) {
+      EntityType.OtherMethod,      // line #5:       x;
+      EntityType.OtherMethod,      // line #6:     } else {
+      EntityType.OtherMethod,      // line #7:       /*nonNullable*/ x;
+      EntityType.OtherMethod,      // line #8:     }
+      EntityType.OtherMethod,      // line #9:   }
+      EntityType.BlankLine,        // line #10:
+      EntityType.NamedConstructor, // line #11:   C.constructor_if_then_else(int? x) {
+      EntityType.NamedConstructor, // line #12:     if (x == null) {
+      EntityType.NamedConstructor, // line #13:       x;
+      EntityType.NamedConstructor, // line #14:     } else {
+      EntityType.NamedConstructor, // line #15:       /*nonNullable*/ x;
+      EntityType.NamedConstructor, // line #16:     }
+      EntityType.NamedConstructor, // line #17:   }
+      EntityType.BlankLine,        // line #18:
+      EntityType.NamedConstructor, // line #11:   C.withDetails(this.callingMethod, this.code, this.message,
+      EntityType.NamedConstructor, // line #12:       {Object details})
+      EntityType.NamedConstructor, // line #13:       : data = details == null ? null : <String, dynamic>{} {
+      EntityType.NamedConstructor, // line #14:     if (details != null) {
+      EntityType.NamedConstructor, // line #15:       data['details'] = details;
+      EntityType.NamedConstructor, // line #16:     }
+      EntityType.NamedConstructor, // line #17:   }
+      EntityType.BlankLine,        // line #18:
+    ]
 
-  // s conat want: EntityType[] = [
-  //     EntityType.Unknown,          // line #2: {
-  //       EntityType.OtherMethod,      // line #3:   void method_if_then_else(int? x) {
-  //       EntityType.OtherMethod,      // line #4:     if (x == null) {
-  //       EntityType.OtherMethod,      // line #5:       x;
-  //       EntityType.OtherMethod,      // line #6:     } else {
-  //       EntityType.OtherMethod,      // line #7:       /*nonNullable*/ x;
-  //       EntityType.OtherMethod,      // line #8:     }
-  //       EntityType.OtherMethod,      // line #9:   }
-  //       EntityType.BlankLine,        // line #10:
-  //       EntityType.NamedConstructor, // line #11:   C.constructor_if_then_else(int? x) {
-  //       EntityType.NamedConstructor, // line #12:     if (x == null) {
-  //       EntityType.NamedConstructor, // line #13:       x;
-  //       EntityType.NamedConstructor, // line #14:     } else {
-  //       EntityType.NamedConstructor, // line #15:       /*nonNullable*/ x;
-  //       EntityType.NamedConstructor, // line #16:     }
-  //       EntityType.NamedConstructor, // line #17:   }
-  //       EntityType.BlankLine,        // line #18:
-  //       EntityType.NamedConstructor, // line #11:   C.withDetails(this.callingMethod, this.code, this.message,
-  //       EntityType.NamedConstructor, // line #12:       {Object details})
-  //       EntityType.NamedConstructor, // line #13:       : data = details == null ? null : <String, dynamic>{} {
-  //       EntityType.NamedConstructor, // line #14:     if (details != null) {
-  //       EntityType.NamedConstructor, // line #15:       data['details'] = details;
-  //       EntityType.NamedConstructor, // line #16:     }
-  //       EntityType.NamedConstructor, // line #17:   }
-  //       EntityType.BlankLine,        // line #18:
-  // 	}
-
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
   // test('EntityType.NamedConstructorsAreKeptIntact', () => {
   //   const source = `class AnimationController extends Animation<double>
@@ -242,7 +242,7 @@ class C {
   // 	}
   // }`
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,          // line #1: {
   //       EntityType.NamedConstructor, // line #2: 	AnimationController.unbounded({
   //       EntityType.NamedConstructor, // line #3: 	double value = 0.0,
@@ -273,7 +273,7 @@ class C {
   // 		_durationInSeconds = (duration.inMicroseconds * scale) / Duration.microsecondsPerSecond;
   // }`
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.MainConstructor,
   //       EntityType.MainConstructor,
@@ -321,7 +321,7 @@ class C {
   //   }
   // }`
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,        // line #1: {
   //       EntityType.OverrideMethod, // line #2:   @override
   //       EntityType.OverrideMethod, // line #3:   double get value {
@@ -388,7 +388,7 @@ class C {
   //         : PGDateTime(value: DateTime.parse(formattedString).toLocal());
   // }`
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.MainConstructor,
   //       EntityType.MainConstructor,
@@ -457,7 +457,7 @@ class C {
   //   }
   // }`
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,                 // line #1: {
   //       EntityType.PrivateInstanceVariable, // line #2:   final fb.BufferContext _bc;
   //       EntityType.PrivateInstanceVariable, // line #3:   final int _bcOffset;
@@ -506,7 +506,7 @@ class C {
   //   }
   // }`
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.OverrideMethod,
   //       EntityType.OverrideMethod,
@@ -545,7 +545,7 @@ class C {
   //       <String, List<Folder>>{};
   // }`
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.OverrideMethod,
   //       EntityType.OverrideMethod,
@@ -583,7 +583,7 @@ class C {
   //   final String do_not_use;
   // }`
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.OverrideMethod,
   //       EntityType.OverrideMethod,
@@ -618,7 +618,7 @@ class C {
   // 	myFunc                 () => null;
   // }`
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.BuildMethod,
   //       EntityType.OtherMethod,
@@ -635,7 +635,7 @@ class C {
   //   };
   // }`
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.OtherMethod,
   //       EntityType.OtherMethod,
@@ -653,7 +653,7 @@ class C {
   //   source:= basicClasses
   //   wantSource:= basicClassesDefaultOrder
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,                 // line #7: class Class1 {
   //       EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
   //       EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
@@ -714,7 +714,7 @@ class C {
   //   source:= basicClasses
   //   wantSource:= basicClassesCustomOrder
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,                 // line #1: {
   //       EntityType.PrivateInstanceVariable, // line #2:   // _pvi is a private instance variable.
   //       EntityType.PrivateInstanceVariable, // line #3:   List<String> _pvi = ['one', 'two'];
@@ -810,7 +810,7 @@ class C {
   // }
   // `
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.InstanceVariable,
   //       EntityType.InstanceVariable,
@@ -853,7 +853,7 @@ class C {
   //   }
   // }
   // `
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.InstanceVariable,
   //       EntityType.BlankLine,
@@ -897,7 +897,7 @@ class C {
   //         SortOtherMethods: sortOtherMethods,
   // 	}
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.PrivateInstanceVariable,
   //       EntityType.BlankLine,
@@ -938,7 +938,7 @@ class C {
   //         SortOtherMethods: sortOtherMethods,
   // 	}
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.PrivateInstanceVariable,
   //       EntityType.BlankLine,
@@ -979,7 +979,7 @@ class C {
   //         SortOtherMethods: sortOtherMethods,
   // 	}
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.PrivateInstanceVariable,
   //       EntityType.BlankLine,
@@ -1020,7 +1020,7 @@ class C {
   //         SortOtherMethods: sortOtherMethods,
   // 	}
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.PrivateInstanceVariable,
   //       EntityType.BlankLine,
@@ -1067,7 +1067,7 @@ class C {
   //         SortOtherMethods: sortOtherMethods,
   // 	}
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,
   //       EntityType.InstanceVariable,
   //       EntityType.InstanceVariable,
@@ -1116,7 +1116,7 @@ class C {
 
   //   uc:= NewClass(bc, "Class1", bcOCO, bcCCO, false)
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,                 // line #7: class Class1 {
   //       EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
   //       EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
@@ -1190,7 +1190,7 @@ class C {
 
   //   wc:= NewClass(wz, "Class1", wzOCO, wzCCO, false)
 
-  // s conat want: EntityType[] = [
+  // const want: EntityType[] = [
   //     EntityType.Unknown,                 // line #7: class Class1 {
   //       EntityType.PrivateInstanceVariable, // line #8:   // _pvi is a private instance variable.
   //       EntityType.PrivateInstanceVariable, // line #9:   List<String> _pvi = ['one', 'two'];
