@@ -70,4 +70,10 @@ suite('Block Kind Tests', function() {
 
     runFullStylizer(null, source, wantSource, want)
   })
+
+  test('Block kind example stays the same', async () => {
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'block_kind_want.txt'), 'utf8')
+
+    runFullStylizer(null, wantSource, wantSource, null)
+  })
 })

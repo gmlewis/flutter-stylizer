@@ -24,7 +24,7 @@ import { Editor } from '../../../dart/editor'
 import { EntityType } from '../../../dart/entity'
 import { setupEditor } from './editor.test'
 
-export const runParsePhase = (opts: Options | null, source: string, want: EntityType[]): [Client, Class[]] => {
+export const runParsePhase = (opts: Options | null, source: string, want: EntityType[] | null): [Client, Class[]] => {
   let verbose = false
   const testOpts: Options = {
     GroupAndSortGetterMethods: false,
@@ -47,7 +47,7 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
     throw Error(err.message)  // Make the compiler happy.
   }
 
-  if (want.length > 0) {
+  if (want && want.length > 0) {
     assert.strictEqual(got.length, 1, 'getClasses')
     assert.strictEqual(got[0].lines.length, want.length, 'getClasses lines')
 
@@ -61,11 +61,11 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
   return [c, got]
 }
 
-export const runFullStylizer = (opts: Options | null, source: string, wantSource: string, want: EntityType[]): Class[] => {
+export const runFullStylizer = (opts: Options | null, source: string, wantSource: string, want: EntityType[] | null): Class[] => {
   const [c, got] = runParsePhase(opts, source, want)
 
   const edits = c.generateEdits(got)
-  if (want.length > 0) {
+  if (want && want.length > 0) {
     assert.strictEqual(edits.length, 1, 'edits')
   }
 
