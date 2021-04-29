@@ -876,6 +876,46 @@ class Test {
     const source = fs.readFileSync(path.join(testfilesDir, 'issue18.dart.txt'), 'utf8')
     const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue18_case1.txt'), 'utf8')
 
+    const opts = {
+      GroupAndSortGetterMethods: groupAndSortGetterMethods,
+      MemberOrdering: defaultMemberOrdering,
+      SortOtherMethods: sortOtherMethods,
+    }
+
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.PrivateInstanceVariable,
+      EntityType.BlankLine,
+      EntityType.MainConstructor,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.PrivateInstanceVariable,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+    ]
+
+    runFullStylizer(opts, source, wantSource, want)
+  })
+
+  test('Issue#18 - Case 2', () => {
+    const groupAndSortGetterMethods = false
+    const sortOtherMethods = true
+    const source = fs.readFileSync(path.join(testfilesDir, 'issue18.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue18_case2.txt'), 'utf8')
 
     const opts = {
       GroupAndSortGetterMethods: groupAndSortGetterMethods,
@@ -912,128 +952,87 @@ class Test {
     runFullStylizer(opts, source, wantSource, want)
   })
 
-  // test('Issue18Case2', () => {
-  //   const groupAndSortGetterMethods = false
-  //   const sortOtherMethods = true
-  //   source:= issue18_dart_txt
-  //   wantSource:= issue18_case2_txt
+  test('Issue#18 - Case 3', () => {
+    const groupAndSortGetterMethods = true
+    const sortOtherMethods = false
+    const source = fs.readFileSync(path.join(testfilesDir, 'issue18.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue18_case3.txt'), 'utf8')
 
-  //   opts:= & Options{
-  //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
-  //       MemberOrdering: defaultMemberOrdering,
-  //         SortOtherMethods: sortOtherMethods,
-  // 	}
+    const opts = {
+      GroupAndSortGetterMethods: groupAndSortGetterMethods,
+      MemberOrdering: defaultMemberOrdering,
+      SortOtherMethods: sortOtherMethods,
+    }
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.PrivateInstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.MainConstructor,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.PrivateInstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.PrivateInstanceVariable,
+      EntityType.BlankLine,
+      EntityType.MainConstructor,
+      EntityType.BlankLine,
+      EntityType.GetterMethod,
+      EntityType.BlankLine,
+      EntityType.PrivateInstanceVariable,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.GetterMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+    ]
 
-  //   runFullStylizer(t, opts, source, wantSource, want)
-  // }
+    runFullStylizer(opts, source, wantSource, want)
+  })
 
-  // test('Issue18Case3', () => {
-  //   const groupAndSortGetterMethods = true
-  //   const sortOtherMethods = false
-  //   source:= issue18_dart_txt
-  //   wantSource:= issue18_case3_txt
+  test('Issue#18 - Case 4', () => {
+    const groupAndSortGetterMethods = true
+    const sortOtherMethods = true
+    const source = fs.readFileSync(path.join(testfilesDir, 'issue18.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'issue18_case4.txt'), 'utf8')
 
-  //   opts:= & Options{
-  //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
-  //       MemberOrdering: defaultMemberOrdering,
-  //         SortOtherMethods: sortOtherMethods,
-  // 	}
+    const opts = {
+      GroupAndSortGetterMethods: groupAndSortGetterMethods,
+      MemberOrdering: defaultMemberOrdering,
+      SortOtherMethods: sortOtherMethods,
+    }
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.PrivateInstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.MainConstructor,
-  //       EntityType.BlankLine,
-  //       EntityType.GetterMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.PrivateInstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.GetterMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.PrivateInstanceVariable,
+      EntityType.BlankLine,
+      EntityType.MainConstructor,
+      EntityType.BlankLine,
+      EntityType.GetterMethod,
+      EntityType.BlankLine,
+      EntityType.PrivateInstanceVariable,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.GetterMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+    ]
 
-  //   runFullStylizer(t, opts, source, wantSource, want)
-  // }
-
-  // test('Issue18Case4', () => {
-  //   const groupAndSortGetterMethods = true
-  //   const sortOtherMethods = true
-  //   source:= issue18_dart_txt
-  //   wantSource:= issue18_case4_txt
-
-  //   opts:= & Options{
-  //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
-  //       MemberOrdering: defaultMemberOrdering,
-  //         SortOtherMethods: sortOtherMethods,
-  // 	}
-
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.PrivateInstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.MainConstructor,
-  //       EntityType.BlankLine,
-  //       EntityType.GetterMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.PrivateInstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.GetterMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  // 	}
-
-  //   runFullStylizer(t, opts, source, wantSource, want)
-  // }
+    runFullStylizer(opts, source, wantSource, want)
+  })
 
   // //go:embed testfiles/issue19.dart.txt
   // var issue19_dart_txt string
