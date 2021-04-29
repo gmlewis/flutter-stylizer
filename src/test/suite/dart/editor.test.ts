@@ -24,7 +24,7 @@ import { Line } from '../../../dart/line'
 const fs = require('fs')
 const path = require('path')
 
-function setupEditor(searchFor: string, buf: string): [Editor, number, number, number] {
+export function setupEditor(searchFor: string, buf: string): [Editor, number, number, number] {
   const classOffset = buf.indexOf(searchFor)
   const openCurlyOffset = classOffset + searchFor.length - 1
   const closeCurlyOffset = buf[buf.length - 2] === '\r' ? buf.length - 3 : buf.length - 2
