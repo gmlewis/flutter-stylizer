@@ -120,7 +120,7 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
-## 0.1.1
+### 0.1.1
 
 - Complete rewrite of Dart parser to identically match output from
   standalone [Go flutter-stylizer](https://github.com/gmlewis/go-flutter-stylizer).
