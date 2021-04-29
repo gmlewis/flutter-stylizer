@@ -55,7 +55,7 @@ export class Class {
     const numClassLines = p.length
 
     const [lineIndex, /* _unused */] = editor.findLineIndexAtOffset(openCurlyOffset)
-    const classLines = editor.lines.slice(lineIndex, lineIndex + numClassLines - 1)
+    const classLines = editor.lines.slice(lineIndex, lineIndex + numClassLines)
 
     const p0Stripped = p[0].trim()
     classLines[0] = {

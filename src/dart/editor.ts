@@ -71,7 +71,7 @@ export class Editor {
         continue
       }
 
-      this.logf(`\n\nFound new class '${className}' at classOffset=${classOffset}, openCurlyOffset=${openCurlyOffset}, line=${line}`)
+      this.logf(`\n\nFound new class '${className}' at classOffset=${classOffset}, openCurlyOffset=${openCurlyOffset}, line=${line.line}`)
       const pair = this.matchingPairs[openCurlyOffset]
       if (!pair) {
         return [[], Error(`programming error: no matching pair found at openCurlyOffset ${openCurlyOffset}`)]

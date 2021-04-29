@@ -25,13 +25,13 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
   const testOpts: Options = {
     GroupAndSortGetterMethods: false,
     MemberOrdering: defaultMemberOrdering,
-    SortEntityType.OtherMethods: false,
+    SortOtherMethods: false,
     Verbose: false,
   }
   if (opts !== null) {
     testOpts.GroupAndSortGetterMethods = opts.GroupAndSortGetterMethods
     testOpts.MemberOrdering = opts.MemberOrdering
-    testOpts.SortEntityType.OtherMethods = opts.SortEntityType.OtherMethods
+    testOpts.SortOtherMethods = opts.SortOtherMethods
     verbose = opts.Verbose || false
   }
 
@@ -83,7 +83,7 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
 // }
 
 suite('Class Tests', () => {
-  test('ClassesAreFound', () => {
+  test('Classes are found', () => {
     const source = `// test.dart
 class myClass extends Widget {
 
@@ -889,14 +889,14 @@ class myClass extends Widget {
 
 // func TestIssue18Case1(t * testing.T) {
 //   const groupAndSortGetterMethods = false
-//   const sortEntityType.OtherMethods = false
+//   const sortOtherMethods = false
 //   source:= issue18_dart_txt
 //   wantSource:= issue18_case1_txt
 
 //   opts:= & Options{
 //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
 //       MemberOrdering: defaultMemberOrdering,
-//         SortEntityType.OtherMethods: sortEntityType.OtherMethods,
+//         SortOtherMethods: sortOtherMethods,
 // 	}
 
 //   want:= []EntityType{
@@ -930,14 +930,14 @@ class myClass extends Widget {
 
 // func TestIssue18Case2(t * testing.T) {
 //   const groupAndSortGetterMethods = false
-//   const sortEntityType.OtherMethods = true
+//   const sortOtherMethods = true
 //   source:= issue18_dart_txt
 //   wantSource:= issue18_case2_txt
 
 //   opts:= & Options{
 //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
 //       MemberOrdering: defaultMemberOrdering,
-//         SortEntityType.OtherMethods: sortEntityType.OtherMethods,
+//         SortOtherMethods: sortOtherMethods,
 // 	}
 
 //   want:= []EntityType{
@@ -971,14 +971,14 @@ class myClass extends Widget {
 
 // func TestIssue18Case3(t * testing.T) {
 //   const groupAndSortGetterMethods = true
-//   const sortEntityType.OtherMethods = false
+//   const sortOtherMethods = false
 //   source:= issue18_dart_txt
 //   wantSource:= issue18_case3_txt
 
 //   opts:= & Options{
 //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
 //       MemberOrdering: defaultMemberOrdering,
-//         SortEntityType.OtherMethods: sortEntityType.OtherMethods,
+//         SortOtherMethods: sortOtherMethods,
 // 	}
 
 //   want:= []EntityType{
@@ -1012,14 +1012,14 @@ class myClass extends Widget {
 
 // func TestIssue18Case4(t * testing.T) {
 //   const groupAndSortGetterMethods = true
-//   const sortEntityType.OtherMethods = true
+//   const sortOtherMethods = true
 //   source:= issue18_dart_txt
 //   wantSource:= issue18_case4_txt
 
 //   opts:= & Options{
 //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
 //       MemberOrdering: defaultMemberOrdering,
-//         SortEntityType.OtherMethods: sortEntityType.OtherMethods,
+//         SortOtherMethods: sortOtherMethods,
 // 	}
 
 //   want:= []EntityType{
@@ -1059,14 +1059,14 @@ class myClass extends Widget {
 
 // func TestIssue19_FactoryConstructorShouldNotBeDuplicated(t * testing.T) {
 //   const groupAndSortGetterMethods = true
-//   const sortEntityType.OtherMethods = true
+//   const sortOtherMethods = true
 //   source:= issue19_dart_txt
 //   wantSource:= issue19_want_txt
 
 //   opts:= & Options{
 //     GroupAndSortGetterMethods: groupAndSortGetterMethods,
 //       MemberOrdering: defaultMemberOrdering,
-//         SortEntityType.OtherMethods: sortEntityType.OtherMethods,
+//         SortOtherMethods: sortOtherMethods,
 // 	}
 
 //   want:= []EntityType{
