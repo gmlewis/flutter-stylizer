@@ -536,30 +536,30 @@ static PGDateTime parse(String formattedString) =>
     runParsePhase(null, source, want)
   })
 
-  // test('MarkMethodOffsetAlignment', () => {
-  //   source:= `class MarkMethod {
-  //   @override
-  //   // TODO(gmlewis) Implement this by looking in the BUILD file for 'deps'
-  //   //  lists.
-  //   Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
-  //       <String, List<Folder>>{};
-  // }`
+  test('Mark method offset alignment', () => {
+    const source = `class MarkMethod {
+  @override
+  // TODO(gmlewis) Implement this by looking in the BUILD file for 'deps'
+  //  lists.
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      <String, List<Folder>>{};
+}`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.BlankLine,
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.BlankLine,
+    ]
 
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
   // test('MultipleDecorators', () => {
-  //   source:= `class MultipleDecorators {
+  //   const source= `class MultipleDecorators {
   //   @override
   //   @failingTest
   //   @deprecated
@@ -613,7 +613,7 @@ static PGDateTime parse(String formattedString) =>
   // }
 
   // test('WhiteSpaceAfterFunctionNames', () => {
-  //   source:= `class C {
+  //   const source= `class C {
   //   @override Widget build ( BuildContext context ) { }
   // 	myFunc                 () => null;
   // }`
@@ -629,7 +629,7 @@ static PGDateTime parse(String formattedString) =>
   // }
 
   // test('EmbeddedEntityType.MultilineComments', () => {
-  //   source:= `class C {
+  //   const source= `class C {
   //   dynamic /*member: C.x:assigned={a}*/ x = /*declared={a, b}*/ (int a, int b) {
   //     a = 0;
   //   };
