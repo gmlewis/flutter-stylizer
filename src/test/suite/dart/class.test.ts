@@ -838,36 +838,37 @@ class Chat extends Equatable implements SubscriptionObject {
     runParsePhase(null, source, want)
   })
 
-  // test('Issue17FunctionTypeVariableIsNotAFunction', () => {
-  //   const source = `
-  // class Test {
-  //   final String Function() functionName;
+  test('Issue#17 - Function type variable is not a function', () => {
+    const source = `
+class Test {
+  final String Function() functionName;
 
-  //   String fun(){
-  //     return "fun";
-  //   }
+  String fun(){
+    return "fun";
+  }
 
-  //   Function makeAdder(int addBy) {
-  //     return (int i) => addBy + i;
-  //   }
-  // }
-  // `
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.InstanceVariable,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  // 	}
+  Function makeAdder(int addBy) {
+    return (int i) => addBy + i;
+  }
+}
+`
 
-  //   runParsePhase(null, source, want)
-  // }
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.InstanceVariable,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+    ]
+
+    runParsePhase(null, source, want)
+  })
 
   // //go:embed testfiles/issue18.dart.txt
   // var issue18_dart_txt string
