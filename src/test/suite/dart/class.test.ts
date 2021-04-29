@@ -480,61 +480,61 @@ static PGDateTime parse(String formattedString) =>
     runFullStylizer(null, wantSource, wantSource, [])
   })
 
-  // test('OperatorOverrides', () => {
-  //   source:= `class Op {
-  //   @override
-  //   dynamic operator [](int index) => nodes[index].value;
+  test('Operator overrides', () => {
+    const source = `class Op {
+  @override
+  dynamic operator [](int index) => nodes[index].value;
 
-  //   @override
-  //   operator []=(int index, value) {
-  //     throw UnsupportedError('Cannot modify an unmodifiable List');
-  //   }
+  @override
+  operator []=(int index, value) {
+    throw UnsupportedError('Cannot modify an unmodifiable List');
+  }
 
-  //   @override
-  //   bool operator <=(Object other) {
-  //     return true;
-  //   }
+  @override
+  bool operator <=(Object other) {
+    return true;
+  }
 
-  //   @override
-  //   bool operator==(Object other) {
-  //     return true;
-  //   }
+  @override
+  bool operator==(Object other) {
+    return true;
+  }
 
-  //   @override
-  //   bool operator >=(Object other) {
-  //     return true;
-  //   }
-  // }`
+  @override
+  bool operator >=(Object other) {
+    return true;
+  }
+}`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.BlankLine,
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.BlankLine,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.BlankLine,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.BlankLine,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.BlankLine,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.BlankLine,
+    ]
 
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
   // test('MarkMethodOffsetAlignment', () => {
   //   source:= `class MarkMethod {
