@@ -558,75 +558,75 @@ static PGDateTime parse(String formattedString) =>
     runParsePhase(null, source, want)
   })
 
-  // test('MultipleDecorators', () => {
-  //   const source= `class MultipleDecorators {
-  //   @override
-  //   @failingTest
-  //   @deprecated
-  //   test_initializer_literal_map_untyped_empty() async {
-  //     fail('times out.');
-  //   }
+  test('Multiple decorators', () => {
+    const source = `class MultipleDecorators {
+  @override
+  @failingTest
+  @deprecated
+  test_initializer_literal_map_untyped_empty() async {
+    fail('times out.');
+  }
 
-  //   @override _TransformationsDemoState createState() => _TransformationsDemoState();
+  @override _TransformationsDemoState createState() => _TransformationsDemoState();
 
-  //   @Deprecated('do not use this')
-  //   @failingTest
-  //   @override
-  //   test_initializer_literal_map_untyped_empty() async {
-  //     fail('times out.');
-  //   }
+  @Deprecated('do not use this')
+  @failingTest
+  @override
+  test_initializer_literal_map_untyped_empty() async {
+    fail('times out.');
+  }
 
-  //   @ThisDecorator('is'
-  //     'completely'
-  //     'made'
-  //     'up')
-  //   final String do_not_use;
-  // }`
+  @ThisDecorator('is'
+    'completely'
+    'made'
+    'up')
+  final String do_not_use;
+}`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OverrideMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.OverrideMethod,
-  //       EntityType.BlankLine,
-  //       EntityType.InstanceVariable,
-  //       EntityType.InstanceVariable,
-  //       EntityType.InstanceVariable,
-  //       EntityType.InstanceVariable,
-  //       EntityType.InstanceVariable,
-  //       EntityType.BlankLine,
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.BlankLine,
+      EntityType.OverrideMethod,
+      EntityType.BlankLine,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.OverrideMethod,
+      EntityType.BlankLine,
+      EntityType.InstanceVariable,
+      EntityType.InstanceVariable,
+      EntityType.InstanceVariable,
+      EntityType.InstanceVariable,
+      EntityType.InstanceVariable,
+      EntityType.BlankLine,
+    ]
 
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
-  // test('WhiteSpaceAfterFunctionNames', () => {
-  //   const source= `class C {
-  //   @override Widget build ( BuildContext context ) { }
-  // 	myFunc                 () => null;
-  // }`
+  test('White space after function names', () => {
+    const source = `class C {
+  @override Widget build ( BuildContext context ) { }
+  myFunc                 () => null;
+}`
 
-  // const want: EntityType[] = [
-  //     EntityType.Unknown,
-  //       EntityType.BuildMethod,
-  //       EntityType.OtherMethod,
-  //       EntityType.BlankLine,
-  // 	}
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.BuildMethod,
+      EntityType.OtherMethod,
+      EntityType.BlankLine,
+    ]
 
-  //   runParsePhase(null, source, want)
-  // }
+    runParsePhase(null, source, want)
+  })
 
   // test('EmbeddedEntityType.MultilineComments', () => {
   //   const source= `class C {
