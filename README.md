@@ -45,7 +45,9 @@ Without tooling to enforce a consistent style, developing code is less fun.
 Having an automated tool to do this ugly work for you, however, makes
 coding a lot more enjoyable, as you don't have to worry about the rules,
 but can just run the plugin on file save, and the rules are automatically
-enforced.
+enforced. Note that this plugin doesn't natively support format-on-save,
+but you could use another extension... possibly something like this:
+https://marketplace.visualstudio.com/items?itemName=emeraldwalk.RunOnSave
 
 ## Configuration
 
