@@ -9,5 +9,8 @@
     "dart.analysisExcludedFolders": [
       "**/test/**",
       "**"
-    ]
+    ],
+    "files.watcherExclude": {
+      "**/target": true
+    }
 }
