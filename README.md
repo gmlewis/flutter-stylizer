@@ -122,6 +122,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.1.2
+
+- Update dependencies.
+
 ### 0.1.1
 
 - Complete rewrite of Dart parser to identically match output from
