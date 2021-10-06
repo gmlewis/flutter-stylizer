@@ -122,6 +122,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.1.3
+
+- Add plugin icon image.
+
 ### 0.1.2
 
 - Update dependencies.

@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.1.3] - 2021-10-06
+
+- Add plugin icon image.
+
 ## [0.1.2] - 2021-10-05
 
 - Update dependencies.
