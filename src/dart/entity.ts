@@ -23,6 +23,10 @@ export interface Entity {
   name: string, // Used for sorting, but could be "".
 }
 
+export const isPrivate = (entity: Entity): boolean => {
+  return entity.name.startsWith('_')
+}
+
 // EntityType represents a type of Dart Line.
 export enum EntityType {
   Unknown,

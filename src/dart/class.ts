@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 import { Editor } from './editor'
-import { Entity, EntityType } from './entity'
+import { Entity, EntityType, isPrivate } from './entity'
 import { isComment, Line } from './line'
 import { MatchingPair } from './pairs'
 
@@ -44,7 +44,7 @@ export class Class {
   // groupAndSortGetterMethods determines how getter methods are processed.
   constructor(editor: Editor, className: string,
     openCurlyOffset: number, closeCurlyOffset: number,
-    groupAndSortGetterMethods: boolean) {
+    groupAndSortGetterMethods: boolean, separatePrivateMethods: boolean) {
     const lessThanOffset = className.indexOf('<')
     if (lessThanOffset >= 0) { // Strip off <T>.
       className = className.substring(0, lessThanOffset)
@@ -95,6 +95,7 @@ export class Class {
     this.closeCurlyOffset = closeCurlyOffset
 
     this.groupAndSortGetterMethods = groupAndSortGetterMethods
+    this.separatePrivateMethods = separatePrivateMethods
   }
 
   e: Editor
@@ -105,6 +106,7 @@ export class Class {
   openCurlyOffset: number
   closeCurlyOffset: number
   groupAndSortGetterMethods: boolean
+  separatePrivateMethods: boolean
 
   theConstructor: Entity | null = null
   namedConstructors: Entity[] = []
@@ -114,7 +116,8 @@ export class Class {
   staticPrivateVariables: Entity[] = []
   privateVariables: Entity[] = []
   overrideMethods: Entity[] = []
-  otherMethods: Entity[] = []
+  otherAllOrPublicMethods: Entity[] = []
+  otherPrivateMethods: Entity[] = []
   buildMethod: Entity | null = null
   getterMethods: Entity[] = []
 
@@ -566,7 +569,11 @@ export class Class {
 
       switch (entity.entityType) {
         case EntityType.OtherMethod:
-          this.otherMethods.push(entity)
+          if (this.separatePrivateMethods && isPrivate(entity)) {
+            this.otherPrivateMethods.push(entity)
+          } else {
+            this.otherAllOrPublicMethods.push(entity)
+          }
           break
         case EntityType.GetterMethod:
           this.getterMethods.push(entity)

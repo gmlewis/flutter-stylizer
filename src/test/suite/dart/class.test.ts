@@ -30,19 +30,21 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
     GroupAndSortGetterMethods: false,
     MemberOrdering: defaultMemberOrdering,
     SortOtherMethods: false,
+    SeparatePrivateMethods: false,
     Verbose: false,
   }
   if (opts !== null) {
     testOpts.GroupAndSortGetterMethods = opts.GroupAndSortGetterMethods
     testOpts.MemberOrdering = opts.MemberOrdering
     testOpts.SortOtherMethods = opts.SortOtherMethods
+    testOpts.SeparatePrivateMethods = opts.SeparatePrivateMethods
     verbose = opts.Verbose || false
   }
 
   const e = new Editor(source, verbose)
 
   const c = new Client(testOpts)
-  const [got, err] = e.getClasses(testOpts.GroupAndSortGetterMethods || false)
+  const [got, err] = e.getClasses(testOpts.GroupAndSortGetterMethods || false, testOpts.SeparatePrivateMethods || false)
   if (err !== null) {
     throw Error(err.message)  // Make the compiler happy.
   }
@@ -1095,7 +1097,7 @@ class Test {
     const basicClasses = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.txt'), 'utf8')
     const [bc, bcLineOffset, bcOCO, bcCCO] = setupEditor('class Class1 {', basicClasses)
 
-    const uc = new Class(bc, 'Class1', bcOCO, bcCCO, false)
+    const uc = new Class(bc, 'Class1', bcOCO, bcCCO, false, false)
 
     const want: EntityType[] = [
       EntityType.Unknown,                 // line #7: class Class1 {
@@ -1162,7 +1164,7 @@ class Test {
     const bcWindoze = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.windz.txt'), 'utf8')
     const [wz, wzLineOffset, wzOCO, wzCCO] = setupEditor('class Class1 {', bcWindoze)
 
-    const wc = new Class(wz, 'Class1', wzOCO, wzCCO, false)
+    const wc = new Class(wz, 'Class1', wzOCO, wzCCO, false, false)
 
     const want: EntityType[] = [
       EntityType.Unknown,                 // line #7: class Class1 {
