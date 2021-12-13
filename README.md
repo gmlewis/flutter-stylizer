@@ -33,6 +33,8 @@ in the following manner (with a blank line separating these parts):
 * Any other methods are listed next in their original (unchanged) order.
   (As of version `v0.0.19`, two new flags affect this section; see below.)
   - (`public-other-methods` in configuration)
+* If `private-other-methods` is (optionally) specified, these will be sorted
+  separately from `public-other-methods`.
 * The `build` method is listed last.
   - (`build-method` in configuration)
 
@@ -69,6 +71,7 @@ VSCode User Preferences (`Control/Cmd-,`) like this:
       "private-instance-variables",
       "public-override-methods",
       "public-other-methods",
+      "private-other-methods",
       "build-method",
     ],
     "sortOtherMethods": false,
@@ -86,6 +89,10 @@ behavior of the "public-other-methods" as requested in #18:
 
 - `sortOtherMethods` (default: `false`)
   - Whether to sort the 'public-other-methods' within their group.
+
+As of `v0.1.5`, a new `private-other-methods` field was added.
+If not specified, private methods will continue to be grouped within
+the `public-other-methods` section.
 
 These features are experimental and should be used with caution.
 Please file any bugs you find on the [GitHub issue tracker].
@@ -123,6 +130,10 @@ incorporate the fix into the plugin.
   supported even though the Dart compiler can handle it.
 
 ## Release Notes
+
+### 0.1.5
+
+- `private-other-methods` can be added to the member ordering.
 
 ### 0.1.3
 
