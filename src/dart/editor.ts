@@ -53,7 +53,7 @@ export class Editor {
 
   verbose: boolean
 
-  getClasses(groupAndSortGetterMethods: boolean): [Class[], Error | null] {
+  getClasses(groupAndSortGetterMethods: boolean, separatePrivateMethods: boolean): [Class[], Error | null] {
     const classes: Class[] = []
 
     for (let i = 0; i < this.classLineIndices.length; i++) {
@@ -80,7 +80,7 @@ export class Editor {
       const closeCurlyOffset = pair.closeAbsOffset
       this.logf(`\n\nFound end of class '${className}' at closeCurlyOffset=${closeCurlyOffset}`)
 
-      const dartClass = new Class(this, className, openCurlyOffset, closeCurlyOffset, groupAndSortGetterMethods)
+      const dartClass = new Class(this, className, openCurlyOffset, closeCurlyOffset, groupAndSortGetterMethods, separatePrivateMethods)
       const err = dartClass.findFeatures()
       if (err !== null) {
         return [[], err]

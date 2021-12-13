@@ -9,8 +9,10 @@ import { Editor } from './dart/editor'
 
 const validateMemberOrdering = (config: vscode.WorkspaceConfiguration): string[] => {
   const memberOrdering = config.get<string[]>('memberOrdering')
-  if (memberOrdering === null || memberOrdering === undefined || memberOrdering.length !== defaultMemberOrdering.length) {
-    console.log(`flutterStylizer.memberOrdering must have ${defaultMemberOrdering.length} values. Ignoring and using defaults.`)
+  if (memberOrdering === null || memberOrdering === undefined ||
+    memberOrdering.length < defaultMemberOrdering.length - 1 ||
+    memberOrdering.length > defaultMemberOrdering.length) {
+    console.log(`flutterStylizer.memberOrdering must have ${defaultMemberOrdering.length - 1} or ${defaultMemberOrdering.length} values. Ignoring and using defaults.`)
     return defaultMemberOrdering
   }
 
@@ -48,6 +50,8 @@ export function activate(context: vscode.ExtensionContext) {
     const groupAndSortGetterMethods = config.get<boolean>('groupAndSortGetterMethods') || false
     const sortOtherMethods = config.get<boolean>('sortOtherMethods') || false
 
+    const separatePrivateMethods = memberOrdering.includes('private-other-methods')
+
     const document = editor.document
     const source = document.getText()
 
@@ -55,11 +59,12 @@ export function activate(context: vscode.ExtensionContext) {
       GroupAndSortGetterMethods: groupAndSortGetterMethods,
       MemberOrdering: memberOrdering,
       SortOtherMethods: sortOtherMethods,
+      SeparatePrivateMethods: separatePrivateMethods,
     }
 
     const e = new Editor(source, false)
     const c = new Client(opts)
-    const [got, err] = e.getClasses(groupAndSortGetterMethods)
+    const [got, err] = e.getClasses(groupAndSortGetterMethods, separatePrivateMethods)
     if (err !== null) {
       throw Error(err.message)  // Make the compiler happy.
     }

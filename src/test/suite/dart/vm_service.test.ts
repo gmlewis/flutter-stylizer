@@ -36,7 +36,7 @@ suite('VM Service Tests', function() {
 
     const e = new Editor(source, false)
 
-    const [got, err] = e.getClasses(false)
+    const [got, err] = e.getClasses(false, false)
     if (err !== null) {
       throw Error(err.message)  // Make the compiler happy.
     }

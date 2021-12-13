@@ -29,6 +29,7 @@ export interface Options {
   GroupAndSortGetterMethods?: boolean,
   MemberOrdering?: string[],
   SortOtherMethods?: boolean,
+  SeparatePrivateMethods?: boolean,
   Verbose?: boolean,
 }
 
@@ -42,6 +43,7 @@ export const defaultMemberOrdering = [
   'private-instance-variables',
   'public-override-methods',
   'public-other-methods',
+  'private-other-methods',
   'build-method'
 ]
 
@@ -51,6 +53,7 @@ export class Client {
       GroupAndSortGetterMethods: false,
       MemberOrdering: defaultMemberOrdering,
       SortOtherMethods: false,
+      SeparatePrivateMethods: false,
       Verbose: false,
     }
   }
@@ -159,6 +162,14 @@ export class Client {
           dc.overrideMethods.sort(sortFunc)
           addEntities(dc.overrideMethods, true)
           break
+        case 'private-other-methods':
+          if (this.opts.SeparatePrivateMethods) {
+            if (this.opts.SortOtherMethods) {
+              dc.otherPrivateMethods.sort(sortFunc)
+            }
+            addEntities(dc.otherPrivateMethods, true)
+          }
+          break
         case 'public-other-methods':
           if (this.opts.GroupAndSortGetterMethods) {
             dc.getterMethods.sort(sortFunc)
@@ -166,9 +177,9 @@ export class Client {
           }
 
           if (this.opts.SortOtherMethods) {
-            dc.otherMethods.sort(sortFunc)
+            dc.otherAllOrPublicMethods.sort(sortFunc)
           }
-          addEntities(dc.otherMethods, true)
+          addEntities(dc.otherAllOrPublicMethods, true)
 
           // Preserve random single-line and multi-line comments.
           for (let i = 1; i < dc.lines.length; i++) {

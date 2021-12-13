@@ -133,7 +133,7 @@ incorporate the fix into the plugin.
 
 ### 0.1.5
 
-- `private-other-methods` can be added to the member ordering.
+- `private-other-methods` can optionally be added to the member ordering.
 
 ### 0.1.3
 
