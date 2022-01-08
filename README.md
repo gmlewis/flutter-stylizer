@@ -131,6 +131,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### 0.1.6
+
+- Process all `mixin` blocks in addition to all `class` blocks.
+
 ### 0.1.5
 
 - `private-other-methods` can optionally be added to the member ordering.

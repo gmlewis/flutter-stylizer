@@ -35,7 +35,7 @@ interface FindSequenceReturn {
   err: Error | null,
 }
 
-// Class represents a Dart class.
+// Class represents a Dart class or mixin.
 export class Class {
   // editor is the editor used to parse the class.
   // className is the name of the class.
@@ -121,7 +121,7 @@ export class Class {
   buildMethod: Entity | null = null
   getterMethods: Entity[] = []
 
-  static matchClassRE = /^(?:abstract\s+)?class\s+(\S+).*\r?$/
+  static matchClassOrMixinRE = /^(?:abstract\s+)?(?:class|mixin)\s+(\S+).*\r?$/
 
   findFeatures(): Error | null {
     this.lines.forEach((line, i) => {

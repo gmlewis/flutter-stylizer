@@ -6,8 +6,11 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.1.6] - 2022-01-08
 
-## [0.1.5]
+- Process all `mixin` blocks in addition to all `class` blocks.
+
+## [0.1.5] - 2021-12-12
 
 - `private-other-methods` can optionally be added to the member ordering.
 

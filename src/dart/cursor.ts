@@ -608,7 +608,7 @@ export class Cursor {
   //
   // It also detects the start of class lines.
   advanceToNextLine() {
-    const mm = Class.matchClassRE.exec(this.editor.lines[this.lineIndex].line)
+    const mm = Class.matchClassOrMixinRE.exec(this.editor.lines[this.lineIndex].line)
     if (this.lineIndex === 0 && mm) {
       this.classLineIndices.push(this.lineIndex)
     }
@@ -635,7 +635,7 @@ export class Cursor {
       return Error('EOF')
     }
 
-    const mm2 = Class.matchClassRE.exec(this.editor.lines[this.lineIndex].line)
+    const mm2 = Class.matchClassOrMixinRE.exec(this.editor.lines[this.lineIndex].line)
     if (this.atTopOfBraceLevel(0) && mm2) {
       this.classLineIndices.push(this.lineIndex)
     }

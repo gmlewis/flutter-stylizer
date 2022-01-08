@@ -88,6 +88,23 @@ export const runFullStylizer = (opts: Options | null, source: string, wantSource
   return got
 }
 
+suite('Mixin Tests', () => {
+  test('Mixins are found', () => {
+    const source = `// test.dart
+mixin myMixin {
+
+}`
+
+    const want: EntityType[] = [
+      EntityType.Unknown,
+      EntityType.BlankLine,
+      EntityType.BlankLine,
+    ]
+
+    runParsePhase(null, source, want)
+  })
+})
+
 suite('Class Tests', () => {
   const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
 

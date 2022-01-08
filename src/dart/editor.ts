@@ -59,7 +59,7 @@ export class Editor {
     for (let i = 0; i < this.classLineIndices.length; i++) {
       const lineIndex = this.classLineIndices[i]
       const line = this.lines[lineIndex]
-      const mm = Class.matchClassRE.exec(line.line)
+      const mm = Class.matchClassOrMixinRE.exec(line.line)
       if (!mm || mm.length !== 2) {
         return [[], Error(`programming error: expected class on line #${lineIndex + 1}, got '${line.line}'`)]
       }
