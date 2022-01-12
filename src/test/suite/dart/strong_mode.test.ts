@@ -15,15 +15,18 @@ limitations under the License.
 */
 
 import * as assert from 'assert'
-const fs = require('fs')
-const path = require('path')
+import * as vscode from 'vscode'
 
 import { Editor } from '../../../dart/editor'
 import { EntityType } from '../../../dart/entity'
 import { runParsePhase } from './class.test'
 
+const fs = require('fs')
+const path = require('path')
+
 suite('Strong Mode Tests', function() {
-  const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
+  var myExtDir = (vscode.extensions.getExtension('gmlewis-vscode.flutter-stylizer') || {}).extensionPath || process.env.VSCODE_CWD
+  const testfilesDir = path.join(myExtDir, 'src', 'test', 'suite', 'testfiles')
 
   test('Scope get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'strong_mode.dart.txt'), 'utf8')

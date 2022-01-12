@@ -15,11 +15,12 @@ limitations under the License.
 */
 
 import * as assert from 'assert'
+import * as vscode from 'vscode'
+
 import { Editor } from '../../../dart/editor'
 import { EntityType } from '../../../dart/entity'
 import { Line } from '../../../dart/line'
 
-// import * as vscode from 'vscode'
 // import * as stylizer from '../../extension'
 const fs = require('fs')
 const path = require('path')
@@ -54,7 +55,8 @@ export function setupEditor(searchFor: string, buf: string): [Editor, number, nu
 
 // Defines a Mocha test suite to group tests of similar kind together
 suite('DartEditor Parsing Tests', function() {
-  const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
+  var myExtDir = (vscode.extensions.getExtension('gmlewis-vscode.flutter-stylizer') || {}).extensionPath || process.env.VSCODE_CWD
+  const testfilesDir = path.join(myExtDir, 'src', 'test', 'suite', 'testfiles')
   const basicClasses = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.txt'), 'utf8')
   const bcWindoze = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.windz.txt'), 'utf8')
   const utf8Text = fs.readFileSync(path.join(testfilesDir, 'utf8_text.dart.txt'), 'utf8')

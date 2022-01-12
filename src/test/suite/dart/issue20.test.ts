@@ -14,14 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-const fs = require('fs')
-const path = require('path')
+import * as vscode from 'vscode'
 
 import { EntityType } from '../../../dart/entity'
 import { runFullStylizer } from './class.test'
 
+const fs = require('fs')
+const path = require('path')
+
 suite('Issue#20 Tests', function() {
-  const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
+  var myExtDir = (vscode.extensions.getExtension('gmlewis-vscode.flutter-stylizer') || {}).extensionPath || process.env.VSCODE_CWD
+  const testfilesDir = path.join(myExtDir, 'src', 'test', 'suite', 'testfiles')
 
   test('Issue#20: spurious lines should not be added', () => {
     const groupAndSortGetterMethods = false

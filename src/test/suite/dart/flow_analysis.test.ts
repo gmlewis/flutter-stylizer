@@ -15,13 +15,16 @@ limitations under the License.
 */
 
 import * as assert from 'assert'
-const fs = require('fs')
-const path = require('path')
+import * as vscode from 'vscode'
 
 import { Editor } from '../../../dart/editor'
 
+const fs = require('fs')
+const path = require('path')
+
 suite('Flow Analysis Tests', function() {
-  const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
+  var myExtDir = (vscode.extensions.getExtension('gmlewis-vscode.flutter-stylizer') || {}).extensionPath || process.env.VSCODE_CWD
+  const testfilesDir = path.join(myExtDir, 'src', 'test', 'suite', 'testfiles')
 
   test('Flow analysis get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'flow_analysis.dart.txt'), 'utf8')

@@ -1,0 +1,24 @@
+import 'package:flutter/material.dart';
+import 'package:ocean/ocean.dart';
+import 'snackbars.dart';
+
+class SnackbarService {
+  SnackbarService();
+
+  final GlobalKey<ScaffoldMessengerState> snackbarKey = GlobalKey<ScaffoldMessengerState>();
+
+  final Map<dynamic, SnackBar Function(SnackBarConfigBase)> _snackbars = {};
+
+  bool containsKey(dynamic key) {
+    return _snackbars.containsKey(key);
+  }
+
+  SnackBar Function(SnackBarConfigBase) getSnackbar(dynamic key) {
+    return _snackbars[key]!;
+  }
+
+  void registerSnackbar(
+      {required dynamic key, required SnackBar Function(SnackBarConfigBase) snackbarBuilder}) {
+    _snackbars[key] = snackbarBuilder;
+  }
+}

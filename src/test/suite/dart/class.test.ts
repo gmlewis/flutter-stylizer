@@ -15,14 +15,16 @@ limitations under the License.
 */
 
 import * as assert from 'assert'
-const fs = require('fs')
-const path = require('path')
+import * as vscode from 'vscode'
 
 import { Class } from '../../../dart/class'
 import { defaultMemberOrdering, Client, Options } from '../../../dart/dart'
 import { Editor } from '../../../dart/editor'
 import { EntityType } from '../../../dart/entity'
 import { setupEditor } from './editor.test'
+
+const fs = require('fs')
+const path = require('path')
 
 export const runParsePhase = (opts: Options | null, source: string, want: EntityType[] | null): [Client, Class[]] => {
   let verbose = false
@@ -53,10 +55,16 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
     assert.strictEqual(got.length, 1, 'getClasses')
     assert.strictEqual(got[0].lines.length, want.length, 'getClasses lines')
 
+    // if (source.includes('Issue26')) {
+    //   for (let i = 0; i < got[0].lines.length; i++) {
+    //     const line = got[0].lines[i]
+    //     console.log(`EntityType.${EntityType[line.entityType]}, // line #${line.originalIndex + 1}: ${line.line}`)
+    //   }
+    // }
+
     for (let i = 0; i < got[0].lines.length; i++) {
       const line = got[0].lines[i]
-      // fmt.Printf("%v, // line #%v: %v\n", line.entityType, line.originalIndex+1, line.line)
-      assert.strictEqual(line.entityType, want[i], `entitype: line #${line.originalIndex + 1}: ${line.line}`)
+      assert.strictEqual(EntityType[line.entityType], EntityType[want[i]], `entitype: line #${line.originalIndex + 1}: ${line.line}`)
     }
   }
 
@@ -106,7 +114,8 @@ mixin myMixin {
 })
 
 suite('Class Tests', () => {
-  const testfilesDir = path.join(process.env.VSCODE_CWD, 'src', 'test', 'suite', 'testfiles')
+  var myExtDir = (vscode.extensions.getExtension('gmlewis-vscode.flutter-stylizer') || {}).extensionPath || process.env.VSCODE_CWD
+  const testfilesDir = path.join(myExtDir, 'src', 'test', 'suite', 'testfiles')
 
   test('Classes are found', () => {
     const source = `// test.dart

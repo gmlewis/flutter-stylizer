@@ -1,0 +1,6 @@
+class Issue26 {
+  final Map<dynamic, Widget Function(DialogRequest)> _dialogs = {};
+  late Function(DialogRequest) _dialogHandler;
+  late Completer<DialogReponse>? _dialogCompleter;
+  late final NavigatorService _navigatorService;
+}
