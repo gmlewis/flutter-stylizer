@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.1.7] - 2022-01-12
+
+- Fix [issue #26](https://github.com/gmlewis/flutter-stylizer/issues/26) caused by `Function()`.
+
 ## [0.1.6] - 2022-01-08
 
 - Process all `mixin` blocks in addition to all `class` blocks.

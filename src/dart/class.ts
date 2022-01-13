@@ -37,20 +37,28 @@ interface FindSequenceReturn {
 
 // exported for testing purposes:
 export const findSequenceAndLeadingText = (features: string) => {
+  // two special cases to ignore:
+  const sc1 = ' Function()> '
+  const sc2 = ' Function() '
+  // Note that these should be 'replaceAll' but am not sure if
+  // the VSCode extension compiler can be set to es2021:
+  const modified = features.replace(sc1, ' '.repeat(sc1.length))
+    .replace(sc2, ' '.repeat(sc2.length))
+
   let sequence = ''
   let buildLeadingText = true
   let buildStr = ''
-  Array.from(features).forEach((f, i) => {
+  Array.from(modified).forEach((f, i) => {
     if (/[\(\)\[\]\{\}\=\;]/g.test(f)) {
       buildLeadingText = false
-      if (f === '=' && i < features.length - 1 && features[i + 1] === '>') {
+      if (f === '=' && i < modified.length - 1 && modified[i + 1] === '>') {
         sequence += '=>'
         return
       }
       sequence += f
     }
     if (buildLeadingText) {
-      buildStr += f
+      buildStr += features.substring(i, i + 1)
     }
   })
   const leadingText = buildStr.trim()
@@ -725,25 +733,9 @@ export class Class {
     }
     const features = resFeatures || ''
     const lineIndex = classLineNum || 0
-
-    let sequence = ''
-    let buildLeadingText = true
-    let buildStr = ''
-    Array.from(features).forEach((f, i) => {
-      if (/[\(\)\[\]\{\}\=\;]/g.test(f)) {
-        buildLeadingText = false
-        if (f === '=' && i < features.length - 1 && features[i + 1] === '>') {
-          sequence += '=>'
-          return
-        }
-        sequence += f
-      }
-      if (buildLeadingText) {
-        buildStr += f
-      }
-    })
-    const leadingText = buildStr.trim()
     const lineCount = lineIndex - lineNum + 1
+
+    const { sequence, leadingText } = findSequenceAndLeadingText(features)
 
     return { sequence, lineCount, leadingText, err: null }
   }
