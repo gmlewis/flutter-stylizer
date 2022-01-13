@@ -35,6 +35,28 @@ interface FindSequenceReturn {
   err: Error | null,
 }
 
+// exported for testing purposes:
+export const findSequenceAndLeadingText = (features: string) => {
+  let sequence = ''
+  let buildLeadingText = true
+  let buildStr = ''
+  Array.from(features).forEach((f, i) => {
+    if (/[\(\)\[\]\{\}\=\;]/g.test(f)) {
+      buildLeadingText = false
+      if (f === '=' && i < features.length - 1 && features[i + 1] === '>') {
+        sequence += '=>'
+        return
+      }
+      sequence += f
+    }
+    if (buildLeadingText) {
+      buildStr += f
+    }
+  })
+  const leadingText = buildStr.trim()
+  return { sequence, leadingText }
+}
+
 // Class represents a Dart class or mixin.
 export class Class {
   // editor is the editor used to parse the class.
@@ -697,8 +719,6 @@ export class Class {
   }
 
   findSequence(lineNum: number): FindSequenceReturn {
-    let sequence = ''
-
     const { features: resFeatures, classLineNum, err } = this.findNext(lineNum, ';', '}')
     if (err !== null || resFeatures === '') {
       return { err: Error(`findNext: ${err} `) }
@@ -706,6 +726,7 @@ export class Class {
     const features = resFeatures || ''
     const lineIndex = classLineNum || 0
 
+    let sequence = ''
     let buildLeadingText = true
     let buildStr = ''
     Array.from(features).forEach((f, i) => {
