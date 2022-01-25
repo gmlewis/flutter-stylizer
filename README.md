@@ -97,6 +97,47 @@ the `public-other-methods` section.
 These features are experimental and should be used with caution.
 Please file any bugs you find on the [GitHub issue tracker].
 
+## Run Flutter Stylizer on all files - Option 1
+
+If you want a super-fast way to process all files in a very large project,
+and aren't averse to the command-line terminal (:smile:) please remember
+to check out the stand-alone command-line companion tool:
+https://github.com/gmlewis/go-flutter-stylizer
+
+## Run Flutter Stylizer on all files - Option 2
+
+If you install the [Command on All Files](https://marketplace.visualstudio.com/items?itemName=rioj7.commandOnAllFiles)
+VSCode extension, you can then run the Flutter Stylizer on all files
+within your project.
+
+To do so, edit your VSCode `settings.json` file and add this section:
+
+```json
+"commandOnAllFiles.commands": {
+    "Format File": {
+        "command": "editor.action.formatDocument",
+        "includeFileExtensions": [
+            ".dart"
+        ]
+    },
+    "Flutter Stylizer": {
+        "command": "extension.flutterStylizer",
+        "includeFileExtensions": [
+            ".dart"
+        ]
+    }
+}
+```
+
+Then run the command "Flutter Stylizer" and all `.dart` files in your project
+will be stylized.
+
+Note that this command can take upwards of 20 seconds just to get going due
+to the time it takes to scan your project for `.dart` files.
+
+Many thanks to `@longtimedeveloper` for this
+[recommendation](https://github.com/gmlewis/flutter-stylizer/issues/23#issuecomment-1014781798)!
+
 ## Limitations
 
 This plugin does not have a full-featured Dart syntax tree parser.
