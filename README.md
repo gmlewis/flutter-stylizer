@@ -1,6 +1,6 @@
 # flutter-stylizer README
 
-[![CodeQL](https://github.com/gmlewis/flutter-stylizer/actions/workflows/codeql-analysis.yml/badge.png)](https://github.com/gmlewis/flutter-stylizer/actions/workflows/codeql-analysis.yml)
+[![CodeQL](https://github.com/gmlewis/flutter-stylizer/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/gmlewis/flutter-stylizer/actions/workflows/codeql-analysis.yml)
 
 Flutter Stylizer is a VSCode extension that organizes your Flutter classes
 in an opinionated and consistent manner.
