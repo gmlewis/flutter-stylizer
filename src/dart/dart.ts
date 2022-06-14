@@ -164,11 +164,10 @@ export class Client {
           addEntities(dc.staticVariables, false)
           break
         case 'public-instance-variables':
+          dc.instanceVariables.sort(sortFunc)
           if (this.opts.GroupAndSortVariableTypes) {
-            dc.instanceVariables.sort(sortFunc)
             addEntitiesByVarTypes(dc.instanceVariables)
           } else {
-            dc.instanceVariables.sort(sortFunc)
             addEntities(dc.instanceVariables, false)
           }
           break
