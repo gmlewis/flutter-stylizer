@@ -1,0 +1,15 @@
+class SnackbarService {
+  SnackbarService();
+
+  final varA1 = 'varA1';
+  final varB1 = 'varB1';
+  final varC1 = 'varC1';
+
+  String varA3 = 'varA3';
+  String varB3 = 'varB3';
+  String varC3 = 'varC3';
+
+  String? varA2;
+  String? varB2;
+  String? varC2;
+}

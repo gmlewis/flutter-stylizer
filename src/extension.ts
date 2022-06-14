@@ -48,6 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
     const memberOrdering = validateMemberOrdering(config)
 
     const groupAndSortGetterMethods = config.get<boolean>('groupAndSortGetterMethods') || false
+    const groupAndSortVariableTypes = config.get<boolean>('groupAndSortVariableTypes') || false
     const sortOtherMethods = config.get<boolean>('sortOtherMethods') || false
 
     const separatePrivateMethods = memberOrdering.includes('private-other-methods')
@@ -57,6 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const opts: Options = {
       GroupAndSortGetterMethods: groupAndSortGetterMethods,
+      GroupAndSortVariableTypes: groupAndSortVariableTypes,
       MemberOrdering: memberOrdering,
       SortOtherMethods: sortOtherMethods,
       SeparatePrivateMethods: separatePrivateMethods,
