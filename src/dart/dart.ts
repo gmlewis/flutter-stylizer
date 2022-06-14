@@ -27,6 +27,7 @@ export interface Edit {
 
 export interface Options {
   GroupAndSortGetterMethods?: boolean,
+  GroupAndSortVariableTypes?: boolean,
   MemberOrdering?: string[],
   SortOtherMethods?: boolean,
   SeparatePrivateMethods?: boolean,
@@ -51,6 +52,7 @@ export class Client {
   constructor(opts: Options | null) {
     this.opts = opts || {
       GroupAndSortGetterMethods: false,
+      GroupAndSortVariableTypes: false,
       MemberOrdering: defaultMemberOrdering,
       SortOtherMethods: false,
       SeparatePrivateMethods: false,
@@ -115,6 +117,25 @@ export class Client {
       }
     }
 
+    const addEntitiesByVarTypes = (entities: Entity[]) => {
+      const finalVars: Entity[] = []
+      const normalVars: Entity[] = []
+      const optionalVars: Entity[] = []
+      entities.forEach((e) => {
+        const stripped = e.lines[0].stripped
+        if (stripped.includes('final ')) {
+          finalVars.push(e)
+        } else if (stripped.includes('?')) {
+          optionalVars.push(e)
+        } else {
+          normalVars.push(e)
+        }
+      })
+      if (finalVars.length > 0) { addEntities(finalVars, false) }
+      if (normalVars.length > 0) { addEntities(normalVars, false) }
+      if (optionalVars.length > 0) { addEntities(optionalVars, false) }
+    }
+
     // const sortFunc = (a: Entity, b: Entity) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
     const sortFunc = (a: Entity, b: Entity) => a.name === b.name ? 0 : a.name < b.name ? -1 : 1
 
@@ -144,7 +165,11 @@ export class Client {
           break
         case 'public-instance-variables':
           dc.instanceVariables.sort(sortFunc)
-          addEntities(dc.instanceVariables, false)
+          if (this.opts.GroupAndSortVariableTypes) {
+            addEntitiesByVarTypes(dc.instanceVariables)
+          } else {
+            addEntities(dc.instanceVariables, false)
+          }
           break
         case 'public-override-variables':
           dc.overrideVariables.sort(sortFunc)

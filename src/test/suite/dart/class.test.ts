@@ -30,6 +30,7 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
   let verbose = false
   const testOpts: Options = {
     GroupAndSortGetterMethods: false,
+    GroupAndSortVariableTypes: false,
     MemberOrdering: defaultMemberOrdering,
     SortOtherMethods: false,
     SeparatePrivateMethods: false,
@@ -37,6 +38,7 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
   }
   if (opts !== null) {
     testOpts.GroupAndSortGetterMethods = opts.GroupAndSortGetterMethods
+    testOpts.GroupAndSortVariableTypes = opts.GroupAndSortVariableTypes || false
     testOpts.MemberOrdering = opts.MemberOrdering
     testOpts.SortOtherMethods = opts.SortOtherMethods
     testOpts.SeparatePrivateMethods = opts.SeparatePrivateMethods
@@ -53,14 +55,14 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
 
   if (want && want.length > 0) {
     assert.strictEqual(got.length, 1, 'getClasses')
-    assert.strictEqual(got[0].lines.length, want.length, 'getClasses lines')
 
-    // if (source.includes('Issue26')) {
-    //   for (let i = 0; i < got[0].lines.length; i++) {
-    //     const line = got[0].lines[i]
-    //     console.log(`EntityType.${EntityType[line.entityType]}, // line #${line.originalIndex + 1}: ${line.line}`)
-    //   }
-    // }
+    if (got[0].lines.length !== want.length) {
+      for (let i = 0; i < got[0].lines.length; i++) {
+        const line = got[0].lines[i]
+        console.log(`EntityType.${EntityType[line.entityType]}, // line #${line.originalIndex + 1}: ${line.line}`)
+      }
+    }
+    assert.strictEqual(got[0].lines.length, want.length, 'getClasses lines')
 
     for (let i = 0; i < got[0].lines.length; i++) {
       const line = got[0].lines[i]
@@ -82,6 +84,9 @@ export const runFullStylizer = (opts: Options | null, source: string, wantSource
   const newBuf = c.rewriteClasses(source, edits)
   const gotLines = newBuf.split('\n')
   const wantLines = wantSource.split('\n')
+  if (gotLines.length !== wantLines.length) {
+    console.log(gotLines)
+  }
   assert.strictEqual(gotLines.length, wantLines.length, `rewriteClasses: newBuf=${newBuf}`)
 
   for (let i = 0; i < gotLines.length; i++) {

@@ -6,6 +6,11 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.1.8] - 2022-06-14
+
+- Add new option [issue #31](https://github.com/gmlewis/flutter-stylizer/issues/31):
+  - `groupAndSortVariableTypes` (default: `false`)
+
 ## [0.1.7] - 2022-01-12
 
 - Fix [issue #26](https://github.com/gmlewis/flutter-stylizer/issues/26) caused by `Function()`.
