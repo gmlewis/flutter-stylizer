@@ -21,6 +21,7 @@ in the following manner (with a blank line separating these parts):
 * Any static (class) variables are listed next, in sorted order.
   - (`public-static-variables` in configuration)
 * Any instance variables are listed next, in sorted order.
+  (As of version `v0.1.8`, a new option flag affects this section; see below.)
   - (`public-instance-variables` in configuration)
 * Any `@override` variables are listed next, in sorted order.
   - (`public-override-variables` in configuration)
@@ -31,7 +32,7 @@ in the following manner (with a blank line separating these parts):
 * Any `@override` methods are listed next, in sorted order.
   - (`public-override-methods` in configuration)
 * Any other methods are listed next in their original (unchanged) order.
-  (As of version `v0.0.19`, two new flags affect this section; see below.)
+  (As of version `v0.0.19`, two new option flags affect this section; see below.)
   - (`public-other-methods` in configuration)
 * If `private-other-methods` is (optionally) specified, these will be sorted
   separately from `public-other-methods`.
@@ -52,6 +53,8 @@ but can just run the plugin on file save, and the rules are automatically
 enforced. Note that this plugin doesn't natively support format-on-save,
 but you could use another extension... possibly something like this:
 https://marketplace.visualstudio.com/items?itemName=emeraldwalk.RunOnSave
+or you could use the stand-alone [Go flutter-stylizer]
+in your GitHub Actions or CI pipeline to perform this action for you.
 
 ## Configuration
 
@@ -81,7 +84,9 @@ VSCode User Preferences (`Control/Cmd-,`) like this:
 
 And then rearrange member names as desired.
 
-Note that as of `v0.0.19`, two new flags were added to modify the
+### Other option flags
+
+Note that as of `v0.0.19`, two new option flags were added to modify the
 behavior of the "public-other-methods" as requested in #18:
 
 - `groupAndSortGetterMethods` (default: `false`)
@@ -166,6 +171,7 @@ incorporate the fix into the plugin.
 ***Please remember to state which version of the plugin you are using and include your configuration settings!***
 
 [GitHub issue tracker]: https://github.com/gmlewis/flutter-stylizer/issues
+[Go flutter-stylizer]: https://github.com/gmlewis/go-flutter-stylizer
 
 ## Known Issues
 
