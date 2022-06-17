@@ -185,6 +185,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### v0.1.9
+
+- Add sponsorship ability.
+
 ### v0.1.8
 
 - Add new option [issue #31](https://github.com/gmlewis/flutter-stylizer/issues/31):

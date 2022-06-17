@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.1.9] - 2022-06-17
+
+- Add sponsorship ability.
+
 ## [0.1.8] - 2022-06-14
 
 - Add new option [issue #31](https://github.com/gmlewis/flutter-stylizer/issues/31):
