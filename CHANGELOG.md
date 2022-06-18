@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.1.10] - 2022-06-17
+
+- Update vsce version to 2.9.1.
+
 ## [0.1.9] - 2022-06-17
 
 - Add sponsorship ability.

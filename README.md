@@ -185,6 +185,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### v0.1.10
+
+- Update vsce version.
+
 ### v0.1.9
 
 - Add sponsorship ability.
