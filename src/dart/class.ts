@@ -214,6 +214,9 @@ export class Class {
     return null
   }
 
+  static ternary1RE = /\?\s+\{/
+  static ternary2RE = /:\s+\{/
+
   // findNext finds the next occurrence of one of the searchFor terms
   // within the classLevelText (possibly spanning multiple lines).
   //
@@ -229,6 +232,11 @@ export class Class {
     for (let classLineNum = lineNum; classLineNum < this.lines.length; classLineNum++) {
       const line = this.lines[classLineNum]
       features += line.classLevelText
+      if (!line.classLevelText) {
+        features += ' '
+        continue
+      }
+
       let classLevelIndex = -1
       let s = ''
       for (let si = 0; si < searchFor.length; si++) {
@@ -241,12 +249,19 @@ export class Class {
           continue
         }
 
+        // If the matched "ending" item is a "}"
+        // and before that we found a "?" followed by a "{",
+        // then we need to keep reading and find a ":" followed by another "}".
+        if (ss === '}' && features.match(Class.ternary1RE) && !features.match(Class.ternary2RE)) {
+          continue
+        }
+
         classLevelIndex = i
         s = ss
       }
 
       if (classLevelIndex >= 0) {
-        const i = features.indexOf(s)
+        const i = features.lastIndexOf(s)
         if (i > 0) {
           features = features.slice(0, i + s.length)
         }
@@ -506,7 +521,8 @@ export class Class {
       }
 
       if (features.endsWith('(')) {
-        const name = f(features.length - 1)
+        // There might be multiple parens, so find the first one to get the name:
+        const name = f(features.indexOf('('))
         const entityType = name === 'build' ? EntityType.BuildMethod : EntityType.OverrideMethod
 
         this.e.logf(`identifyOverrideMethodsAndVars: calling markMethod(line #${i + 1}, name = '${name}', ${entityType}), line = '${this.lines[i].line}'`)

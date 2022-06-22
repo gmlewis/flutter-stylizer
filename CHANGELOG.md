@@ -6,6 +6,10 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.1.11] - 2022-06-22
+
+- Fix [issue #6](https://github.com/gmlewis/go-flutter-stylizer/issues/6).
+
 ## [0.1.10] - 2022-06-17
 
 - Update vsce version to 2.9.1.
