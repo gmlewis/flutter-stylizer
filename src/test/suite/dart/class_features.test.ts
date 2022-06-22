@@ -16466,6 +16466,18 @@ suite('Class Features Tests', () => {
         sequence: "(){}",
         leadingText: "String toString",
       },
+      {
+        features: `final Map<String, dynamic> _initialValues = kReleaseMode ? {} : { 'a':'b' };`,
+        sequence: "={}{};",
+        leadingText: "final Map<String, dynamic> _initialValues",
+      },
+      {
+        features: `final Map<String, dynamic> _initialValues = kReleaseMode
+         ? {}
+         : { 'a':'b' };`,
+        sequence: "={}{};",
+        leadingText: "final Map<String, dynamic> _initialValues",
+      },
     ]
 
     tests.forEach((tt) => {

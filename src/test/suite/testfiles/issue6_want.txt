@@ -1,0 +1,12 @@
+class MyClass {
+  static const kReleaseMode = true;
+
+  final Map<String, dynamic> _initialValues = kReleaseMode
+      ? {}
+      : {
+          'hubType': 'test',
+          'ht.localIP': '192.168.1.1',
+          'ht.makerAppID': '2233',
+          'ht.accessToken': '7de3-yyyyyy-xxxxxxxxxxx',
+        };
+}
