@@ -15,11 +15,13 @@ limitations under the License.
 */
 
 import { Class } from './class'
+import { Editor } from './editor'
 import { Entity } from './entity'
 import { isComment } from './line'
 
 // Edit represents an edit of an editor buffer.
 export interface Edit {
+  dc: Class,
   startPos: number,
   endPos: number,
   text: string,
@@ -29,6 +31,7 @@ export interface Options {
   GroupAndSortGetterMethods?: boolean,
   GroupAndSortVariableTypes?: boolean,
   MemberOrdering?: string[],
+  SortClassesWithinFile?: boolean,
   SortOtherMethods?: boolean,
   SeparatePrivateMethods?: boolean,
   Verbose?: boolean,
@@ -49,20 +52,24 @@ export const defaultMemberOrdering = [
 ]
 
 export class Client {
-  constructor(opts: Options | null) {
+  constructor(editor: Editor, opts: Options | null) {
+    this.editor = editor
     this.opts = opts || {
       GroupAndSortGetterMethods: false,
       GroupAndSortVariableTypes: false,
       MemberOrdering: defaultMemberOrdering,
+      SortClassesWithinFile: false,
       SortOtherMethods: false,
       SeparatePrivateMethods: false,
       Verbose: false,
     }
   }
+  editor: Editor
   opts: Options
 
   generateEdits(classes: Class[]): Edit[] {
     const edits: Edit[] = []
+    const allClasses: Edit[] = []
 
     for (let i = classes.length - 1; i >= 0; i--) {
       const dc = classes[i]
@@ -70,20 +77,53 @@ export class Client {
       const endPos = dc.closeCurlyOffset
 
       const [lines, changesMade] = this.reorderClass(dc)
-      if (!changesMade) {
-        continue
-      }
 
       const edit: Edit = {
+        dc: dc,
         startPos: startPos,
         endPos: endPos,
         text: lines.join('\n'),
       }
 
-      edits.push(edit)
+      allClasses.push(edit)
+      if (changesMade) { edits.push(edit) }
+    }
+
+    if (this.opts.SortClassesWithinFile) {
+      return this.sortClassesWithinFile(edits, allClasses)
     }
 
     return edits
+  }
+
+  sortClassesWithinFile(edits: Edit[], allClasses: Edit[]): Edit[] {
+    const isSorted = allClasses.every((v, i, a) => !i || a[i - 1].dc.className > v.dc.className)
+    if (isSorted) { return edits }
+
+    const gt = (a: Edit, b: Edit) => a.dc.className === b.dc.className ? 0 : a.dc.className < b.dc.className ? 1 : -1
+
+    allClasses.sort(gt)
+    const rev = Array.from(allClasses)
+    rev.reverse()
+
+    const result: Edit[] = []
+    for (let i in allClasses) {
+      const cl = allClasses[i]
+      // log.Printf("i=%v, className=%q, old: startPos=%v, endPos=%v, new: startPos=%v, endPos=%v", i, cl.dc.className, cl.startPos, cl.endPos, rev[i].startPos, rev[i].endPos)
+      const csp = this.editor.findClassAbsoluteStart(cl.dc)
+      // log.Printf("i=%v, csp=%v\n%s%s", i, csp,
+      const rcsp = this.editor.findClassAbsoluteStart(rev[i].dc)
+      // log.Printf("i=%v, rcsp=%v\n%s%s", i, rcsp, c.editor.fullBuf[rcsp:rev[i].startPos], rev[i].text)
+
+      result.push({
+        dc: cl.dc,
+        startPos: rcsp,
+        endPos: rev[i].endPos,
+        text: this.editor.fullBuf.substring(csp, cl.startPos) + cl.text,
+      })
+    }
+
+    return result
   }
 
   reorderClass(dc: Class): [string[], boolean] {

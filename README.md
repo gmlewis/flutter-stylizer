@@ -78,6 +78,7 @@ VSCode User Preferences (`Control/Cmd-,`) like this:
       "private-other-methods",
       "build-method",
     ],
+    "sortClassesWithinFile": false,
     "sortOtherMethods": false,
   }
 ```
@@ -105,6 +106,11 @@ As of `v0.1.8`, a new option flag was added:
 - `groupAndSortVariableTypes` (default: `false`)
   - Whether to group public variables separately by type and sort
     them within their groups. Types are: "final", "optional" (`?`), and "normal".
+
+As of `v0.1.12`, a new option flag was added:
+
+- `sortClassesWithinFile` (default: `false`)
+  - Whether to sort multiple classes within each file.
 
 These features are experimental and should be used with caution.
 Please file any bugs you find on the [GitHub issue tracker].
@@ -184,6 +190,11 @@ incorporate the fix into the plugin.
   supported even though the Dart compiler can handle it.
 
 ## Release Notes
+
+### v0.1.12
+
+- Add new option [issue #8](https://github.com/gmlewis/go-flutter-stylizer/issues/8):
+  - `sortClassesWithinFile` (default: `false`)
 
 ### v0.1.11
 

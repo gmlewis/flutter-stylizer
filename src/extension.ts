@@ -49,6 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const groupAndSortGetterMethods = config.get<boolean>('groupAndSortGetterMethods') || false
     const groupAndSortVariableTypes = config.get<boolean>('groupAndSortVariableTypes') || false
+    const sortClassesWithinFile = config.get<boolean>('sortClassesWithinFile') || false
     const sortOtherMethods = config.get<boolean>('sortOtherMethods') || false
 
     const separatePrivateMethods = memberOrdering.includes('private-other-methods')
@@ -60,12 +61,13 @@ export function activate(context: vscode.ExtensionContext) {
       GroupAndSortGetterMethods: groupAndSortGetterMethods,
       GroupAndSortVariableTypes: groupAndSortVariableTypes,
       MemberOrdering: memberOrdering,
+      SortClassesWithinFile: sortClassesWithinFile,
       SortOtherMethods: sortOtherMethods,
       SeparatePrivateMethods: separatePrivateMethods,
     }
 
     const e = new Editor(source, false)
-    const c = new Client(opts)
+    const c = new Client(e, opts)
     const [got, err] = e.getClasses(groupAndSortGetterMethods, separatePrivateMethods)
     if (err !== null) {
       throw Error(err.message)  // Make the compiler happy.

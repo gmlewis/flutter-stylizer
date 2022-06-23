@@ -4,7 +4,7 @@
   "displayName": "flutter-stylizer",
   "description": "Flutter Stylizer organizes your Flutter classes in an opinionated and consistent manner.",
   "icon": "images/flutter-stylizer-logo-128x128.png",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "publisher": "gmlewis-vscode",
   "repository": "https://github.com/gmlewis/flutter-stylizer",
   "engines": {
@@ -34,6 +34,11 @@
             "default": false,
             "description": "Whether to group getters separately (before 'public-other-methods') and sort them within their group. (EXPERIMENTAL - use with caution.)"
           },
+          "groupAndSortVariableTypes": {
+            "type": "boolean",
+            "default": false,
+            "description": " Whether to group public variables separately by type and sort them within their groups. Types are: `final`, `optional` (`?`), and `normal`. (EXPERIMENTAL - use with caution.)"
+          },
           "memberOrdering": {
             "type": "array",
             "default": [
@@ -48,6 +53,11 @@
               "build-method"
             ],
             "description": "Ordered list of members to control reordering of source code."
+          },
+          "sortClassesWithinFile": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to sort multiple classes within each file. (EXPERIMENTAL - use with caution.)"
           },
           "sortOtherMethods": {
             "type": "boolean",
