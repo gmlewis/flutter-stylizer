@@ -96,29 +96,24 @@ export class Client {
     return edits
   }
 
-  sortClassesWithinFile(edits: Edit[], allClasses: Edit[]): Edit[] {
+  sortClassesWithinFile(edits: Edit[], origClasses: Edit[]): Edit[] {
+    const allClasses = Array.from(origClasses)
     const isSorted = allClasses.every((v, i, a) => !i || a[i - 1].dc.className > v.dc.className)
     if (isSorted) { return edits }
 
     const gt = (a: Edit, b: Edit) => a.dc.className === b.dc.className ? 0 : a.dc.className < b.dc.className ? 1 : -1
-
     allClasses.sort(gt)
-    const rev = Array.from(allClasses)
-    rev.reverse()
 
     const result: Edit[] = []
     for (let i in allClasses) {
       const cl = allClasses[i]
-      // log.Printf("i=%v, className=%q, old: startPos=%v, endPos=%v, new: startPos=%v, endPos=%v", i, cl.dc.className, cl.startPos, cl.endPos, rev[i].startPos, rev[i].endPos)
       const csp = this.editor.findClassAbsoluteStart(cl.dc)
-      // log.Printf("i=%v, csp=%v\n%s%s", i, csp,
-      const rcsp = this.editor.findClassAbsoluteStart(rev[i].dc)
-      // log.Printf("i=%v, rcsp=%v\n%s%s", i, rcsp, c.editor.fullBuf[rcsp:rev[i].startPos], rev[i].text)
+      const rcsp = this.editor.findClassAbsoluteStart(origClasses[i].dc)
 
       result.push({
         dc: cl.dc,
         startPos: rcsp,
-        endPos: rev[i].endPos,
+        endPos: origClasses[i].endPos,
         text: this.editor.fullBuf.substring(csp, cl.startPos) + cl.text,
       })
     }

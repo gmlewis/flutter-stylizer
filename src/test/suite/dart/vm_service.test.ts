@@ -17,6 +17,7 @@ limitations under the License.
 import * as assert from 'assert'
 import * as vscode from 'vscode'
 
+import { Options } from '../../../dart/dart'
 import { Editor } from '../../../dart/editor'
 import { EntityType } from '../../../dart/entity'
 import { runFullStylizer, runParsePhase } from './class.test'
@@ -55,6 +56,14 @@ suite('VM Service Tests', function() {
     runFullStylizer(null, wantSource, wantSource, null)
   })
 
+  test('VM Service source with class sorting', () => {
+    const source = fs.readFileSync(path.join(testfilesDir, 'vm_service.dart.txt'), 'utf8')
+    const wantSource = fs.readFileSync(path.join(testfilesDir, 'vm_service_want_sorted.txt'), 'utf8')
+
+    const opts: Options = { SortClassesWithinFile: true }
+    runFullStylizer(opts, source, wantSource, null)
+    runFullStylizer(opts, wantSource, wantSource, null)
+  })
 
   test('VM Service class 96', () => {
     const vm_service_dart_txt = fs.readFileSync(path.join(testfilesDir, 'vm_service.dart.txt'), 'utf8')
