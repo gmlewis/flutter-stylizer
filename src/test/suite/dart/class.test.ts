@@ -32,6 +32,7 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
     GroupAndSortGetterMethods: false,
     GroupAndSortVariableTypes: false,
     MemberOrdering: defaultMemberOrdering,
+    SortClassesWithinFile: false,
     SortOtherMethods: false,
     SeparatePrivateMethods: false,
     Verbose: false,
@@ -40,6 +41,7 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
     testOpts.GroupAndSortGetterMethods = opts.GroupAndSortGetterMethods
     testOpts.GroupAndSortVariableTypes = opts.GroupAndSortVariableTypes || false
     testOpts.MemberOrdering = opts.MemberOrdering
+    testOpts.SortClassesWithinFile = opts.SortClassesWithinFile
     testOpts.SortOtherMethods = opts.SortOtherMethods
     testOpts.SeparatePrivateMethods = opts.SeparatePrivateMethods
     verbose = opts.Verbose || false
@@ -47,7 +49,7 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
 
   const e = new Editor(source, verbose)
 
-  const c = new Client(testOpts)
+  const c = new Client(e, testOpts)
   const [got, err] = e.getClasses(testOpts.GroupAndSortGetterMethods || false, testOpts.SeparatePrivateMethods || false)
   if (err !== null) {
     throw Error(err.message)  // Make the compiler happy.
@@ -1256,5 +1258,168 @@ class Test {
     wc.lines.forEach((line, i) => {
       assert.strictEqual(line.entityType, want[i], `entityType: line #${wzLineOffset + i + 1}: ${line.line}`)
     })
+  })
+
+  test('Multiple classes with comments', () => {
+    const classA = `class ClassA {
+  ClassA();
+}`
+    const classB = `/// ClassB comment1
+/// ClassB comment2
+class ClassB {
+  ClassB();
+}`
+    const classC = `/* ClassC comment1
+   ClassC comment2
+   ClassC comment 3 */
+class ClassC {
+  ClassC();
+}`
+    const classD = `@JsonSerializable()
+class ClassD {
+  ClassD();
+}`
+    const classE = `/// ClassE comment1
+@reflectiveTest
+class ClassE {
+  ClassE();
+}`
+    const abstractClassF = `/// ClassF comment1
+@reflectiveTest
+abstract class ClassF {
+  ClassF();
+}`
+    const classG = `class _ClassG {
+  _ClassG();
+}`
+    const mainFunc = `main() {
+}`
+    const randomStuff = `typedef DisposeHandler = Future Function();
+
+Version _versionFromString(String input) =>
+    input == null ? null : Version.parse(input);`
+
+    const tests = [
+      {
+        name: "sorted classes",
+        parts: [mainFunc, randomStuff, classA, classB, classC, classD, classE, abstractClassF, classG],
+        want: `main() {
+}
+
+typedef DisposeHandler = Future Function();
+
+Version _versionFromString(String input) =>
+    input == null ? null : Version.parse(input);
+
+class ClassA {
+  ClassA();
+}
+
+/// ClassB comment1
+/// ClassB comment2
+class ClassB {
+  ClassB();
+}
+
+/* ClassC comment1
+   ClassC comment2
+   ClassC comment 3 */
+class ClassC {
+  ClassC();
+}
+
+@JsonSerializable()
+class ClassD {
+  ClassD();
+}
+
+/// ClassE comment1
+@reflectiveTest
+class ClassE {
+  ClassE();
+}
+
+/// ClassF comment1
+@reflectiveTest
+abstract class ClassF {
+  ClassF();
+}
+
+class _ClassG {
+  _ClassG();
+}`,
+      },
+      {
+        name: "reversed classes",
+        parts: [
+          mainFunc,
+          randomStuff,
+          classG,
+          abstractClassF,
+          classE,
+          classD,
+          classC,
+          classB,
+          classA,
+        ],
+        want: `main() {
+}
+
+typedef DisposeHandler = Future Function();
+
+Version _versionFromString(String input) =>
+    input == null ? null : Version.parse(input);
+
+class ClassA {
+  ClassA();
+}
+
+/// ClassB comment1
+/// ClassB comment2
+class ClassB {
+  ClassB();
+}
+
+/* ClassC comment1
+   ClassC comment2
+   ClassC comment 3 */
+class ClassC {
+  ClassC();
+}
+
+@JsonSerializable()
+class ClassD {
+  ClassD();
+}
+
+/// ClassE comment1
+@reflectiveTest
+class ClassE {
+  ClassE();
+}
+
+/// ClassF comment1
+@reflectiveTest
+abstract class ClassF {
+  ClassF();
+}
+
+class _ClassG {
+  _ClassG();
+}`,
+      },
+    ]
+
+    const opts = {
+      MemberOrdering: defaultMemberOrdering,
+      SortClassesWithinFile: true,
+    }
+
+    for (let tt of tests) {
+      const source = tt.parts.join("\n\n")
+      runFullStylizer(opts, source, tt.want, [])
+      // Run again to make sure no extra blank lines are added.
+      runFullStylizer(opts, tt.want, tt.want, [])
+    }
   })
 })

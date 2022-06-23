@@ -127,6 +127,17 @@ export class Editor {
     return [this.lines.length, 0]
   }
 
+  // findClassAbsoluteStart finds the very first absolute offset either at the
+  // beginning of the buffer or after the last blank line before a class is defined.
+  findClassAbsoluteStart(dc: Class) {
+    let result = dc.openCurlyOffset
+    for (; result > 0; result--) {
+      if (result > 1 && this.fullBuf.substring(result - 2, result) === "\n\n") { break }
+      if (result > 3 && this.fullBuf.substring(result - 4, result) === "\r\n\r\n") { break }
+    }
+    return result
+  }
+
   // logf logs the line if verbose is true.
   logf(s: string) {
     if (this.verbose) {
