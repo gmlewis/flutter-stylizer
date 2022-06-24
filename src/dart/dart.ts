@@ -22,6 +22,9 @@ import { isComment } from './line'
 // Edit represents an edit of an editor buffer.
 export interface Edit {
   dc: Class,
+  // sortName is the class name with the leading underscore removed.
+  // See: https://github.com/gmlewis/go-flutter-stylizer/issues/8#issuecomment-1165024520
+  sortName: string,
   startPos: number,
   endPos: number,
   text: string,
@@ -80,6 +83,7 @@ export class Client {
 
       const edit: Edit = {
         dc: dc,
+        sortName: dc.className.replace(/^_/, ''),
         startPos: startPos,
         endPos: endPos,
         text: lines.join('\n'),
@@ -98,10 +102,15 @@ export class Client {
 
   sortClassesWithinFile(edits: Edit[], origClasses: Edit[]): Edit[] {
     const allClasses = Array.from(origClasses)
-    const isSorted = allClasses.every((v, i, a) => !i || a[i - 1].dc.className > v.dc.className)
+    const gt = (a: Edit, b: Edit) => { // a.dc.className === b.dc.className ? 0 : a.dc.className < b.dc.className ? 1 : -1
+      if (a.sortName === b.sortName) {
+        return a.dc.className > b.dc.className ? -1 : a.dc.className < b.dc.className ? 1 : 0
+      }
+      return a.sortName > b.sortName ? -1 : 1
+    }
+    const isSorted = allClasses.every((v, i, a) => !i || gt(a[i - 1], v) === -1)
     if (isSorted) { return edits }
 
-    const gt = (a: Edit, b: Edit) => a.dc.className === b.dc.className ? 0 : a.dc.className < b.dc.className ? 1 : -1
     allClasses.sort(gt)
 
     const result: Edit[] = []
@@ -112,6 +121,7 @@ export class Client {
 
       result.push({
         dc: cl.dc,
+        sortName: cl.sortName,
         startPos: rcsp,
         endPos: origClasses[i].endPos,
         text: this.editor.fullBuf.substring(csp, cl.startPos) + cl.text,

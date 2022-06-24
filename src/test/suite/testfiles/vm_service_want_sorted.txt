@@ -3628,6 +3628,12 @@ class NativeFunction {
   String toString() => '[NativeFunction name: ${name}]';
 }
 
+class _NullLog implements Log {
+  void warning(String message) {}
+
+  void severe(String message) {}
+}
+
 /// A `NullVal` object represents the Dart language value null.
 class NullVal extends Instance implements NullValRef {
   NullVal({
@@ -3813,6 +3819,21 @@ class ObjRef extends Response {
   operator ==(other) => other is ObjRef && id == other.id;
 
   String toString() => '[ObjRef type: ${type}, id: ${id}]';
+}
+
+class _PendingServiceRequest {
+  _PendingServiceRequest(this.originalId);
+
+  final dynamic originalId;
+
+  final _completer = Completer<Map<String, Object>>();
+
+  Future<Map<String, Object>> get future => _completer.future;
+
+  void complete(Map<String, Object> response) {
+    response['id'] = originalId;
+    _completer.complete(response);
+  }
 }
 
 /// A `PortList` contains a list of ports associated with some isolate.
@@ -7200,25 +7221,4 @@ abstract class VmServiceInterface {
   ///
   /// See [Success].
   Future<Success> streamListen(String streamId);
-}
-
-class _NullLog implements Log {
-  void warning(String message) {}
-
-  void severe(String message) {}
-}
-
-class _PendingServiceRequest {
-  _PendingServiceRequest(this.originalId);
-
-  final dynamic originalId;
-
-  final _completer = Completer<Map<String, Object>>();
-
-  Future<Map<String, Object>> get future => _completer.future;
-
-  void complete(Map<String, Object> response) {
-    response['id'] = originalId;
-    _completer.complete(response);
-  }
 }

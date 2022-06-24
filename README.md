@@ -191,6 +191,10 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
+### v0.1.14
+
+- Fix sort order of class names when `sortClassesWithinFile: true`.
+
 ### v0.1.13
 
 - Fix [issue #8](https://github.com/gmlewis/go-flutter-stylizer/issues/8).
