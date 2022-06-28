@@ -95,17 +95,17 @@ suite('Issue#31 Tests', function() {
     ]
 
     const memberOrdering = [
-      "public-constructor",
-      "named-constructors",
-      "public-static-variables",
-      "private-static-variables",
-      "public-instance-variables",
-      "public-override-variables",
-      "private-instance-variables",
-      "public-override-methods",
-      "public-other-methods",
-      "private-other-methods",
-      "build-method",
+      'public-constructor',
+      'named-constructors',
+      'public-static-variables',
+      'private-static-variables',
+      'public-instance-variables',
+      'public-override-variables',
+      'private-instance-variables',
+      'public-override-methods',
+      'public-other-methods',
+      'private-other-methods',
+      'build-method',
     ]
 
     const opts = {
@@ -187,17 +187,17 @@ suite('Issue#31 Tests', function() {
     ]
 
     const memberOrdering = [
-      "public-constructor",
-      "named-constructors",
-      "public-static-variables",
-      "public-instance-variables",
-      "public-override-variables",
-      "private-static-variables",
-      "private-instance-variables",
-      "public-other-methods",
-      "public-override-methods",
-      "private-other-methods",
-      "build-method",
+      'public-constructor',
+      'named-constructors',
+      'public-static-variables',
+      'public-instance-variables',
+      'public-override-variables',
+      'private-static-variables',
+      'private-instance-variables',
+      'public-other-methods',
+      'public-override-methods',
+      'private-other-methods',
+      'build-method',
     ]
 
     const opts = {
