@@ -6,6 +6,11 @@ this file.
 Please make sure you have a backup (preferably in git) of your code before running
 "Flutter Stylizer" in case it doesn't handle your code properly.
 
+## [0.1.15] - 2022-06-27
+
+- Add new option:
+  - `processEnumsLikeClasses` (default: `false`)
+
 ## [0.1.14] - 2022-06-23
 
 - Fix sort order of class names when `sortClassesWithinFile: true`.

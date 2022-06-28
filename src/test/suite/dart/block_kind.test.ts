@@ -71,7 +71,7 @@ suite('Block Kind Tests', function() {
       EntityType.BlankLine,        // line #42:
     ]
 
-    runFullStylizer(null, source, wantSource, want)
+    runFullStylizer(null, source, wantSource, [want])
   })
 
   test('Block kind example stays the same', () => {

@@ -4,7 +4,7 @@
   "displayName": "flutter-stylizer",
   "description": "Flutter Stylizer organizes your Flutter classes in an opinionated and consistent manner.",
   "icon": "images/flutter-stylizer-logo-128x128.png",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "publisher": "gmlewis-vscode",
   "repository": "https://github.com/gmlewis/flutter-stylizer",
   "engines": {
@@ -53,6 +53,11 @@
               "build-method"
             ],
             "description": "Ordered list of members to control reordering of source code."
+          },
+          "processEnumsLikeClasses": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to process enums identically to how classes are processed. (EXPERIMENTAL - use with caution.)"
           },
           "sortClassesWithinFile": {
             "type": "boolean",

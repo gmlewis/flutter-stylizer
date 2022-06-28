@@ -22,9 +22,10 @@ import { MatchingPairsMap } from './pairs'
 
 // Editor represents a text editor that understands Dart syntax.
 export class Editor {
-  constructor(buf: string, verbose: boolean) {
+  constructor(buf: string, processEnumsLikeClasses: boolean, verbose: boolean) {
     this.fullBuf = buf
     this.verbose = verbose
+    this.classMatcher = processEnumsLikeClasses ? Class.matchClassOrMixinOrEnumRE : Class.matchClassOrMixinRE
 
     const lines = this.fullBuf.split('\n')
     let lineStartOffset = 0
@@ -51,6 +52,8 @@ export class Editor {
   // classLineIndices contains line indices where a class or abstract class starts.
   classLineIndices: number[] = []
 
+  classMatcher: RegExp
+
   verbose: boolean
 
   getClasses(groupAndSortGetterMethods: boolean, separatePrivateMethods: boolean): [Class[], Error | null] {
@@ -59,28 +62,29 @@ export class Editor {
     for (let i = 0; i < this.classLineIndices.length; i++) {
       const lineIndex = this.classLineIndices[i]
       const line = this.lines[lineIndex]
-      const mm = Class.matchClassOrMixinRE.exec(line.line)
-      if (!mm || mm.length !== 2) {
+      const mm = this.classMatcher.exec(line.line)
+      if (!mm || mm.length !== 3) {
         return [[], Error(`programming error: expected class on line #${lineIndex + 1}, got '${line.line}'`)]
       }
 
-      const className = mm[1]
+      const classType = mm[1]
+      const className = mm[2]
       const classOffset = line.startOffset
       const openCurlyOffset = this.findStartOfClass(classOffset)
       if (this.fullBuf[openCurlyOffset] === ';') { // this is valid and can be ignored: class D = Object with Function;
         continue
       }
 
-      this.logf(`\n\nFound new class '${className}' at classOffset=${classOffset}, openCurlyOffset=${openCurlyOffset}, line=${line.line}`)
+      this.logf(`\n\nFound new ${classType} '${className}' at classOffset=${classOffset}, openCurlyOffset=${openCurlyOffset}, line=${line.line}`)
       const pair = this.matchingPairs[openCurlyOffset]
       if (!pair) {
         return [[], Error(`programming error: no matching pair found at openCurlyOffset ${openCurlyOffset}`)]
       }
 
       const closeCurlyOffset = pair.closeAbsOffset
-      this.logf(`\n\nFound end of class '${className}' at closeCurlyOffset=${closeCurlyOffset}`)
+      this.logf(`\n\nFound end of ${classType} '${className}' at closeCurlyOffset=${closeCurlyOffset}`)
 
-      const dartClass = new Class(this, className, openCurlyOffset, closeCurlyOffset, groupAndSortGetterMethods, separatePrivateMethods)
+      const dartClass = new Class(this, classType, className, openCurlyOffset, closeCurlyOffset, groupAndSortGetterMethods, separatePrivateMethods)
       const err = dartClass.findFeatures()
       if (err !== null) {
         return [[], err]

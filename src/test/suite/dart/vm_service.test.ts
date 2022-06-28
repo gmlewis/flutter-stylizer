@@ -38,7 +38,7 @@ suite('VM Service Tests', function() {
   test('VM Service get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'vm_service.dart.txt'), 'utf8')
 
-    const e = new Editor(source, false)
+    const e = new Editor(source, false, false)
 
     const [got, err] = e.getClasses(false, false)
     if (err !== null) {
@@ -178,7 +178,7 @@ suite('VM Service Tests', function() {
       EntityType.BlankLine,        // line #103:
     ]
 
-    runFullStylizer(null, source, wantSource, want)
+    runFullStylizer(null, source, wantSource, [want])
 
     const wantAfter: EntityType[] = [
       EntityType.Unknown,          // line #1: {
@@ -286,7 +286,7 @@ suite('VM Service Tests', function() {
       EntityType.BlankLine,        // line #103:
     ]
 
-    runParsePhase(null, wantSource, wantAfter)
+    runParsePhase(null, wantSource, [wantAfter])
     runFullStylizer(null, wantSource, wantSource, null)
   })
 
@@ -359,6 +359,6 @@ suite('VM Service Tests', function() {
     ]
 
     // runParsePhase(null, source, want)
-    runFullStylizer(null, source, wantSource, want)
+    runFullStylizer(null, source, wantSource, [want])
   })
 })

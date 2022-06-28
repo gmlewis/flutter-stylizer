@@ -75,7 +75,7 @@ suite('Issue#26 Tests', function() {
       SortOtherMethods: sortOtherMethods,
     }
 
-    runFullStylizer(opts, source, wantSource, want)
+    runFullStylizer(opts, source, wantSource, [want])
   })
 
   test('Issue#26: case 2', () => {
@@ -115,6 +115,6 @@ suite('Issue#26 Tests', function() {
       SortOtherMethods: sortOtherMethods,
     }
 
-    runFullStylizer(opts, source, wantSource, want)
+    runFullStylizer(opts, source, wantSource, [want])
   })
 })

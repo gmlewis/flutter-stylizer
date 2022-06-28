@@ -72,7 +72,7 @@ export class Class {
   // openCurlyOffset is the position of the "{" for that class.
   // closeCurlyOffset is the position of the "}" for that class.
   // groupAndSortGetterMethods determines how getter methods are processed.
-  constructor(editor: Editor, className: string,
+  constructor(editor: Editor, classType: string, className: string,
     openCurlyOffset: number, closeCurlyOffset: number,
     groupAndSortGetterMethods: boolean, separatePrivateMethods: boolean) {
     const lessThanOffset = className.indexOf('<')
@@ -120,6 +120,7 @@ export class Class {
     this.e = editor
     this.classBody = classBody
     this.lines = classLines
+    this.classType = classType
     this.className = className
     this.openCurlyOffset = openCurlyOffset
     this.closeCurlyOffset = closeCurlyOffset
@@ -132,6 +133,7 @@ export class Class {
   classBody: string
   lines: Line[]
 
+  classType: string
   className: string
   openCurlyOffset: number
   closeCurlyOffset: number
@@ -151,7 +153,8 @@ export class Class {
   buildMethod: Entity | null = null
   getterMethods: Entity[] = []
 
-  static matchClassOrMixinRE = /^(?:abstract\s+)?(?:class|mixin)\s+(\S+).*\r?$/
+  static matchClassOrMixinRE = /^(?:abstract\s+)?(class|mixin)\s+(\S+).*\r?$/
+  static matchClassOrMixinOrEnumRE = /^(?:abstract\s+)?(class|mixin|enum)\s+(\S+).*\r?$/
 
   findFeatures(): Error | null {
     this.lines.forEach((line, i) => {
@@ -595,6 +598,16 @@ export class Class {
 
       const [entity, err] = this.scanMethod(i)
       if (err !== null) {
+        if (err.message.includes('EOF')) {
+          // OK to have a class or enum with no other content.
+          // Mark all unmarked lines as LeaveUnmodified.
+          for (let j = 1; j < this.lines.length; j++) {
+            if (this.lines[j].entityType === EntityType.Unknown) {
+              this.lines[j].entityType = EntityType.LeaveUnmodified
+            }
+          }
+          return null
+        }
         return err
       }
 
@@ -639,6 +652,8 @@ export class Class {
         case EntityType.PrivateInstanceVariable:
           this.privateVariables.push(entity)
           break
+        case EntityType.LeaveUnmodified:
+          break
         default:
           return Error(`unexpected EntityType=${entity.entityType}`)
       }
@@ -675,6 +690,9 @@ export class Class {
 
     entity.entityType = EntityType.InstanceVariable
     switch (true) {
+      case this.classType === 'enum' && lineNum === 1:
+        entity.entityType = EntityType.LeaveUnmodified
+        break
       case privateVar && staticKeyword:
         entity.entityType = EntityType.StaticPrivateVariable
         break
@@ -691,7 +709,7 @@ export class Class {
         entity.entityType = EntityType.OtherMethod
         break
       case '();': // instance variable or abstract method.
-        if (!leadingText?.endsWith(' Function')) {
+        if (this.classType !== 'enum' && !leadingText?.endsWith(' Function')) {
           entity.entityType = EntityType.OtherMethod
         }
         break

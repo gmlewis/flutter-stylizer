@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { Class } from './class'
 import { Editor } from './editor'
 import { EntityType } from './entity'
 import { MatchingPair, MatchingPairsMap } from './pairs'
@@ -154,7 +153,7 @@ export class Cursor {
       }
       nf = nextFeature.nf
 
-      this.editor.logf(`nf='${nf}' matchingPairStack=${matchingPairStack.length}, abs=${this.absOffset}, ind=${this.lineIndex}, rel=${this.relStrippedOffset}`)
+      // this.editor.logf(`nf='${nf}' matchingPairStack=${matchingPairStack.length}, abs=${this.absOffset}, ind=${this.lineIndex}, rel=${this.relStrippedOffset}`)
 
       switch (nf) {
         case '//':
@@ -608,7 +607,7 @@ export class Cursor {
   //
   // It also detects the start of class lines.
   advanceToNextLine() {
-    const mm = Class.matchClassOrMixinRE.exec(this.editor.lines[this.lineIndex].line)
+    const mm = this.editor.classMatcher.exec(this.editor.lines[this.lineIndex].line)
     if (this.lineIndex === 0 && mm) {
       this.classLineIndices.push(this.lineIndex)
     }
@@ -635,7 +634,7 @@ export class Cursor {
       return Error('EOF')
     }
 
-    const mm2 = Class.matchClassOrMixinRE.exec(this.editor.lines[this.lineIndex].line)
+    const mm2 = this.editor.classMatcher.exec(this.editor.lines[this.lineIndex].line)
     if (this.atTopOfBraceLevel(0) && mm2) {
       this.classLineIndices.push(this.lineIndex)
     }

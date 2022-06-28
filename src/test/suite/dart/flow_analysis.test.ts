@@ -29,7 +29,7 @@ suite('Flow Analysis Tests', function() {
   test('Flow analysis get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'flow_analysis.dart.txt'), 'utf8')
 
-    const e = new Editor(source, false)
+    const e = new Editor(source, false, false)
 
     const [got, err] = e.getClasses(false, false)
     if (err !== null) {

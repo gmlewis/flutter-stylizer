@@ -66,7 +66,7 @@ suite('Issue#6 Tests', function() {
       SortOtherMethods: sortOtherMethods,
     }
 
-    runParsePhase(opts, source, want)
+    runParsePhase(opts, source, [want])
   })
 
   test('Issue#6: case 2', () => {
@@ -112,6 +112,6 @@ suite('Issue#6 Tests', function() {
       SortOtherMethods: sortOtherMethods,
     }
 
-    runFullStylizer(opts, source, wantSource, want)
+    runFullStylizer(opts, source, wantSource, [want])
   })
 })
