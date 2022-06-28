@@ -87,9 +87,6 @@ export const runFullStylizer = (opts: Options | null, source: string, wantSource
   const [c, got] = runParsePhase(opts, source, want)
 
   const edits = c.generateEdits(got)
-  if (want && want.length > 0) {
-    assert.strictEqual(edits.length, 1, 'edits')
-  }
 
   const newBuf = c.rewriteClasses(source, edits)
   const gotLines = newBuf.split('\n')

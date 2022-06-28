@@ -11,3 +11,46 @@ class SnackbarService {
   String? varC2;
   String varC3 = 'varC3';
 }
+
+class User {
+  User({
+    required this.firstNameFinal,
+    required this.idFinal,
+    required this.lastNameFinal,
+    required this.middleNameFinal,
+    required this.phoneNumberFinal,
+    required this.usernameFinal,
+    required this.firstNameRegular,
+    required this.idRegular,
+    required this.lastNameRegular,
+    required this.usernameRegular,
+  });
+
+  final String firstNameFinal;
+  final int idFinal;
+  final String lastNameFinal;
+  final String? middleNameFinal;
+  final String? phoneNumberFinal;
+  final String usernameFinal;
+
+  String firstNameRegular;
+  int idRegular;
+  String lastNameRegular;
+  String usernameRegular;
+
+  int? ageOptional;
+  String? birthdateOptional;
+  String? emailOptional;
+  String? middleNameRegular;
+  String? phoneNumberRegular;
+
+  int? _agePrivate;
+  String? _birthdatePrivate;
+  String? _emailPrivate;
+  final String _firstNamePrivate = 'Secret';
+  final int _idPrivate = 0;
+  final String _lastNamePrivate = 'Secret';
+  String? _middleNamePrivate;
+  final String _phoneNumberPrivate = 'Secret';
+  final String _usernamePrivate = 'Secret';
+}

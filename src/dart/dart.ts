@@ -246,7 +246,11 @@ export class Client {
           break
         case 'private-instance-variables':
           dc.privateVariables.sort(sortFunc)
-          addEntities(dc.privateVariables, false)
+          if (this.opts.GroupAndSortVariableTypes) {
+            addEntitiesByVarTypes(dc.privateVariables)
+          } else {
+            addEntities(dc.privateVariables, false)
+          }
           break
         case 'public-override-methods':
           dc.overrideMethods.sort(sortFunc)

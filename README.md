@@ -196,7 +196,11 @@ incorporate the fix into the plugin.
 
 ## Release Notes
 
-### 0.1.15
+### v0.1.16
+
+- Fix [issue #31](https://github.com/gmlewis/flutter-stylizer/issues/31) for private vars.
+
+### v0.1.15
 
 - Add new option:
   - `processEnumsLikeClasses` (default: `false`)
