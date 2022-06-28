@@ -26,12 +26,13 @@ import { setupEditor } from './editor.test'
 const fs = require('fs')
 const path = require('path')
 
-export const runParsePhase = (opts: Options | null, source: string, want: EntityType[] | null): [Client, Class[]] => {
+export const runParsePhase = (opts: Options | null, source: string, wantClasses: EntityType[][] | null): [Client, Class[]] => {
   let verbose = false
   const testOpts: Options = {
     GroupAndSortGetterMethods: false,
     GroupAndSortVariableTypes: false,
     MemberOrdering: defaultMemberOrdering,
+    ProcessEnumsLikeClasses: false,
     SortClassesWithinFile: false,
     SortOtherMethods: false,
     SeparatePrivateMethods: false,
@@ -41,41 +42,48 @@ export const runParsePhase = (opts: Options | null, source: string, want: Entity
     testOpts.GroupAndSortGetterMethods = opts.GroupAndSortGetterMethods
     testOpts.GroupAndSortVariableTypes = opts.GroupAndSortVariableTypes || false
     testOpts.MemberOrdering = opts.MemberOrdering
+    testOpts.ProcessEnumsLikeClasses = opts.ProcessEnumsLikeClasses || false
     testOpts.SortClassesWithinFile = opts.SortClassesWithinFile
     testOpts.SortOtherMethods = opts.SortOtherMethods
     testOpts.SeparatePrivateMethods = opts.SeparatePrivateMethods
     verbose = opts.Verbose || false
   }
 
-  const e = new Editor(source, verbose)
+  const e = new Editor(source, testOpts.ProcessEnumsLikeClasses || false, verbose)
 
   const c = new Client(e, testOpts)
-  const [got, err] = e.getClasses(testOpts.GroupAndSortGetterMethods || false, testOpts.SeparatePrivateMethods || false)
+  const [gotAll, err] = e.getClasses(testOpts.GroupAndSortGetterMethods || false, testOpts.SeparatePrivateMethods || false)
   if (err !== null) {
     throw Error(err.message)  // Make the compiler happy.
   }
 
-  if (want && want.length > 0) {
-    assert.strictEqual(got.length, 1, 'getClasses')
+  if (!wantClasses || !wantClasses.length) {
+    return [c, gotAll]
+  }
 
-    if (got[0].lines.length !== want.length) {
-      for (let i = 0; i < got[0].lines.length; i++) {
-        const line = got[0].lines[i]
+  assert.strictEqual(gotAll.length, wantClasses.length, 'getClasses')
+
+  for (let k = 0; k < wantClasses.length; k++) {
+    const got = gotAll[k]
+    const want: EntityType[] = wantClasses[k]
+    if (got.lines.length !== want.length) {
+      for (let i = 0; i < got.lines.length; i++) {
+        const line = got.lines[i]
         console.log(`EntityType.${EntityType[line.entityType]}, // line #${line.originalIndex + 1}: ${line.line}`)
       }
     }
-    assert.strictEqual(got[0].lines.length, want.length, 'getClasses lines')
+    assert.strictEqual(got.lines.length, want.length, 'getClasses lines')
 
-    for (let i = 0; i < got[0].lines.length; i++) {
-      const line = got[0].lines[i]
+    for (let i = 0; i < got.lines.length; i++) {
+      const line = got.lines[i]
       assert.strictEqual(EntityType[line.entityType], EntityType[want[i]], `entitype: line #${line.originalIndex + 1}: ${line.line}`)
     }
   }
 
-  return [c, got]
+  return [c, gotAll]
 }
 
-export const runFullStylizer = (opts: Options | null, source: string, wantSource: string, want: EntityType[] | null): Class[] => {
+export const runFullStylizer = (opts: Options | null, source: string, wantSource: string, want: EntityType[][] | null): Class[] => {
   const [c, got] = runParsePhase(opts, source, want)
 
   const edits = c.generateEdits(got)
@@ -116,7 +124,7 @@ mixin myMixin {
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 })
 
@@ -136,10 +144,10 @@ class myClass extends Widget {
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
-  test('MainHandler no false positives', () => {
+  test('MainHandler no false positives - ignore enums', () => {
     const source = `// test.dart
 class ScannerErrorCode extends ErrorCode {
   /**
@@ -175,7 +183,61 @@ class ScannerErrorCode extends ErrorCode {
       EntityType.BlankLine,      // line #16:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
+  })
+
+  test('MainHandler with enums', () => {
+    const source = `// from: https://dart.dev/guides/language/language-tour#enumerated-types
+enum Vehicle implements Comparable<Vehicle> {
+  car(tires: 4, passengers: 5, carbonPerKilometer: 400),
+  bus(tires: 6, passengers: 50, carbonPerKilometer: 800),
+  bicycle(tires: 2, passengers: 1, carbonPerKilometer: 0);
+
+  const Vehicle({
+    required this.tires,
+    required this.passengers,
+    required this.carbonPerKilometer,
+  });
+
+  final int tires;
+  final int passengers;
+  final int carbonPerKilometer;
+
+  int get carbonFootprint => (carbonPerKilometer / passengers).round();
+
+  @override
+  int compareTo(Vehicle other) => carbonFootprint - other.carbonFootprint;
+}`
+
+    const want: EntityType[] = [
+      EntityType.Unknown,          // line #2: {
+      EntityType.LeaveUnmodified,  // line #3:   car(tires: 4, passengers: 5, carbonPerKilometer: 400),
+      EntityType.LeaveUnmodified,  // line #4:   bus(tires: 6, passengers: 50, carbonPerKilometer: 800),
+      EntityType.LeaveUnmodified,  // line #5:   bicycle(tires: 2, passengers: 1, carbonPerKilometer: 0);
+      EntityType.BlankLine,        // line #6:
+      EntityType.MainConstructor,  // line #7:   const Vehicle({
+      EntityType.MainConstructor,  // line #8:     required this.tires,
+      EntityType.MainConstructor,  // line #9:     required this.passengers,
+      EntityType.MainConstructor,  // line #10:     required this.carbonPerKilometer,
+      EntityType.MainConstructor,  // line #11:   });
+      EntityType.BlankLine,        // line #12:
+      EntityType.InstanceVariable, // line #13:   final int tires;
+      EntityType.InstanceVariable, // line #14:   final int passengers;
+      EntityType.InstanceVariable, // line #15:   final int carbonPerKilometer;
+      EntityType.BlankLine,        // line #16:
+      EntityType.OtherMethod,      // line #17:   int get carbonFootprint => (carbonPerKilometer / passengers).round();
+      EntityType.BlankLine,        // line #18:
+      EntityType.OverrideMethod,   // line #19:   @override
+      EntityType.OverrideMethod,   // line #20:   int compareTo(Vehicle other) => carbonFootprint - other.carbonFootprint;
+      EntityType.BlankLine,        // line #21:
+    ]
+
+    const opts: Options = {
+      MemberOrdering: defaultMemberOrdering,
+      ProcessEnumsLikeClasses: true,
+      SortClassesWithinFile: true,
+    }
+    runParsePhase(opts, source, [want])
   })
 
   test('OverrideMethod', () => {
@@ -202,7 +264,7 @@ class C {
       EntityType.BlankLine,        // line #10:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('NamedConstructor', () => {
@@ -261,7 +323,7 @@ class C {
       EntityType.BlankLine,        // line #18:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('NamedConstructors are kept intact', () => {
@@ -302,7 +364,7 @@ with AnimationEagerListenerMixin, AnimationLocalListenersMixin, AnimationLocalSt
       EntityType.BlankLine,        // line #16:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('PrivateConstructors are kept intact', () => {
@@ -324,7 +386,7 @@ _InterpolationSimulation(this._begin, this._end, Duration duration, this._curve,
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('Handle overridden getters with bodies', () => {
@@ -397,7 +459,7 @@ _InterpolationSimulation(this._begin, this._end, Duration duration, this._curve,
       EntityType.BlankLine,      // line #32: }`
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('Issue#9: Constructor false positive', () => {
@@ -459,7 +521,7 @@ static PGDateTime parse(String formattedString) =>
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('Get on separate line', () => {
@@ -516,7 +578,7 @@ static PGDateTime parse(String formattedString) =>
       EntityType.BlankLine,               // line #15:
     ]
 
-    runFullStylizer(null, source, wantSource, want)
+    runFullStylizer(null, source, wantSource, [want])
     // Run again to make sure no extra blank lines are added.
     runFullStylizer(null, wantSource, wantSource, [])
   })
@@ -574,7 +636,7 @@ static PGDateTime parse(String formattedString) =>
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('Mark method offset alignment', () => {
@@ -596,7 +658,7 @@ static PGDateTime parse(String formattedString) =>
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('Multiple decorators', () => {
@@ -650,7 +712,7 @@ static PGDateTime parse(String formattedString) =>
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('White space after function names', () => {
@@ -666,7 +728,7 @@ static PGDateTime parse(String formattedString) =>
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('Embedded multiline comments', () => {
@@ -684,7 +746,7 @@ static PGDateTime parse(String formattedString) =>
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('Issue#11 - Run with default member ordering', () => {
@@ -742,7 +804,7 @@ static PGDateTime parse(String formattedString) =>
       EntityType.BlankLine,               // line #54: }
     ]
 
-    runFullStylizer(null, source, wantSource, want)
+    runFullStylizer(null, source, wantSource, [want])
   })
 
   test('Issue#11 - Run with custom member ordering', () => {
@@ -815,7 +877,7 @@ static PGDateTime parse(String formattedString) =>
       ],
     }
 
-    runFullStylizer(opts, source, wantSource, want)
+    runFullStylizer(opts, source, wantSource, [want])
   })
 
   test('Issue#16 - Support new public override variables feature', () => {
@@ -871,7 +933,7 @@ class Chat extends Equatable implements SubscriptionObject {
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('Issue#17 - Function type variable is not a function', () => {
@@ -903,7 +965,7 @@ class Test {
       EntityType.BlankLine,
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
   test('Issue#18 - Case 1', () => {
@@ -944,7 +1006,7 @@ class Test {
       EntityType.BlankLine,
     ]
 
-    runFullStylizer(opts, source, wantSource, want)
+    runFullStylizer(opts, source, wantSource, [want])
   })
 
   test('Issue#18 - Case 2', () => {
@@ -985,7 +1047,7 @@ class Test {
       EntityType.BlankLine,
     ]
 
-    runFullStylizer(opts, source, wantSource, want)
+    runFullStylizer(opts, source, wantSource, [want])
   })
 
   test('Issue#18 - Case 3', () => {
@@ -1026,7 +1088,7 @@ class Test {
       EntityType.BlankLine,
     ]
 
-    runFullStylizer(opts, source, wantSource, want)
+    runFullStylizer(opts, source, wantSource, [want])
   })
 
   test('Issue#18 - Case 4', () => {
@@ -1067,7 +1129,7 @@ class Test {
       EntityType.BlankLine,
     ]
 
-    runFullStylizer(opts, source, wantSource, want)
+    runFullStylizer(opts, source, wantSource, [want])
   })
 
   test('Issue#19 - Factory constructor should not be duplicated', () => {
@@ -1123,14 +1185,14 @@ class Test {
       EntityType.BlankLine,
     ]
 
-    runFullStylizer(opts, source, wantSource, want)
+    runFullStylizer(opts, source, wantSource, [want])
   })
 
   test('findFeatures on linux and mac', () => {
     const basicClasses = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.txt'), 'utf8')
     const [bc, bcLineOffset, bcOCO, bcCCO] = setupEditor('class Class1 {', basicClasses)
 
-    const uc = new Class(bc, 'Class1', bcOCO, bcCCO, false, false)
+    const uc = new Class(bc, 'class', 'Class1', bcOCO, bcCCO, false, false)
 
     const want: EntityType[] = [
       EntityType.Unknown,                 // line #7: class Class1 {
@@ -1197,7 +1259,7 @@ class Test {
     const bcWindoze = fs.readFileSync(path.join(testfilesDir, 'basic_classes.dart.windz.txt'), 'utf8')
     const [wz, wzLineOffset, wzOCO, wzCCO] = setupEditor('class Class1 {', bcWindoze)
 
-    const wc = new Class(wz, 'Class1', wzOCO, wzCCO, false, false)
+    const wc = new Class(wz, 'class', 'Class1', wzOCO, wzCCO, false, false)
 
     const want: EntityType[] = [
       EntityType.Unknown,                 // line #7: class Class1 {
@@ -1273,7 +1335,9 @@ class ClassB {
    ClassC comment2
    ClassC comment 3 */
 class ClassC {
-  ClassC();
+  ClassC._();
+
+  static const String kColleted = 'Collected';
 }`
     const classD = `@JsonSerializable()
 class ClassD {
@@ -1285,7 +1349,6 @@ class ClassE {
   ClassE();
 }`
     const abstractClassF = `/// ClassF comment1
-@reflectiveTest
 abstract class ClassF {
   ClassF();
 }`
@@ -1298,11 +1361,33 @@ abstract class ClassF {
 
 Version _versionFromString(String input) =>
     input == null ? null : Version.parse(input);`
+    const enumVehicle = `// from: https://dart.dev/guides/language/language-tour#enumerated-types
+enum Vehicle implements Comparable<Vehicle> {
+  car(tires: 4, passengers: 5, carbonPerKilometer: 400),
+  bus(tires: 6, passengers: 50, carbonPerKilometer: 800),
+  bicycle(tires: 2, passengers: 1, carbonPerKilometer: 0);
+
+  const Vehicle({
+    required this.tires,
+    required this.passengers,
+    required this.carbonPerKilometer,
+  });
+
+  final int tires;
+  final int passengers;
+  final int carbonPerKilometer;
+
+  int get carbonFootprint => (carbonPerKilometer / passengers).round();
+
+  @override
+  int compareTo(Vehicle other) => carbonFootprint - other.carbonFootprint;
+}`
 
     const tests = [
       {
         name: "sorted classes",
-        parts: [mainFunc, randomStuff, classA, classB, classC, classD, classE, abstractClassF, classG],
+        parts: [mainFunc, randomStuff, enumVehicle, classA, classB, classC, classD, classE, abstractClassF, classG],
+        processEnums: false,
         want: `main() {
 }
 
@@ -1310,6 +1395,28 @@ typedef DisposeHandler = Future Function();
 
 Version _versionFromString(String input) =>
     input == null ? null : Version.parse(input);
+
+// from: https://dart.dev/guides/language/language-tour#enumerated-types
+enum Vehicle implements Comparable<Vehicle> {
+  car(tires: 4, passengers: 5, carbonPerKilometer: 400),
+  bus(tires: 6, passengers: 50, carbonPerKilometer: 800),
+  bicycle(tires: 2, passengers: 1, carbonPerKilometer: 0);
+
+  const Vehicle({
+    required this.tires,
+    required this.passengers,
+    required this.carbonPerKilometer,
+  });
+
+  final int tires;
+  final int passengers;
+  final int carbonPerKilometer;
+
+  int get carbonFootprint => (carbonPerKilometer / passengers).round();
+
+  @override
+  int compareTo(Vehicle other) => carbonFootprint - other.carbonFootprint;
+}
 
 class ClassA {
   ClassA();
@@ -1325,7 +1432,9 @@ class ClassB {
    ClassC comment2
    ClassC comment 3 */
 class ClassC {
-  ClassC();
+  ClassC._();
+
+  static const String kColleted = 'Collected';
 }
 
 @JsonSerializable()
@@ -1340,7 +1449,6 @@ class ClassE {
 }
 
 /// ClassF comment1
-@reflectiveTest
 abstract class ClassF {
   ClassF();
 }
@@ -1354,6 +1462,7 @@ class _ClassG {
         parts: [
           mainFunc,
           randomStuff,
+          enumVehicle,
           classG,
           abstractClassF,
           classE,
@@ -1362,6 +1471,7 @@ class _ClassG {
           classB,
           classA,
         ],
+        processEnums: false,
         want: `main() {
 }
 
@@ -1369,6 +1479,28 @@ typedef DisposeHandler = Future Function();
 
 Version _versionFromString(String input) =>
     input == null ? null : Version.parse(input);
+
+// from: https://dart.dev/guides/language/language-tour#enumerated-types
+enum Vehicle implements Comparable<Vehicle> {
+  car(tires: 4, passengers: 5, carbonPerKilometer: 400),
+  bus(tires: 6, passengers: 50, carbonPerKilometer: 800),
+  bicycle(tires: 2, passengers: 1, carbonPerKilometer: 0);
+
+  const Vehicle({
+    required this.tires,
+    required this.passengers,
+    required this.carbonPerKilometer,
+  });
+
+  final int tires;
+  final int passengers;
+  final int carbonPerKilometer;
+
+  int get carbonFootprint => (carbonPerKilometer / passengers).round();
+
+  @override
+  int compareTo(Vehicle other) => carbonFootprint - other.carbonFootprint;
+}
 
 class ClassA {
   ClassA();
@@ -1384,7 +1516,9 @@ class ClassB {
    ClassC comment2
    ClassC comment 3 */
 class ClassC {
-  ClassC();
+  ClassC._();
+
+  static const String kColleted = 'Collected';
 }
 
 @JsonSerializable()
@@ -1399,7 +1533,164 @@ class ClassE {
 }
 
 /// ClassF comment1
+abstract class ClassF {
+  ClassF();
+}
+
+class _ClassG {
+  _ClassG();
+}`,
+      },
+
+      {
+        name: "sorted classes with enums",
+        parts: [mainFunc, randomStuff, enumVehicle, classA, classB, classC, classD, classE, abstractClassF, classG],
+        processEnums: true,
+        want: `main() {
+}
+
+typedef DisposeHandler = Future Function();
+
+Version _versionFromString(String input) =>
+    input == null ? null : Version.parse(input);
+
+// from: https://dart.dev/guides/language/language-tour#enumerated-types
+enum Vehicle implements Comparable<Vehicle> {
+  car(tires: 4, passengers: 5, carbonPerKilometer: 400),
+  bus(tires: 6, passengers: 50, carbonPerKilometer: 800),
+  bicycle(tires: 2, passengers: 1, carbonPerKilometer: 0);
+
+  const Vehicle({
+    required this.tires,
+    required this.passengers,
+    required this.carbonPerKilometer,
+  });
+
+  final int carbonPerKilometer;
+  final int passengers;
+  final int tires;
+
+  @override
+  int compareTo(Vehicle other) => carbonFootprint - other.carbonFootprint;
+
+  int get carbonFootprint => (carbonPerKilometer / passengers).round();
+}
+
+class ClassA {
+  ClassA();
+}
+
+/// ClassB comment1
+/// ClassB comment2
+class ClassB {
+  ClassB();
+}
+
+/* ClassC comment1
+   ClassC comment2
+   ClassC comment 3 */
+class ClassC {
+  ClassC._();
+
+  static const String kColleted = 'Collected';
+}
+
+@JsonSerializable()
+class ClassD {
+  ClassD();
+}
+
+/// ClassE comment1
 @reflectiveTest
+class ClassE {
+  ClassE();
+}
+
+/// ClassF comment1
+abstract class ClassF {
+  ClassF();
+}
+
+class _ClassG {
+  _ClassG();
+}`,
+      },
+      {
+        name: "reversed classes with enums",
+        parts: [
+          mainFunc,
+          randomStuff,
+          enumVehicle,
+          classG,
+          abstractClassF,
+          classE,
+          classD,
+          classC,
+          classB,
+          classA,
+        ],
+        processEnums: true,
+        want: `main() {
+}
+
+typedef DisposeHandler = Future Function();
+
+Version _versionFromString(String input) =>
+    input == null ? null : Version.parse(input);
+
+// from: https://dart.dev/guides/language/language-tour#enumerated-types
+enum Vehicle implements Comparable<Vehicle> {
+  car(tires: 4, passengers: 5, carbonPerKilometer: 400),
+  bus(tires: 6, passengers: 50, carbonPerKilometer: 800),
+  bicycle(tires: 2, passengers: 1, carbonPerKilometer: 0);
+
+  const Vehicle({
+    required this.tires,
+    required this.passengers,
+    required this.carbonPerKilometer,
+  });
+
+  final int carbonPerKilometer;
+  final int passengers;
+  final int tires;
+
+  @override
+  int compareTo(Vehicle other) => carbonFootprint - other.carbonFootprint;
+
+  int get carbonFootprint => (carbonPerKilometer / passengers).round();
+}
+
+class ClassA {
+  ClassA();
+}
+
+/// ClassB comment1
+/// ClassB comment2
+class ClassB {
+  ClassB();
+}
+
+/* ClassC comment1
+   ClassC comment2
+   ClassC comment 3 */
+class ClassC {
+  ClassC._();
+
+  static const String kColleted = 'Collected';
+}
+
+@JsonSerializable()
+class ClassD {
+  ClassD();
+}
+
+/// ClassE comment1
+@reflectiveTest
+class ClassE {
+  ClassE();
+}
+
+/// ClassF comment1
 abstract class ClassF {
   ClassF();
 }
@@ -1410,13 +1701,16 @@ class _ClassG {
       },
     ]
 
-    const opts = {
-      MemberOrdering: defaultMemberOrdering,
-      SortClassesWithinFile: true,
-    }
 
     for (let tt of tests) {
       const source = tt.parts.join("\n\n")
+      const opts: Options = {
+        MemberOrdering: defaultMemberOrdering,
+        ProcessEnumsLikeClasses: tt.processEnums,
+        SortClassesWithinFile: true,
+      }
+
+      console.log(`running sub-test: ${tt.name}`)
       runFullStylizer(opts, source, tt.want, [])
       // Run again to make sure no extra blank lines are added.
       runFullStylizer(opts, tt.want, tt.want, [])

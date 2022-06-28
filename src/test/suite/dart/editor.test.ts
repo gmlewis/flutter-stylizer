@@ -48,7 +48,7 @@ export function setupEditor(searchFor: string, buf: string): [Editor, number, nu
     searchFor,
   )
 
-  const editor = new Editor(buf, false)
+  const editor = new Editor(buf, false, false)
 
   return [editor, lineOffset, openCurlyOffset, closeCurlyOffset]
 }
@@ -313,7 +313,7 @@ suite('DartEditor Parsing Tests', function() {
       ]
 
     for (let tt of tests) {
-      const editor = new Editor(tt.buf, false)
+      const editor = new Editor(tt.buf, false, false)
       assert.strictEqual(editor.lines.length, tt.want.length)
       editor.lines.forEach((line, i) => {
         assert.strictEqual(line.line, tt.want[i].line, `name=${tt.name}, i=${i}, field='line'`)

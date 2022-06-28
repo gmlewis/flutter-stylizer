@@ -31,7 +31,7 @@ suite('Pubspec Tests', function() {
   test('Pubspec get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'pubspec.dart.txt'), 'utf8')
 
-    const e = new Editor(source, false)
+    const e = new Editor(source, false, false)
 
     const [got, err] = e.getClasses(false, false)
     if (err !== null) {
@@ -194,7 +194,7 @@ suite('Pubspec Tests', function() {
       EntityType.BlankLine,        // line #159:
     ]
 
-    runFullStylizer(null, source, wantSource, want)
+    runFullStylizer(null, source, wantSource, [want])
     runFullStylizer(null, wantSource, wantSource, null)
   })
 })

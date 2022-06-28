@@ -16,7 +16,7 @@ limitations under the License.
 
 import { Class } from './class'
 import { Editor } from './editor'
-import { Entity } from './entity'
+import { Entity, EntityType } from './entity'
 import { isComment } from './line'
 
 // Edit represents an edit of an editor buffer.
@@ -34,6 +34,7 @@ export interface Options {
   GroupAndSortGetterMethods?: boolean,
   GroupAndSortVariableTypes?: boolean,
   MemberOrdering?: string[],
+  ProcessEnumsLikeClasses?: boolean,
   SortClassesWithinFile?: boolean,
   SortOtherMethods?: boolean,
   SeparatePrivateMethods?: boolean,
@@ -61,6 +62,7 @@ export class Client {
       GroupAndSortGetterMethods: false,
       GroupAndSortVariableTypes: false,
       MemberOrdering: defaultMemberOrdering,
+      ProcessEnumsLikeClasses: false,
       SortClassesWithinFile: false,
       SortOtherMethods: false,
       SeparatePrivateMethods: false,
@@ -81,9 +83,14 @@ export class Client {
 
       const [lines, changesMade] = this.reorderClass(dc)
 
+      let sortName = dc.className.replace(/^_/, '')
+      if (this.opts.ProcessEnumsLikeClasses) {
+        sortName = (dc.classType === 'enum' ? '0-enum-' : '1-class-') + sortName
+      }
+
       const edit: Edit = {
         dc: dc,
-        sortName: dc.className.replace(/^_/, ''),
+        sortName: sortName,
         startPos: startPos,
         endPos: endPos,
         text: lines.join('\n'),
@@ -135,6 +142,19 @@ export class Client {
     const lines: string[] = []
 
     lines.push(dc.lines[0].line) // Curly brace.
+
+    // Add in LeaveUnmodified lines...
+    let foundLeaveUnmodified = false
+    for (let i = 1; i < dc.lines.length; i++) {
+      const line = dc.lines[i]
+      if (line.entityType === EntityType.LeaveUnmodified) {
+        lines.push(line.line)
+        foundLeaveUnmodified = true
+      }
+    }
+    if (foundLeaveUnmodified) {
+      lines.push('')
+    }
 
     const addEntity = (entity: Entity | null, separateEntities: boolean) => {
       if (entity === null) {

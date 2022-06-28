@@ -31,7 +31,7 @@ suite('Scope Tests', function() {
   test('Scope get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'scope.dart.txt'), 'utf8')
 
-    const e = new Editor(source, false)
+    const e = new Editor(source, false, false)
 
     const [got, err] = e.getClasses(false, false)
     if (err !== null) {
@@ -54,7 +54,7 @@ suite('Scope Tests', function() {
       EntityType.BlankLine,       // line #6:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
 
@@ -71,7 +71,7 @@ suite('Scope Tests', function() {
       EntityType.BlankLine,       // line #7:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
     // runFullStylizer(null, source, wantSource, want)
   })
 
@@ -131,7 +131,7 @@ suite('Scope Tests', function() {
     ]
 
     // runParsePhase(null, source, want)
-    runFullStylizer(null, source, wantSource, want)
+    runFullStylizer(null, source, wantSource, [want])
   })
 
   test('Scope class 4', () => {
@@ -150,7 +150,7 @@ suite('Scope Tests', function() {
       EntityType.BlankLine,       // line #10:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
     // runFullStylizer(null, source, wantSource, want)
   })
 
@@ -173,7 +173,7 @@ suite('Scope Tests', function() {
       EntityType.BlankLine,       // line #12:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
     // runFullStylizer(null, source, wantSource, want)
   })
 
@@ -265,7 +265,7 @@ suite('Scope Tests', function() {
       EntityType.BlankLine,               // line #81:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
     // runFullStylizer(null, source, wantSource, want)
   })
 
@@ -283,7 +283,7 @@ suite('Scope Tests', function() {
       EntityType.BlankLine,       // line #7:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
     // runFullStylizer(null, source, wantSource, want)
   })
 
@@ -401,7 +401,7 @@ suite('Scope Tests', function() {
       EntityType.BlankLine,               // line #107:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
     // runFullStylizer(null, source, wantSource, want)
   })
 
@@ -420,7 +420,7 @@ suite('Scope Tests', function() {
       EntityType.BlankLine,       // line #8:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
     // runFullStylizer(null, source, wantSource, want)
   })
 
@@ -459,7 +459,7 @@ suite('Scope Tests', function() {
       EntityType.BlankLine,               // line #28:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
     // runFullStylizer(null, source, wantSource, want)
   })
 })

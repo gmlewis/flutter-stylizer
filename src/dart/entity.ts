@@ -44,5 +44,6 @@ export enum EntityType {
   OtherMethod,
   BuildMethod,
   GetterMethod,
+  LeaveUnmodified,
 }
 

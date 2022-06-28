@@ -31,7 +31,7 @@ suite('Strong Mode Tests', function() {
   test('Scope get classes', () => {
     const source = fs.readFileSync(path.join(testfilesDir, 'strong_mode.dart.txt'), 'utf8')
 
-    const e = new Editor(source, false)
+    const e = new Editor(source, false, false)
 
     const [got, err] = e.getClasses(false, false)
     if (err !== null) {
@@ -2581,7 +2581,7 @@ suite('Strong Mode Tests', function() {
       EntityType.BlankLine,               // line #2561:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
   })
 
 
@@ -3953,7 +3953,7 @@ suite('Strong Mode Tests', function() {
       EntityType.BlankLine,   // line #1359:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
     // runFullStylizer(null, source, wantSource, want)
   })
 
@@ -4227,7 +4227,7 @@ suite('Strong Mode Tests', function() {
       EntityType.BlankLine,   // line #261:
     ]
 
-    runParsePhase(null, source, want)
+    runParsePhase(null, source, [want])
     // runFullStylizer(null, source, wantSource, want)
   })
 })
