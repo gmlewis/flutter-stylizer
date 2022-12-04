@@ -1,4 +1,4 @@
-# flutter-stylizer README
+# flutter-stylizer - Mothballed/Archived Plugin
 
 [![CodeQL](https://github.com/gmlewis/flutter-stylizer/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/gmlewis/flutter-stylizer/actions/workflows/codeql-analysis.yml)
 
@@ -8,6 +8,12 @@ in an opinionated and consistent manner.
 Note that as of release `0.1.1`, there is now a standalone version of
 `flutter-stylizer` (with identical output to this plugin) that is available here:
 - https://github.com/gmlewis/go-flutter-stylizer
+
+## Status
+
+After 5 years, 119K installs, 4.9/5 stars, and zero sponsors, this project
+is now mothballed and archived. Feel free to fork the project to create your
+own version of the plugin and add your own customizations to your liking.
 
 ## Features
 
